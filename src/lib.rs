@@ -407,6 +407,21 @@ pub fn analyze_pczt_policy(
         .map_err(|_| wasm_bindgen::JsValue::from_str("Could not encode report"))
 }
 
+/// Browser and SDK binding for two-stage privacy regression checks.
+#[cfg(feature = "browser")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn compare_pczt_stages(
+    before: &[u8],
+    after: &[u8],
+    policy_json: &str,
+) -> Result<String, wasm_bindgen::JsValue> {
+    let policy = parse_policy_json(policy_json).map_err(wasm_bindgen::JsValue::from_str)?;
+    let result = compare_stages_with_policy(before, after, policy)
+        .map_err(wasm_bindgen::JsValue::from_str)?;
+    serde_json::to_string(&result)
+        .map_err(|_| wasm_bindgen::JsValue::from_str("Could not encode stage comparison"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

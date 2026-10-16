@@ -215,3 +215,19 @@ semantics, sign transactions or validate consensus.
 
 The Go source SDK delegates to the existing canonical Rust CLI; there
 is no independently implemented Zcash cryptography or hosted API.
+
+## In-browser developer workbenches
+
+The frontend now runs multiple practical PCZT tools with the canonical
+Rust engine compiled to WebAssembly, entirely on the developer's device:
+
+- /tools: inspect one local binary PCZT using configurable privacy rules.
+- /tools/stages: compare two local binary PCZTs, try three synthetic
+  scenarios, inspect sanitized findings and export a JSON report.
+- /tools/handoff: replay four upstream role-generated synthetic PCZT
+  snapshots against the Rust stage engine, verify expected disclosures,
+  expand each test and export a safe JSON report.
+- /docs: canonical guides with direct links to running browser tools.
+
+Full nodes, Zallet RPC signing, proof generation, and Zaino connectivity
+are not simulated as supported. Those need separate upstream tests.

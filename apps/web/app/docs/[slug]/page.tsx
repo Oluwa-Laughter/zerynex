@@ -33,11 +33,21 @@ export default async function DocumentationArticle({params}: {params: Promise<{ 
           <a href={'https://github.com/Oluwa-Laughter/zerynex/blob/main/docs/' + slug + '.md'} target="_blank" rel="noopener noreferrer"><LuGithub size={15}/> View canonical Markdown <LuArrowUpRight size={14}/></a>
         </div>
       </div>
+      {(slug==='pczt-stage-regression'||slug==='handoff-harness')&&
+        <div className="docs-live-demo">
+          <span>LIVE RUST / WEBASSEMBLY</span>
+          <p>Try this capability directly in your browser using verified synthetic fixtures.</p>
+          <Link href={slug==='pczt-stage-regression'?'/tools/stages':'/tools/handoff'}>
+            {slug==='pczt-stage-regression'?'Open Stage Comparator':'Open Role Handoff Runner'}
+            <LuArrowUpRight size={16}/>
+          </Link>
+        </div>}
       <div className="docs-markdown">
         <Markdown remarkPlugins={[remarkGfm]} components={{
           a: ({ href, children }) => {
             const resolved = docsHref(href ?? '')
-            return resolved.startsWith('/docs/') ? <Link href={resolved}>{children}</Link> :
+            return resolved.startsWith('/') && !resolved.startsWith('//') ?
+              <Link href={resolved}>{children}</Link> :
               <a href={resolved} rel="noopener noreferrer" target="_blank">{children}</a>
           },
           h1: ({ children }) => <h2>{children}</h2>,

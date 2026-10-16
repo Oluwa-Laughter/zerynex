@@ -53,7 +53,9 @@ function Header({ current, navigate }: { current: View; navigate: (v: View) => v
       <button className={current === 'ecosystem' ? 'nav-active' : ''} onClick={() => {setMenu(false);navigate('ecosystem')}}>Ecosystem</button>
       <button onClick={() => toHomeSection('protocol')}>Protocol</button>
       <button onClick={() => toHomeSection('principles')}>Principles</button>
-      <Link href="/docs" onClick={() => setMenu(false)}>Documentation <ArrowUpRight size={12}/></Link>
+      {/* Native document navigation is intentional here: docs remain accessible before hydration. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/docs" onClick={() => setMenu(false)}>Documentation <ArrowUpRight size={12}/></a>
     </nav>
     <div className="nav-actions">
       <span className="topbar-network"><span className="pulse-dot"/> CORE / TOOLING</span>
@@ -207,6 +209,18 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
   return <main ref={root} className="studio-page">
     <div className="studio-top studio-reveal"><button className="back-button" onClick={() => navigate('home')}><ArrowLeft size={17}/> BACK TO OVERVIEW</button><span className="studio-code">ZERYNEX / DEVELOPER TOOLS <span>001</span></span></div>
     <div className="studio-heading studio-reveal"><div><Kicker>ZERYNEX TOOLING / LOCAL FIRST</Kicker><h1>Build with <em>privacy.</em></h1><p>Run real PCZT checks, enforce disclosure policies and integrate tested Rust tooling into Zcash applications.</p></div><div className={'engine-pill '+engine}><span className="live-led"/>{engine === 'ready' ? 'RUST ENGINE READY' : engine === 'loading' ? 'ENGINE INITIALIZING' : 'ENGINE UNAVAILABLE'}</div></div>
+    <section className="wb-entry-links studio-reveal" aria-label="Other interactive developer tools">
+      <Link href="/tools/stages">
+        <span>EXPERIMENT 02 / RUST + WASM</span><strong>PCZT Stage Comparator</strong>
+        <small>Compare two real local PCZTs for policy and pool-structure changes.</small>
+        <ArrowUpRight size={21}/>
+      </Link>
+      <Link href="/tools/handoff">
+        <span>EXPERIMENT 03 / SYNTHETIC ROLES</span><strong>Role Handoff Tests</strong>
+        <small>Run four upstream role-fixture regressions and export the results.</small>
+        <ArrowUpRight size={21}/>
+      </Link>
+    </section>
     <div className="studio-grid">
       <div className="studio-left">
         <section className="studio-box studio-reveal">

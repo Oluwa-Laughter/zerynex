@@ -11,6 +11,7 @@ import './globals.css'
 import './cinema.css'
 import './tools.css'
 import './docs.css'
+import './workbench.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000')

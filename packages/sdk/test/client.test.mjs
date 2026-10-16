@@ -126,3 +126,77 @@ test('imports strict JSON policy files without silently ignoring unknown fields'
   assert.throws(() => parsePolicyJson('{not-json'), err => err.code === 'POLICY_INVALID')
   assert.throws(() => parsePolicyJson(' '.repeat(4097)), err => err.code === 'POLICY_INVALID')
 })
+
+const cleanStage = () => JSON.stringify({
+  profile: 'external_signer',
+  deny_transparent: false,
+  deny_sapling: false,
+  before_findings_count: 0,
+  after_findings_count: 0,
+  added_findings: [],
+  resolved_findings: [],
+  component_deltas: [],
+  no_new_findings: true,
+  passed: true,
+  disclaimer: 'Limited structural regression test only',
+})
+
+test('SDK compares two local files against a Rust-backed stage interface', async () => {
+  let calls = 0
+  const client = createZerynexClient({
+    loadEngine: async () => ({
+      analyze_pczt_policy: () => '{}',
+      compare_pczt_stages(before, after, policyJson) {
+        calls++
+        assert.equal(before.length, 3)
+        assert.equal(after.length, 4)
+        assert.equal(JSON.parse(policyJson).profile, 'external_signer')
+        return cleanStage()
+      },
+    }),
+  })
+  const result = await client.compareStageBlobs(
+    new Blob([Uint8Array.of(1, 2, 3)]),new Blob([Uint8Array.of(1, 2, 3, 4)]),
+  )
+  assert.equal(result.passed,true)
+  assert.equal(calls,1)
+})
+
+test('SDK stage comparison fails closed on incomplete engine or forged JSON reports', async () => {
+  const incomplete = createZerynexClient({
+    loadEngine: async () => ({ analyze_pczt_policy: () => '{}' }),
+  })
+  await assert.rejects(
+    incomplete.compareStages(Uint8Array.of(1),Uint8Array.of(2)),
+    err => err.code === 'ENGINE_UNAVAILABLE',
+  )
+  const forged = createZerynexClient({
+    loadEngine: async () => ({
+      analyze_pczt_policy:()=> '{}',
+      compare_pczt_stages:()=> JSON.stringify({
+        ...JSON.parse(cleanStage()), passed:true, after_findings_count:1,
+      }),
+    }),
+  })
+  await assert.rejects(
+    forged.compareStages(Uint8Array.of(1),Uint8Array.of(2)),
+    err => err.code === 'REPORT_INVALID',
+  )
+})
+
+test('SDK stage comparison never propagates exceptions with transaction bytes', async () => {
+  const client = createZerynexClient({
+    loadEngine: async () => ({
+      analyze_pczt_policy:()=> '{}',
+      compare_pczt_stages:()=> {throw Error('FAKE_PRIVATE_PCZT_DATA')}
+    }),
+  })
+  await assert.rejects(
+    client.compareStages(Uint8Array.of(1),Uint8Array.of(2)),
+    err => err.code === 'ANALYSIS_FAILED' && !err.message.includes('FAKE_PRIVATE_PCZT_DATA'),
+  )
+  await assert.rejects(
+    client.compareStageBlobs(new Blob([]),new Blob([1])),
+    err => err.code === 'INPUT_INVALID',
+  )
+})

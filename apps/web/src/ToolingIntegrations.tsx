@@ -119,7 +119,11 @@ export default function ToolingIntegrations() {
           <div className="dev-code-editor-head"><span>DEVELOPER QUICKSTART</span><button onClick={copy} aria-label="Copy integration example">{copied?<LuCheck size={15}/>:<LuCopy size={15}/>} {copied?'COPIED':'COPY'}</button></div>
           <pre ref={codeRef}><code>{current.code}</code></pre>
         </div>
-        <Link className="dev-integration-docs" href={current.documentation}>READ INTEGRATION DOCUMENTATION <LuArrowUpRight size={15}/></Link>
+        <div className="dev-integration-links">
+          <Link className="dev-integration-docs" href={current.documentation}>READ INTEGRATION DOCUMENTATION <LuArrowUpRight size={15}/></Link>
+          {active==='stages'&&<Link className="dev-integration-try" href="/tools/stages">RUN STAGE COMPARATOR <LuArrowUpRight size={15}/></Link>}
+          {active==='handoff'&&<Link className="dev-integration-try" href="/tools/handoff">RUN ROLE HARNESS <LuArrowUpRight size={15}/></Link>}
+        </div>
       </div>
     </div>
     <p className="dev-integration-caveat">GITHUB ACTION SUPPORTS EXTERNAL REPOSITORIES. SDK PACKAGES ARE STILL SOURCE-ONLY, NOT REGISTRY-RELEASED.</p>

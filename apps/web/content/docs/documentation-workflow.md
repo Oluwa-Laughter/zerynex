@@ -74,3 +74,15 @@ Code owners should evaluate new languages by their specific ecosystem
 use cases, test burden and adoption paths. Keep the actual PCZT parser and
 privacy-rule implementation in Rust rather than porting cryptography
 independently.
+
+## Browser-workbench acceptance tests
+
+A capability documented as runnable in-browser must use the canonical
+Rust/WASM engine for PCZT analysis, not a fake success response. Each
+workbench needs a dedicated route, clear local-data boundaries, a safe
+sample fixture, expected-success and expected-failure browser tests,
+and a documentation link back to the canonical guide.
+
+Synthetic role fixtures are copied from tests/fixtures/role-handoff to
+apps/web/public/examples/role-handoff. The Rust CI job compares the files
+byte-for-byte, ensuring the workbench uses identical test vectors.

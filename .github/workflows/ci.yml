@@ -31,6 +31,12 @@ jobs:
         run: cargo run --locked --example generate_role_handoff -- --check
       - name: Run node-free PCZT role-handoff scenarios
         run: cargo run --locked --bin zerynex-handoff -- --manifest tests/fixtures/role-handoff/scenario.json --json
+      - name: Verify shipped browser role fixtures match upstream-generated test vectors
+        shell: bash
+        run: |
+          for fixture in tests/fixtures/role-handoff/*; do
+            cmp "$fixture" "apps/web/public/examples/role-handoff/$(basename "$fixture")"
+          done
       - name: Check browser compilation
         run: cargo check --locked --target wasm32-unknown-unknown --features browser
 

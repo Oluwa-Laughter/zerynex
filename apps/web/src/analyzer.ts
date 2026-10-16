@@ -5,17 +5,18 @@ import {
   createZerynexClient,
   type Profile as SdkProfile,
   type Report,
+  type StageComparison,
 } from '@zerynex/sdk'
 
 export type Profile = 'external-signer' | 'restricted-handoff'
-export type { Report } from '@zerynex/sdk'
+export type { Report, StageComparison } from '@zerynex/sdk'
 export type PolicyOptions = { denyTransparent: boolean; denySapling: boolean }
 
 const client = createZerynexClient({
   loadEngine: async () => {
     const wasm = await import('./wasm/zerynex.js')
     await wasm.default({ module_or_path: '/wasm/zerynex_bg.wasm' })
-    return { analyze_pczt_policy: wasm.analyze_pczt_policy }
+    return { analyze_pczt_policy: wasm.analyze_pczt_policy, compare_pczt_stages: wasm.compare_pczt_stages }
   },
 })
 
@@ -33,6 +34,17 @@ export async function inspectPczt(
 
   return client.analyzeBlob(file, {
     profile: normalizedProfile,
+    deny_transparent: options.denyTransparent,
+    deny_sapling: options.denySapling,
+  })
+}
+
+/** A source-file-only, browser local comparison; no API routes or storage. */
+export async function comparePcztFiles(
+  baseline: Blob, candidate: Blob, profile: Profile, options: PolicyOptions,
+): Promise<StageComparison> {
+  return client.compareStageBlobs(baseline, candidate, {
+    profile: profile === 'restricted-handoff' ? 'restricted_handoff' : 'external_signer',
     deny_transparent: options.denyTransparent,
     deny_sapling: options.denySapling,
   })

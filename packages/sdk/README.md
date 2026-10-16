@@ -59,3 +59,31 @@ The same scripts work with Yarn and pnpm.
 The SDK exposes parsePolicyJson to validate imported policy files. It rejects
 unknown keys and invalid types, mirroring the Rust policy format.
 In the Studio, users can import a JSON policy locally without uploading it.
+
+## Compare PCZT handoff stages in React/Next.js
+
+The same trusted Rust WASM engine now exposes compare_pczt_stages,
+and the local SDK provides compareStages and compareStageBlobs.
+
+Example:
+~~~ts
+const client = createZerynexClient({
+  loadEngine: async () => {
+    const wasm = await import('./wasm/zerynex.js')
+    await wasm.default({ module_or_path: '/wasm/zerynex_bg.wasm' })
+    return {
+      analyze_pczt_policy: wasm.analyze_pczt_policy,
+      compare_pczt_stages: wasm.compare_pczt_stages,
+    }
+  },
+})
+const comparison = await client.compareStageBlobs(beforeFile, afterFile, {
+  profile: 'external_signer',
+  deny_transparent: true,
+})
+~~~
+
+This is used by the interactive /tools/stages frontend. Both inputs
+are analyzed locally without uploading their bytes. It only compares
+selected disclosure fields and pool component counts, not cryptographic
+transaction equivalence, signatures or ZK proofs.

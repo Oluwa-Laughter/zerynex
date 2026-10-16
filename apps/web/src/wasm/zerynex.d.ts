@@ -5,12 +5,18 @@ export function analyze_pczt(bytes: Uint8Array, restricted: boolean): string;
 
 export function analyze_pczt_policy(bytes: Uint8Array, policy_json: string): string;
 
+/**
+ * Browser and SDK binding for two-stage privacy regression checks.
+ */
+export function compare_pczt_stages(before: Uint8Array, after: Uint8Array, policy_json: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly analyze_pczt: (a: number, b: number, c: number) => [number, number, number, number];
     readonly analyze_pczt_policy: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly compare_pczt_stages: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;

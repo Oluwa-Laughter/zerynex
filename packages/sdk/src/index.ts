@@ -29,6 +29,31 @@ export interface Report {
   disclaimer: string
 }
 
+export interface StageFinding {
+  rule: string
+  field: string
+}
+
+export interface ComponentDelta {
+  component: string
+  before: number
+  after: number
+}
+
+export interface StageComparison {
+  profile: Profile
+  deny_transparent: boolean
+  deny_sapling: boolean
+  before_findings_count: number
+  after_findings_count: number
+  added_findings: StageFinding[]
+  resolved_findings: StageFinding[]
+  component_deltas: ComponentDelta[]
+  no_new_findings: boolean
+  passed: boolean
+  disclaimer: string
+}
+
 export type PartialPolicy = Partial<Policy>
 
 /**
@@ -37,6 +62,8 @@ export type PartialPolicy = Partial<Policy>
  */
 export interface ZerynexEngine {
   analyze_pczt_policy(input: Uint8Array, policyJson: string): string
+  /** Optional for older engines; required by the comparison methods. */
+  compare_pczt_stages?(before: Uint8Array, after: Uint8Array, policyJson: string): string
 }
 
 export interface ClientOptions {
@@ -135,6 +162,52 @@ function parseReport(text: string): Report {
   return output as unknown as Report
 }
 
+function isStageFinding(value: unknown): value is StageFinding {
+  return isRecord(value) && typeof value.rule === 'string' && value.rule.length > 0 &&
+    value.rule.length <= 500 && typeof value.field === 'string' &&
+    value.field.length > 0 && value.field.length <= 500
+}
+
+function isComponentDelta(value: unknown): value is ComponentDelta {
+  return isRecord(value) &&
+    ['transparent.inputs', 'transparent.outputs', 'sapling.spends', 'sapling.outputs',
+      'orchard.actions', 'ironwood.actions'].includes(String(value.component)) &&
+    Number.isSafeInteger(value.before) && Number(value.before) >= 0 &&
+    Number.isSafeInteger(value.after) && Number(value.after) >= 0
+}
+
+function parseStageComparison(text: string, policy: Policy): StageComparison {
+  if (text.length > 256 * 1024) {
+    throw new ZerynexSdkError('REPORT_INVALID', 'Local stage report exceeds output size.')
+  }
+  let value: unknown
+  try {
+    value = JSON.parse(text)
+  } catch {
+    throw new ZerynexSdkError('REPORT_INVALID', 'Local stage comparison returned invalid JSON.')
+  }
+  if (!isRecord(value) ||
+    value.profile !== policy.profile ||
+    value.deny_transparent !== policy.deny_transparent ||
+    value.deny_sapling !== policy.deny_sapling ||
+    !Number.isSafeInteger(value.before_findings_count) || Number(value.before_findings_count) < 0 ||
+    !Number.isSafeInteger(value.after_findings_count) || Number(value.after_findings_count) < 0 ||
+    !Array.isArray(value.added_findings) || value.added_findings.length > 1000 ||
+    !value.added_findings.every(isStageFinding) ||
+    !Array.isArray(value.resolved_findings) || value.resolved_findings.length > 1000 ||
+    !value.resolved_findings.every(isStageFinding) ||
+    !Array.isArray(value.component_deltas) || value.component_deltas.length > 6 ||
+    !value.component_deltas.every(isComponentDelta) ||
+    typeof value.no_new_findings !== 'boolean' || typeof value.passed !== 'boolean' ||
+    typeof value.disclaimer !== 'string' || !value.disclaimer ||
+    value.no_new_findings !== (value.added_findings.length === 0) ||
+    value.passed !== (value.after_findings_count === 0 &&
+      value.added_findings.length === 0 && value.component_deltas.length === 0)) {
+    throw new ZerynexSdkError('REPORT_INVALID', 'Local stage comparison returned an invalid report.')
+  }
+  return value as unknown as StageComparison
+}
+
 export interface ZerynexClient {
   /** Lazily load the local engine, at most once per successful initialization. */
   ready(): Promise<void>
@@ -142,6 +215,11 @@ export interface ZerynexClient {
   analyzeBytes(input: Uint8Array | ArrayBuffer, policy?: PartialPolicy): Promise<Report>
   /** Analyze local browser File and Blob objects. */
   analyzeBlob(input: Blob, policy?: PartialPolicy): Promise<Report>
+  /** Compare two locally held binary PCZT snapshots with the SAME Rust engine. */
+  compareStages(before: Uint8Array | ArrayBuffer, after: Uint8Array | ArrayBuffer,
+    policy?: PartialPolicy): Promise<StageComparison>
+  /** Compare local browser files, without uploading either snapshot. */
+  compareStageBlobs(before: Blob, after: Blob, policy?: PartialPolicy): Promise<StageComparison>
 }
 
 export function createZerynexClient(options: ClientOptions): ZerynexClient {
@@ -205,9 +283,47 @@ export function createZerynexClient(options: ClientOptions): ZerynexClient {
     return analyzeBytes(await input.arrayBuffer(), normalized)
   }
 
+  async function compareStages(before: Uint8Array | ArrayBuffer, after: Uint8Array | ArrayBuffer,
+    policy: PartialPolicy = {}): Promise<StageComparison> {
+    const configured = normalizePolicy(policy)
+    if (!(before instanceof Uint8Array) && !(before instanceof ArrayBuffer) ||
+        !(after instanceof Uint8Array) && !(after instanceof ArrayBuffer)) {
+      throw new ZerynexSdkError('INPUT_INVALID', 'Expected two binary PCZT snapshots.')
+    }
+    const first = before instanceof Uint8Array ? before : new Uint8Array(before)
+    const second = after instanceof Uint8Array ? after : new Uint8Array(after)
+    validateSize(first.byteLength)
+    validateSize(second.byteLength)
+    const engine = await load()
+    if (typeof engine.compare_pczt_stages !== 'function') {
+      throw new ZerynexSdkError('ENGINE_UNAVAILABLE', 'Local Rust engine cannot compare stages.')
+    }
+    let report: string
+    try {
+      report = engine.compare_pczt_stages(first, second, JSON.stringify(configured))
+    } catch {
+      throw new ZerynexSdkError('ANALYSIS_FAILED', 'Unable to compare selected PCZT stages.')
+    }
+    return parseStageComparison(report, configured)
+  }
+
+  async function compareStageBlobs(before: Blob, after: Blob, policy: PartialPolicy = {}): Promise<StageComparison> {
+    if (!before || !after || typeof before.arrayBuffer !== 'function' ||
+      typeof after.arrayBuffer !== 'function' || !Number.isSafeInteger(before.size) ||
+      !Number.isSafeInteger(after.size)) {
+      throw new ZerynexSdkError('INPUT_INVALID', 'Expected two local PCZT files.')
+    }
+    validateSize(before.size)
+    validateSize(after.size)
+    const configured = normalizePolicy(policy)
+    return compareStages(await before.arrayBuffer(), await after.arrayBuffer(), configured)
+  }
+
   return {
     ready: async () => { await load() },
     analyzeBytes,
     analyzeBlob,
+    compareStages,
+    compareStageBlobs,
   }
 }

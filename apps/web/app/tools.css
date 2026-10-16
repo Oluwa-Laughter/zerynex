@@ -106,3 +106,8 @@
  .dev-integration-tabs button>span{display:none}
 }
 @media(prefers-reduced-motion:reduce){.studio-reveal,.console-reveal{filter:none!important;opacity:1!important;transform:none!important}}
+
+.dev-integration-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:18px}
+.dev-integration-links .dev-integration-docs{margin-top:0}
+.dev-integration-try{display:inline-flex;align-items:center;gap:10px;border:1px solid #a477ed;color:#e3caff;padding:12px 16px;border-radius:7px;font:11px var(--mono);transition:background .22s}
+.dev-integration-try:hover{background:#422858;color:#fff}

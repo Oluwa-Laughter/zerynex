@@ -280,3 +280,69 @@ test('ecosystem onboarding supports Go and ZK engineering with correct limitatio
   await page.getByRole('link',{ name: /ZK \/ PROVER/ }).click()
   await expect(page).toHaveURL(/\/docs\/zk-prover-handoffs/)
 })
+
+test('real WebAssembly stage comparison flags new metadata and exports JSON', async ({ page }) => {
+  await page.goto('/tools/stages')
+  await expect(page.getByRole('heading', { name: /See what changed/ })).toBeVisible()
+  await page.getByRole('button', { name: /New metadata/ }).click()
+  await expect(page.getByText('clean-synthetic-v6.pczt')).toBeVisible()
+  await expect(page.getByText('flagged-synthetic-v6.pczt')).toBeVisible()
+  await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
+  await expect(page.getByText('PCZT-GLOBAL-METADATA')).toBeVisible()
+  await expect(page.getByText('global.proprietary')).toBeVisible()
+  await expect(page.getByText('Review stage observations')).toBeVisible()
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: /Export JSON/ }).click()
+  expect((await download).suggestedFilename()).toBe('zerynex-stage-regression.json')
+})
+
+test('stage comparison rejects a newly introduced transparent output even without deny-transparent', async ({ page }) => {
+  await page.goto('/tools/stages')
+  await page.getByRole('button', { name: /Pool topology/ }).click()
+  await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
+  await expect(page.getByRole('heading', { name: /Pool component changes/ })).toContainText('1')
+  await expect(page.getByText('transparent.outputs')).toBeVisible()
+  await expect(page.getByText('0 → 1')).toBeVisible()
+})
+
+test('stage comparison detects a disclosure that was resolved', async ({ page }) => {
+  await page.goto('/tools/stages')
+  await page.getByRole('button', { name: /Resolved finding/ }).click()
+  await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
+  await expect(page.getByText('No remaining findings')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Resolved findings/ })).toContainText('1')
+})
+
+test('invalid local PCZT snapshots cannot yield a fake passing report', async ({ page }) => {
+  await page.goto('/tools/stages')
+  await page.getByRole('button', { name: /New metadata/ }).click()
+  await page.getByLabel('Baseline PCZT file').setInputFiles({
+    name:'invalid.pczt',mimeType:'application/octet-stream',buffer:Buffer.from('not a PCZT'),
+  })
+  await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
+  await expect(page.locator('.wb-error[role="alert"]')).toContainText('Comparison failed')
+  await expect(page.getByText('No remaining findings')).toHaveCount(0)
+})
+
+test('role-handoff workbench executes all four synthetic PCZT scenarios', async ({ page }) => {
+  await page.goto('/tools/handoff')
+  await expect(page.getByRole('heading', { name: /Test the handoff/ })).toBeVisible()
+  await page.getByRole('button', { name: /RUN SYNTHETIC HANDOFF SUITE/ }).click()
+  await expect(page.getByText('4 / 4 scenarios matched')).toBeVisible()
+  await page.getByRole('button', { name: /creator to updater introduces proprietary/i }).click()
+  await expect(page.getByText('PCZT-GLOBAL-METADATA')).toBeVisible()
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: /Export sanitized JSON/ }).click()
+  expect((await download).suggestedFilename()).toBe('zerynex-role-scenario-results.json')
+})
+
+test('documentation and tools link to real browser workbenches', async ({ page }) => {
+  await page.goto('/docs/pczt-stage-regression')
+  await page.getByRole('link', { name: 'Open Stage Comparator' }).click()
+  await expect(page).toHaveURL(/\/tools\/stages$/)
+  await page.getByRole('link', { name: 'Read guide' }).click()
+  await expect(page).toHaveURL(/\/docs\/pczt-stage-regression$/)
+  await page.goto('/tools')
+  await page.getByRole('link', { name: /Role Handoff Tests/ }).first().click()
+  await expect(page).toHaveURL(/\/tools\/handoff$/)
+})

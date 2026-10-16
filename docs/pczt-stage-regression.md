@@ -4,6 +4,18 @@ Zerynex compares two local PCZT snapshots with the same Rust disclosure
 rules. This is an early developer guard for creator/prover/signer handoffs,
 not a cryptographic transaction equivalence verifier.
 
+## Try it in the browser
+
+Open [the PCZT Stage Comparator](/tools/stages) to compare two local PCZT
+snapshots with the **same Rust policy engine compiled to WebAssembly**. The
+page includes three checked-in synthetic scenarios (new proprietary
+metadata, transparent output topology, resolved metadata) and accepts
+your own local binary PCZT files, up to 8 MiB each. Values are not sent
+to a Zerynex server. You can export the resulting sanitized JSON report.
+
+This is the browser implementation of selected structural checks, not
+a full transaction equivalence verifier.
+
 ## CLI example: new sensitive metadata
 
     cargo run --locked -- \
