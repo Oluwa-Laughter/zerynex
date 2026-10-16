@@ -231,3 +231,5 @@ Rust engine compiled to WebAssembly, entirely on the developer's device:
 
 Full nodes, Zallet RPC signing, proof generation, and Zaino connectivity
 are not simulated as supported. Those need separate upstream tests.
+
+For public Next.js deployment and verification, see docs/deployment.md.
