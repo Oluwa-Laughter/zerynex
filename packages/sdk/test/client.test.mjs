@@ -5,6 +5,7 @@ import {
   exportPolicyJson,
   MAX_PCZT_BYTES,
   normalizePolicy,
+  parsePolicyJson,
   ZerynexSdkError,
 } from '../dist/index.js'
 
@@ -111,4 +112,17 @@ test('SDK validates loader contract and input limits', () => {
   assert.throws(() => createZerynexClient({ loadEngine: null }), ZerynexSdkError)
   assert.throws(() => createZerynexClient({ loadEngine: async () => ({}), maxInputBytes: Infinity }),
     err => err.code === 'INPUT_INVALID')
+})
+
+test('imports strict JSON policy files without silently ignoring unknown fields', () => {
+  const policy = parsePolicyJson('{"profile":"restricted_handoff","deny_transparent":true}')
+  assert.deepEqual(policy, {
+    profile: 'restricted_handoff',
+    deny_transparent: true,
+    deny_sapling: false,
+  })
+  assert.throws(() => parsePolicyJson('{"deny_tranparent":true}'), err => err.code === 'POLICY_INVALID')
+  assert.throws(() => parsePolicyJson('[]'), err => err.code === 'POLICY_INVALID')
+  assert.throws(() => parsePolicyJson('{not-json'), err => err.code === 'POLICY_INVALID')
+  assert.throws(() => parsePolicyJson(' '.repeat(4097)), err => err.code === 'POLICY_INVALID')
 })

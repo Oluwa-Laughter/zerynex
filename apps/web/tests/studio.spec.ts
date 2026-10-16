@@ -65,3 +65,34 @@ test('shielded-only privacy policy rejects an actual synthetic transparent outpu
   await expect(page.getByText('PCZT-TRANSPARENT-OUTPUTS')).toBeVisible()
   await expect(page.getByText('transparent.outputs', {exact: true})).toBeVisible()
 })
+
+test('locally imports a valid policy file and applies its restrictions', async ({ page }) => {
+  await page.goto('/studio')
+  await page.getByLabel('Select JSON policy file').setInputFiles({
+    name: 'strict-policy.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      profile: 'restricted_handoff',
+      deny_transparent: true,
+      deny_sapling: true,
+    })),
+  })
+  await expect(page.getByRole('status')).toContainText('Policy loaded locally')
+  await expect(page.getByLabel('Deny transparent components')).toBeChecked()
+  await expect(page.getByLabel('Deny Sapling components')).toBeChecked()
+  await page.getByRole('button', { name: /Transparent v6/ }).click()
+  await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ }).click()
+  await expect(page.getByText('PCZT-TRANSPARENT-OUTPUTS')).toBeVisible()
+})
+
+test('rejects malformed policy imports without weakening the current policy', async ({ page }) => {
+  await page.goto('/studio')
+  await page.getByLabel('Deny transparent components').check()
+  await page.getByLabel('Select JSON policy file').setInputFiles({
+    name: 'invalid-policy.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"deny_tranparent": false}'),
+  })
+  await expect(page.getByRole('status')).toContainText('Invalid policy file')
+  await expect(page.getByLabel('Deny transparent components')).toBeChecked()
+})

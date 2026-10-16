@@ -89,6 +89,23 @@ export function exportPolicyJson(policy: PartialPolicy = {}): string {
   return JSON.stringify(normalizePolicy(policy), null, 2)
 }
 
+/** Import a repository-local policy without accepting unknown or loose fields. */
+export function parsePolicyJson(contents: string): Policy {
+  if (typeof contents !== 'string' || new TextEncoder().encode(contents).byteLength > 4096) {
+    throw new ZerynexSdkError('POLICY_INVALID', 'Policy file must be valid JSON of at most 4 KiB.')
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(contents)
+  } catch {
+    throw new ZerynexSdkError('POLICY_INVALID', 'Policy file is not valid JSON.')
+  }
+  if (!isRecord(parsed)) {
+    throw new ZerynexSdkError('POLICY_INVALID', 'Policy file must contain a JSON object.')
+  }
+  return normalizePolicy(parsed)
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

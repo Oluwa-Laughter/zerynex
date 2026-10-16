@@ -106,3 +106,10 @@ locally through a standard file dependency. We test npm and Yarn installation
 separately from our pnpm-based reference CI build.
 
 See docs/package-managers.md for installation and development instructions.
+
+## Importable Studio policies
+
+The Studio can import/export repository-local JSON policy files with
+strict validation performed by @zerynex/sdk. A malformed policy does not
+alter the selected disclosure safeguards. Imported data is read on-device,
+and exported policies can be used directly with the Rust --policy-file CLI.

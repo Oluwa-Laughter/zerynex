@@ -3,11 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
-import { LuArrowDown as ArrowDown, LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuChevronDown as ChevronDown, LuCircleAlert as CircleAlert, LuCircleCheck as CircleCheck, LuCopy as Copy, LuDownload as Download, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLayers3 as Layers3, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuMoveUpRight as MoveUpRight, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
+import { LuArrowDown as ArrowDown, LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuChevronDown as ChevronDown, LuCircleAlert as CircleAlert, LuCircleCheck as CircleCheck, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLayers3 as Layers3, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuMoveUpRight as MoveUpRight, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inspectPczt, loadEngine } from './analyzer'
-import { exportPolicyJson, type Policy as SdkPolicy } from '@zerynex/sdk'
+import { exportPolicyJson, parsePolicyJson, type Policy as SdkPolicy } from '@zerynex/sdk'
 import type { Profile, Report } from './analyzer'
 
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
@@ -181,6 +181,8 @@ function PolicyIllustration({ restricted }: { restricted: boolean }) {
 }
 function Studio({ navigate }: { navigate: (v: View) => void }) {
   const input = useRef<HTMLInputElement>(null)
+  const policyInput = useRef<HTMLInputElement>(null)
+  const [policyNotice, setPolicyNotice] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [profile, setProfile] = useState<Profile>('external-signer')
   const [denyTransparent, setDenyTransparent] = useState(false)
@@ -244,6 +246,25 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
       setBusy(false)
     }
   }
+  const importPolicy = async (selected?: File | null) => {
+    if (!selected) return
+    setPolicyNotice(null)
+    if (selected.size > 4096) {
+      setPolicyNotice('Invalid policy: maximum file size is 4 KiB.')
+      return
+    }
+    try {
+      const imported = parsePolicyJson(await selected.text())
+      setProfile(imported.profile === 'restricted_handoff' ? 'restricted-handoff' : 'external-signer')
+      setDenyTransparent(imported.deny_transparent)
+      setDenySapling(imported.deny_sapling)
+      setReport(null)
+      setError(null)
+      setPolicyNotice('Policy loaded locally. Review the settings before analyzing.')
+    } catch {
+      setPolicyNotice('Invalid policy file. Use the documented JSON schema.')
+    }
+  }
   const downloadPolicy = () => {
     const policy: SdkPolicy = {
       profile: profile === 'restricted-handoff' ? 'restricted_handoff' : 'external_signer',
@@ -303,7 +324,12 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
             <span className="policy-controls-title">ADDITIONAL PRIVACY INVARIANTS</span>
             <label className="policy-check"><input type="checkbox" checked={denyTransparent} onChange={e=>{setDenyTransparent(e.target.checked);setReport(null)}}/><span><strong>Deny transparent components</strong><small>Flag transparent inputs and outputs in a PCZT.</small></span></label>
             <label className="policy-check"><input type="checkbox" checked={denySapling} onChange={e=>{setDenySapling(e.target.checked);setReport(null)}}/><span><strong>Deny Sapling components</strong><small>Require no Sapling spends or outputs in the workflow.</small></span></label>
-            <button type="button" className="download-policy" onClick={downloadPolicy}><Download size={14}/> EXPORT JSON POLICY</button>
+            <div className="policy-file-actions">
+              <input ref={policyInput} type="file" accept=".json,application/json" aria-label="Select JSON policy file" hidden onChange={e=>{void importPolicy(e.target.files?.[0]);e.target.value=''}}/>
+              <button type="button" className="download-policy" onClick={() => policyInput.current?.click()}><Upload size={14}/> IMPORT JSON POLICY</button>
+              <button type="button" className="download-policy" onClick={downloadPolicy}><Download size={14}/> EXPORT JSON POLICY</button>
+            </div>
+            {policyNotice && <p role="status" className="policy-notice">{policyNotice}</p>}
           </div>
           <div className="policy-warning"><CircleAlert size={16}/> These profiles are early checks. A passing report is not proof of anonymity, and restrictive policies may reject data a real signer needs.</div>
           <button className="run-analysis" disabled={!file || engine!=='ready' || busy || file.size>8*1024*1024} onClick={run}>{busy?'ANALYZING ON DEVICE':'RUN PRIVACY ANALYSIS'}{busy?<span className="spinner"/>:<ArrowRight size={20}/>}</button>

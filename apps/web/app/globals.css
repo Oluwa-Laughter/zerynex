@@ -28,3 +28,5 @@
 @media(max-width:660px){.fixture-row{align-items:start;flex-direction:column}.fixture-row button{padding:10px}}
 
 .policy-controls{border:1px solid #405342;background:#17231b;padding:17px;margin:20px 0 0;display:flex;flex-direction:column;gap:17px}.policy-controls-title{font:10px var(--mono);color:var(--lime);letter-spacing:.06em}.policy-check{display:flex;gap:13px;align-items:flex-start;cursor:pointer}.policy-check input{margin-top:3px;accent-color:var(--lime);width:17px;height:17px;flex-shrink:0}.policy-check>span{display:flex;flex-direction:column;gap:6px}.policy-check strong{font-size:13px;font-weight:600}.policy-check small{font-size:11px;color:#9faf9a;line-height:1.45}.download-policy{border:1px solid #526b4e;background:none;color:var(--lime);display:flex;align-items:center;gap:9px;padding:10px 12px;font:10px var(--mono);align-self:flex-start;transition:background .2s}.download-policy:hover{background:#d8fb7d12}
+
+.policy-file-actions{display:flex;flex-wrap:wrap;gap:9px}.policy-file-actions .download-policy{align-self:auto}.policy-notice{font:11px var(--mono);line-height:1.6;color:#c5d7b8;margin:0}

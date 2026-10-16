@@ -53,3 +53,9 @@ can access local files regardless of this SDK's own no-upload design.
     npm test
 
 The same scripts work with Yarn and pnpm.
+
+## Importing JSON policies
+
+The SDK exposes parsePolicyJson to validate imported policy files. It rejects
+unknown keys and invalid types, mirroring the Rust policy format.
+In the Studio, users can import a JSON policy locally without uploading it.
