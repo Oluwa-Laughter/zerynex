@@ -12,7 +12,7 @@ A Rust-first privacy-policy toolkit for Zcash Partially Created Zcash Transactio
 - **CLI** (`src/main.rs`): local binary input, text/JSON report, 0 pass / 1 input error / 2 policy findings.
 - **Browser engine**: the *same* Rust core compiled to WebAssembly; no hosted file upload or analysis API.
 - **Studio** (`apps/web`): Next.js 16 App Router, React 19, TypeScript, Tailwind 4, GSAP animation, adaptive responsive UX, local file analysis, JSON export.
-- **Fixtures** (`examples/generate_fixtures.rs`): synthetic non-spendable v6 PCZT files, clean and flagged.
+- **Fixtures** (`examples/generate_fixtures.rs`): synthetic non-spendable v6 PCZT files: clean, metadata-flagged, and transparent-output.
 
 ## Development
 
@@ -28,7 +28,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open http://127.0.0.1:3000, choose **Launch studio**, load a genuine local binary PCZT or one of the two **synthetic examples**, select a profile, and run **real Rust WebAssembly analysis** without transferring your PCZT to any backend.
+Open http://127.0.0.1:3000, choose **Launch studio**, load a genuine local binary PCZT or one of the three **synthetic examples**, select a profile, and run **real Rust WebAssembly analysis** without transferring your PCZT to any backend.
 
 The prebuilt browser WASM is included under `apps/web/public/wasm`. The build script reproducibly regenerates it. GitHub Actions builds Rust + WASM + web.
 
@@ -41,7 +41,7 @@ Reports contain rule IDs and field paths, **not private field values**.
 
 ## Security notice
 
-**Early research software, not audited.** Passing implemented checks does **not** imply anonymity, complete private-data handling, consensus validity, safe signing, or a production security audit. Sapling and transparent checks are not yet complete, and network side channels are outside v0.1 scope. No wallet keys belong in committed fixtures.
+**Early research software, not audited.** Passing implemented checks does **not** imply anonymity, complete private-data handling, consensus validity, safe signing, or a production security audit. Sapling and transparent checks remain partial, and network side channels are outside v0.1 scope. No wallet keys belong in committed fixtures.
 
 Full threat-model summary: [docs/privacy-model.md](docs/privacy-model.md).
 
@@ -78,3 +78,15 @@ After installation and WASM generation:
 GitHub CI also runs the Rust formatting, Clippy, tests, and WASM compatibility checks. Playwright covers real clean/flagged PCZT analysis on desktop and mobile.
 
 **Security note:** This early research toolkit is not audited, and its limited policy checks are not a guarantee of privacy or consensus validity.
+
+## Policy-as-code
+
+Local JSON policies specify signer profile and permitted shielded pools.
+See [policy reference](docs/policy-format.md) and [policy examples](policies/).
+The CLI supports --policy-file, --deny-transparent, and --deny-sapling
+alongside the built-in profiles. A findings-free report never guarantees
+privacy, signing safety, or consensus validity.
+
+Zerynex ships three non-spendable synthetic PCZT v6 examples:
+clean, global-metadata-flagged, and transparent-output. The last one demonstrates
+why a shielded-only policy is meaningful, with no spendable funds or private keys.

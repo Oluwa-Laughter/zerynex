@@ -182,6 +182,8 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
   const input = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [profile, setProfile] = useState<Profile>('external-signer')
+  const [denyTransparent, setDenyTransparent] = useState(false)
+  const [denySapling, setDenySapling] = useState(false)
   const [engine, setEngine] = useState<EngineStatus>('loading')
   const [dragging, setDragging] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -210,7 +212,7 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
     setTab('result')
     if(candidate.size > 8 * 1024 * 1024) setError('File exceeds the 8 MiB maximum.')
   }
-  const loadSynthetic = async (which: 'clean' | 'flagged') => {
+  const loadSynthetic = async (which: 'clean' | 'flagged' | 'transparent') => {
     try {
       const response = await fetch('/examples/' + which + '-v6.bin')
       if (!response.ok) throw new Error('Synthetic test fixture is missing from this build.')
@@ -231,7 +233,7 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
     setError(null)
     setReport(null)
     try {
-      const result = await inspectPczt(file, profile)
+      const result = await inspectPczt(file, profile, { denyTransparent, denySapling })
       setReport(result)
       setTab('result')
     } catch (err) {
@@ -240,6 +242,19 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
     } finally {
       setBusy(false)
     }
+  }
+  const downloadPolicy = () => {
+    const policy = {
+      profile: profile.replace('-', '_'),
+      deny_transparent: denyTransparent,
+      deny_sapling: denySapling,
+    }
+    const url = URL.createObjectURL(new Blob([JSON.stringify(policy,null,2)], { type:'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'zerynex-policy.json'
+    a.click()
+    URL.revokeObjectURL(url)
   }
   const download = () => {
     if (!report) return
@@ -270,7 +285,7 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
             <span>{file ? (file.size/1024).toFixed(1)+' KiB · stored only in local browser memory' : 'Or click to select a binary Zcash transaction file'}</span>
             <span className="file-tag">PCZT / MAX 8 MiB</span>
           </div>
-          <div className="fixture-row"><span>TRY A SYNTHETIC PCZT</span><div><button onClick={() => loadSynthetic('clean')}>Clean v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('flagged')}>Flagged v6 <ArrowUpRight size={14}/></button></div></div>
+          <div className="fixture-row"><span>TRY A SYNTHETIC PCZT</span><div><button onClick={() => loadSynthetic('clean')}>Clean v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('flagged')}>Flagged v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('transparent')}>Transparent v6 <ArrowUpRight size={14}/></button></div></div>
           <div className="privacy-line"><LockKeyhole size={16}/><span>Files are parsed in this browser using WebAssembly. No upload. No account. No telemetry.</span></div>
         </section>
         <section className="studio-box studio-reveal">
@@ -283,6 +298,12 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
               <span className="radio-ring"><i/></span><span><strong>Restricted handoff</strong><small>Also flag selected recipient, value and randomness fields.</small></span><ArrowUpRight size={17}/>
             </button>
           </div>
+          <div className="policy-controls">
+            <span className="policy-controls-title">ADDITIONAL PRIVACY INVARIANTS</span>
+            <label className="policy-check"><input type="checkbox" checked={denyTransparent} onChange={e=>{setDenyTransparent(e.target.checked);setReport(null)}}/><span><strong>Deny transparent components</strong><small>Flag transparent inputs and outputs in a PCZT.</small></span></label>
+            <label className="policy-check"><input type="checkbox" checked={denySapling} onChange={e=>{setDenySapling(e.target.checked);setReport(null)}}/><span><strong>Deny Sapling components</strong><small>Require no Sapling spends or outputs in the workflow.</small></span></label>
+            <button type="button" className="download-policy" onClick={downloadPolicy}><Download size={14}/> EXPORT JSON POLICY</button>
+          </div>
           <div className="policy-warning"><CircleAlert size={16}/> These profiles are early checks. A passing report is not proof of anonymity, and restrictive policies may reject data a real signer needs.</div>
           <button className="run-analysis" disabled={!file || engine!=='ready' || busy || file.size>8*1024*1024} onClick={run}>{busy?'ANALYZING ON DEVICE':'RUN PRIVACY ANALYSIS'}{busy?<span className="spinner"/>:<ArrowRight size={20}/>}</button>
         </section>
@@ -293,7 +314,7 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
         {tab==='example' ? <PolicyIllustration restricted={profile==='restricted-handoff'}/> : (
           report ? <div className="real-report">
             <div className={'report-status '+(report.findings.length?'report-issues':'report-clear')}><span className="report-status-icon">{report.findings.length?<CircleAlert size={29}/>:<CheckCheck size={29}/>}</span><div><span className="report-small">{report.findings.length?'POLICY FINDINGS DETECTED':'NO POLICY FINDINGS DETECTED'}</span><strong>{report.findings.length ? report.findings.length+' finding'+(report.findings.length===1?'':'s') : 'Policy checks passed'}</strong></div></div>
-            <div className="report-details"><span>PROFILE</span><strong>{report.profile.replaceAll('_',' ')}</strong><span>CHECKED POOLS</span><strong>{report.checked_pools.join(' / ')}</strong></div>
+            <div className="report-details"><span>PROFILE</span><strong>{report.profile.replaceAll('_',' ')}</strong><span>CHECKED POOLS</span><strong>{report.checked_pools.join(' / ')}</strong><span>TRANSPARENT COMPONENTS</span><strong>{report.deny_transparent ? 'DENIED' : 'ALLOWED BY POLICY'}</strong><span>SAPLING COMPONENTS</span><strong>{report.deny_sapling ? 'DENIED' : 'ALLOWED BY POLICY'}</strong></div>
             {report.findings.length>0 && <div className="findings-list">{report.findings.map((f,i)=><div className="finding" key={i}><span>{f.rule}</span><strong>{f.field}</strong><p>{f.explanation}</p></div>)}</div>}
             <p className="disclaimer">{report.disclaimer}</p>
             <div className="report-actions"><button onClick={download}><Download size={16}/> Export JSON</button><button onClick={copy}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Copied':'Copy report'}</button></div>

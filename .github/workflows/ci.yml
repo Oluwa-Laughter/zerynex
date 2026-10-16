@@ -51,6 +51,15 @@ jobs:
           cache-dependency-path: apps/web/pnpm-lock.yaml
       - name: Compile local WASM analysis engine
         run: bash scripts/build-wasm.sh
+      - name: Privacy policy smoke tests (synthetic only)
+        shell: bash
+        run: |
+          cargo run --locked -- apps/web/public/examples/clean-v6.bin --policy-file policies/shielded-only.json --json
+          set +e
+          cargo run --locked -- apps/web/public/examples/transparent-v6.bin --policy-file policies/shielded-only.json --json
+          status=$?
+          set -e
+          test "$status" -eq 2
       - name: Install frontend dependencies
         working-directory: apps/web
         run: pnpm install --frozen-lockfile

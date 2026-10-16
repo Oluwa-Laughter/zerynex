@@ -5,12 +5,15 @@ export type Finding = { rule: string; field: string; explanation: string }
 export type Report = {
   profile: string
   findings: Finding[]
+  deny_transparent: boolean
+  deny_sapling: boolean
   checked_pools: string[]
   disclaimer: string
 }
 type WasmModule = {
   default: (input?: { module_or_path: RequestInfo | URL | BufferSource | WebAssembly.Module }) => Promise<unknown>
   analyze_pczt: (bytes: Uint8Array, restricted: boolean) => string
+  analyze_pczt_policy: (bytes: Uint8Array, policyJson: string) => string
 }
 let loaded: Promise<WasmModule> | undefined
 export function loadEngine(): Promise<WasmModule> {
@@ -28,13 +31,19 @@ export function loadEngine(): Promise<WasmModule> {
   }
   return loaded
 }
-export async function inspectPczt(file: File, profile: Profile): Promise<Report> {
+export type PolicyOptions = { denyTransparent: boolean; denySapling: boolean }
+export async function inspectPczt(file: File, profile: Profile, options: PolicyOptions): Promise<Report> {
   if (file.size > 8 * 1024 * 1024) {
     throw new Error('Maximum PCZT size is 8 MiB.')
   }
   const wasm = await loadEngine()
   const buffer = await file.arrayBuffer()
-  const text = wasm.analyze_pczt(new Uint8Array(buffer), profile === 'restricted-handoff')
+  const policy = {
+    profile: profile.replace('-', '_'),
+    deny_transparent: options.denyTransparent,
+    deny_sapling: options.denySapling,
+  }
+  const text = wasm.analyze_pczt_policy(new Uint8Array(buffer), JSON.stringify(policy))
   const result: unknown = JSON.parse(text)
   if (!isReport(result)) {
     throw new Error('The local analysis engine returned an unexpected report.')

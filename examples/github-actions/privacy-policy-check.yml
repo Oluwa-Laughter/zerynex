@@ -1,0 +1,21 @@
+# Example for an integrating repository. Commit synthetic fixtures only.
+name: Zcash PCZT policy check
+on: [push, pull_request]
+jobs:
+  pczt-policy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Fetch Zerynex source
+        run: git clone --depth 1 https://github.com/Oluwa-Laughter/zerynex.git .zerynex
+      - name: Compile the CLI
+        run: cargo build --locked --release --manifest-path .zerynex/Cargo.toml
+      - name: Check synthetic fixtures
+        run: |
+          set -eu
+          for file in tests/fixtures/*.pczt; do
+            .zerynex/target/release/zerynex "$file" --policy-file .zerynex/policies/shielded-only.json --json
+          done

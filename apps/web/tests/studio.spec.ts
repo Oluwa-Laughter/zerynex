@@ -40,3 +40,28 @@ test('mobile navigation is accessible and uses icon components', async ({ page, 
   await page.getByRole('button', { name: /launch studio/i }).click()
   await expect(page).toHaveURL(/\/studio/)
 })
+
+test('privacy invariants are enforced by Rust and exportable as JSON', async ({ page }) => {
+  await page.goto('/studio')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByLabel('Deny transparent components').check()
+  await page.getByLabel('Deny Sapling components').check()
+  await page.getByRole('button', {name:/Clean v6/}).click()
+  await page.getByRole('button', {name:/RUN PRIVACY ANALYSIS/}).click()
+  await expect(page.getByText('Policy checks passed')).toBeVisible()
+  await expect(page.getByText('DENIED', {exact:true})).toHaveCount(2)
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', {name:/EXPORT JSON POLICY/}).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe('zerynex-policy.json')
+})
+
+test('shielded-only privacy policy rejects an actual synthetic transparent output', async ({ page }) => {
+  await page.goto('/studio')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByLabel('Deny transparent components').check()
+  await page.getByRole('button', { name: /Transparent v6/ }).click()
+  await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ }).click()
+  await expect(page.getByText('PCZT-TRANSPARENT-OUTPUTS')).toBeVisible()
+  await expect(page.getByText('transparent.outputs', {exact: true})).toBeVisible()
+})
