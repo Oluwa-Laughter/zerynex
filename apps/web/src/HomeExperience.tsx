@@ -281,7 +281,7 @@ export default function HomeExperience({ navigate }: { navigate: (page: View) =>
         <h2>Make privacy a <em>testable property.</em></h2>
         <p>Start with a local PCZT fixture, choose a disclosure policy, and see what Zerynex checks—not what it pretends to prove.</p>
         <div className="cinema-actions">
-          <button onClick={() => navigate('tools')} className="cinema-button cinema-button-primary">Open Developer Tools <LuArrowUpRight size={16}/></button>
+          <button onClick={() => navigate('tools')} className="cinema-button cinema-button-primary">Run PCZT Inspector <LuArrowUpRight size={16}/></button>
           <a href={repo} target="_blank" rel="noopener noreferrer" className="cinema-button cinema-button-secondary">Explore GitHub <LuExternalLink size={16}/></a>
         </div>
         <Aurora small/>

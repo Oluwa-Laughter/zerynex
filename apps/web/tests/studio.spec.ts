@@ -161,7 +161,7 @@ test('reduced-motion mode retains visible hero and stops continuous aurora motio
   await expect(page.getByRole('heading', {name:'Privacy is a property. Not a promise.'})).toBeVisible()
   const animation = await page.locator('.cinema-hero .aurora-layer-a').evaluate(el => getComputedStyle(el).animationName)
   expect(animation).toBe('none')
-  await page.getByRole('button', {name:/Open Developer Tools/}).click()
+  await page.getByRole('region', {name:'Zerynex privacy infrastructure'}).getByRole('button', {name:'Open Developer Tools'}).click()
   await expect(page).toHaveURL(/\/tools/)
 })
 
