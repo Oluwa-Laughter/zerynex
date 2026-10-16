@@ -27,6 +27,7 @@ function localFile(file: File | null) {
 
 export default function StageWorkbench() {
   const stage = useRef<HTMLElement>(null)
+  const presetRequest = useRef(0)
   const [ready,setReady] = useState(false)
   const [busy,setBusy] = useState(false)
   const [baseline,setBaseline] = useState<File | null>(null)
@@ -54,6 +55,7 @@ export default function StageWorkbench() {
   async function selectPreset(value: Preset) {
     const entry = presetOptions.find(item=>item.id===value)
     if (!entry) return
+    const request = ++presetRequest.current
     setBusy(true);setError(null);setResult(null);setPreset(value)
     try {
       const files = await Promise.all([entry.baseline, entry.candidate].map(async (name) => {
@@ -64,14 +66,21 @@ export default function StageWorkbench() {
           throw new Error('Synthetic fixture size is invalid.')
         return new File([contents],name+'-synthetic-v6.pczt')
       }))
+      if (presetRequest.current !== request) return
       setBaseline(files[0]);setCandidate(files[1])
     } catch {
+      if (presetRequest.current !== request) return
       setBaseline(null);setCandidate(null);setPreset(null)
       setError('Could not load the checked-in synthetic fixtures.')
-    } finally {setBusy(false)}
+    } finally {
+      if (presetRequest.current === request) setBusy(false)
+    }
   }
   function choose(which: 'baseline'|'candidate', file?: File) {
     if (!file) return
+    // Manual files take precedence over pending synthetic sample downloads.
+    ++presetRequest.current
+    setBusy(false)
     setResult(null);setError(null);setCopied(false);setPreset(null)
     if (which==='baseline') setBaseline(file)
     else setCandidate(file)

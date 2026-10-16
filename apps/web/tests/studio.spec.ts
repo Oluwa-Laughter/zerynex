@@ -119,7 +119,7 @@ test('language SDK page and agent route fit small viewports',async ({page})=>{
   await page.getByRole('link',{name:/MCP \+ agent skills/}).click()
   await expect(page).toHaveURL(/\/agents/)
   await expect(page.getByRole('heading',{name:/Automation.*with limits/i})).toBeVisible()
-  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT',{exact:false})).toBeVisible()
+  await expect(page.locator('.zn-agent-code')).toContainText('ZERYNEX_AGENT_ALLOWED_ROOT')
 })
 
 test('new homepage has working tool links and no personal repository CTA',async ({page,isMobile})=>{
@@ -303,9 +303,12 @@ test('stage comparison detects a disclosure that was resolved', async ({ page })
 test('invalid local PCZT snapshots cannot yield a fake passing report', async ({ page }) => {
   await page.goto('/tools/stages')
   await page.getByRole('button', { name: /New metadata/ }).click()
+  await expect(page.getByText('clean-synthetic-v6.pczt')).toBeVisible()
+  await expect(page.getByText('flagged-synthetic-v6.pczt')).toBeVisible()
   await page.getByLabel('Baseline PCZT file').setInputFiles({
     name:'invalid.pczt',mimeType:'application/octet-stream',buffer:Buffer.from('not a PCZT'),
   })
+  await expect(page.getByText('invalid.pczt')).toBeVisible()
   await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
   await expect(page.locator('.wb-error[role="alert"]')).toContainText('Comparison failed')
   await expect(page.getByText('No remaining findings')).toHaveCount(0)
@@ -372,6 +375,66 @@ test('new agent page shows scoped MCP/skill/CI interfaces',async ({page})=>{
   await expect(page.getByRole('heading',{name:'Local MCP server'})).toBeVisible()
   await expect(page.getByRole('heading',{name:'Portable agent skill'})).toBeVisible()
   await expect(page.getByRole('heading',{name:'CI policy gate'})).toBeVisible()
-  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT',{exact:false})).toBeVisible()
+  await expect(page.locator('.zn-agent-code')).toContainText('ZERYNEX_AGENT_ALLOWED_ROOT')
   await expect(page.getByText('No wallet keys, arbitrary filesystem access',{exact:false})).toBeVisible()
+})
+
+
+test('agent setup builds correct Cursor and VS Code MCP host configs locally',async ({page})=>{
+  await page.goto('/agents')
+  await page.getByLabel('MCP executable').fill('/opt/zerynex/bin/zerynex-mcp')
+  await page.getByLabel('Trusted Rust CLI').fill('/opt/zerynex/bin/zerynex')
+  await page.getByLabel('Allowed synthetic fixture root').fill('/tmp/approved-synthetic')
+  const snippet=page.locator('.zn-agent-code')
+  await expect(snippet).toContainText('"mcpServers"')
+  await expect(snippet).toContainText('/opt/zerynex/bin/zerynex-mcp')
+  await expect(snippet).toContainText('/tmp/approved-synthetic')
+  await page.getByRole('button',{name:'VS Code'}).click()
+  await expect(snippet).toContainText('"servers"')
+  await expect(snippet).not.toContainText('"mcpServers"')
+  await expect(snippet).toContainText('"type": "stdio"')
+  await page.getByRole('button',{name:'Claude Desktop'}).click()
+  await expect(snippet).toContainText('"mcpServers"')
+  await page.getByLabel('Allowed synthetic fixture root').fill('relative/bad')
+  await expect(page.locator('.zn-agent-invalid[role="alert"]')).toContainText('absolute local paths')
+  await expect(page.getByRole('button',{name:'Copy JSON'})).toBeDisabled()
+})
+
+test('agent demo executes actual Rust WASM synthetic policy findings locally',async ({page})=>{
+  await page.goto('/agents')
+  const demo=page.locator('.zn-agent-demo')
+  await demo.getByRole('button',{name:/Transparent output/}).click()
+  await demo.getByRole('button',{name:/Run local policy check/}).click()
+  await expect(demo.getByText('PCZT-TRANSPARENT-OUTPUTS')).toBeVisible()
+  await expect(demo.getByText('transparent.outputs',{exact:true})).toBeVisible()
+  await demo.getByRole('button',{name:/Clean/}).click()
+  await demo.getByRole('button',{name:/Run local policy check/}).click()
+  await expect(demo.getByText('NO POLICY FINDINGS')).toBeVisible()
+})
+
+test('agent onboarding does not claim in-browser MCP connectivity',async ({page})=>{
+  await page.goto('/agents')
+  await expect(page.getByText('it is not an MCP connection',{exact:false})).toBeVisible()
+  await expect(page.getByText('The website cannot access your filesystem',{exact:false})).toBeVisible()
+  await page.getByRole('link',{name:'Complete setup and trust model'}).click()
+  await expect(page).toHaveURL(/\/docs\/agents$/)
+  await expect(page.getByText('zerynex-mcp-doctor',{exact:false}).first()).toBeVisible()
+})
+
+
+test('manual PCZT upload wins over delayed synthetic preset requests',async ({page})=>{
+  await page.route('**/examples/clean-v6.bin',async route=>{
+    await new Promise(resolve=>setTimeout(resolve,450))
+    await route.continue()
+  })
+  await page.goto('/tools/stages')
+  await page.getByRole('button',{name:/New metadata/}).click()
+  await page.getByLabel('Baseline PCZT file').setInputFiles({
+    name:'manual-invalid.pczt',mimeType:'application/octet-stream',buffer:Buffer.from('invalid'),
+  })
+  await expect(page.getByText('manual-invalid.pczt')).toBeVisible()
+  await page.waitForTimeout(650)
+  await expect(page.getByText('manual-invalid.pczt')).toBeVisible()
+  await expect(page.getByText('clean-synthetic-v6.pczt')).toHaveCount(0)
+  await expect(page.getByText('flagged-synthetic-v6.pczt')).toHaveCount(0)
 })

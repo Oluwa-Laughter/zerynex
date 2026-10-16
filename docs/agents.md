@@ -2,7 +2,14 @@
 
 Zerynex supplies a portable Agent Skill and an optional local MCP server
 for Zcash privacy engineering. Agents work with sanitized policy findings,
-never raw intermediate transactions.
+never raw intermediate transactions. The current implementation uses a real
+MCP 2.x stdio server with the canonical Rust CLI and **six verified tools**.
+
+You can start at [the Agent Tools page](/agents): choose Cursor, Claude
+Desktop or VS Code, enter three local absolute paths, and copy the
+configuration. No path is transmitted to Zerynex. The in-browser sample
+there runs Rust/WebAssembly **not** an MCP server. The MCP server must
+be installed, launched and authorized by your own local agent host.
 
 ## Install Agent Skill
 
@@ -30,6 +37,17 @@ Launch by configuring an MCP host to execute:
 
     /absolute/path/to/zerynex/.venv/bin/zerynex-mcp
 
+Before connecting an AI assistant, use the actual installed MCP client
+diagnostic:
+
+    /absolute/path/to/zerynex/.venv/bin/zerynex-mcp-doctor       --server /absolute/path/to/zerynex/.venv/bin/zerynex-mcp       --cli /absolute/path/to/zerynex/target/release/zerynex       --fixtures /absolute/path/to/zerynex/apps/web/public/examples
+
+It launches an independent stdio MCP server process, discovers all six
+tools, executes three real Rust scans plus a stage comparison against
+approved synthetic fixtures, and reports how many of four expectations
+matched. Exit 0 = connected and all expectations matched; 1 = connection/
+configuration failure; 2 = connected but regression expectations failed.
+
 The server uses stdio and does NOT expose any HTTP port, wallet session,
 signer, transaction publisher, or arbitrary filesystem tool.
 
@@ -44,6 +62,21 @@ compare_synthetic_pczt_stages takes two approved synthetic .bin
 basenames from the configured fixture directory. It returns rule
 identifiers and component-count observations from the local Rust engine.
 No private fields or transaction bytes are returned.
+
+list_synthetic_fixtures lists up to 32 approved .bin basenames, no
+contents. Symlinks and non-regular files are excluded, and it bounds
+directory enumeration.
+
+explain_zerynex_rule accepts one of seven fixed rule IDs and returns a
+reviewed explanation and a suggested developer check; it does not
+echo arbitrary agent input or inspect files.
+
+run_synthetic_smoke_suite executes four real Rust-backed checks, three
+individual policy scans and one stage comparison, and verifies the
+expected fixture outcomes. Detecting the intentionally flagged or
+transparent fixture is a **passing test**, not a passing privacy policy.
+It returns 4/4 for the known-good bundled test suite. If a fixture
+is missing, its case fails closed.
 
 zerynex_policy_schema returns documentation about the currently supported
 rules, with no file access.
@@ -93,3 +126,43 @@ cryptographic security certification.
 The zerynex-z3-check Python command can check loopback-only Zebra health
 endpoints. This command is NOT exposed through the MCP agent tools by
 default. See docs/z3-local.md.
+
+## First actual agent task
+
+After connecting a supported MCP host, ask your assistant:
+
+> List the approved synthetic fixtures, run the synthetic smoke suite,
+> report the number of expectations matched, and explain
+> PCZT-TRANSPARENT-OUTPUTS. Do not read raw PCZT bytes or access the wallet.
+
+The expected tool calls are list_synthetic_fixtures,
+run_synthetic_smoke_suite, and explain_zerynex_rule. With the checked-in
+fixtures and compiled trusted Rust CLI, the smoke suite should report
+4/4 matched; the final output is only rule and path metadata.
+A host may require you to approve tool execution first.
+
+For a developer pull-request workflow, compare
+clean-v6.bin against flagged-v6.bin with
+compare_synthetic_pczt_stages. A new PCZT-GLOBAL-METADATA finding should
+be reported. This is a *synthetic regression* example and is not an
+assertion that a real wallet signing session was inspected.
+
+### Do not confuse product surfaces
+
+- The hosted browser can run Rust/WASM checks locally without a server.
+- The MCP adapter starts only in the developer's machine after explicit
+  installation and approval.
+- CI tools run only approved synthetic test vectors.
+- None of these tools create Zcash transactions, send ZEC, generate ZK
+  proofs, read mnemonic phrases or prove complete confidentiality.
+
+## VS Code configuration format
+
+Zerynex's website supplies the VS Code-specific .vscode/mcp.json shape,
+with a top-level servers object and a stdio server type. Modern VS Code
+also supports a portable workspace .mcp.json configuration with a top-level
+mcpServers object. To share configuration across compatible hosts, prefer
+the portable format where possible. The current VS Code specific format
+continues to work for existing workspaces. Review VS Code's upstream
+configuration reference before enabling an agent tool:
+https://code.visualstudio.com/docs/agents/reference/mcp-configuration

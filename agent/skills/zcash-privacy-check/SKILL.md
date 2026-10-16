@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires a trusted local Zerynex Rust CLI and synthetic PCZT test fixtures. Python 3.11+ is needed for optional MCP tools. No remote analysis or wallet secrets required.
 metadata:
   author: zerynex
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Zcash privacy engineering skill
@@ -18,8 +18,9 @@ prove network anonymity, consensus validity, or signing safety.
 1. Never request, read, transmit, log, or paste seed phrases, spending keys,
    viewing keys, real confidential PCZT contents or private wallet metadata.
 2. For agent-led checks, use approved synthetic fixture files only.
-3. Prefer the local MCP tool analyze_synthetic_pczt, which returns a small set
-   of findings with fixed rule names and field paths. Do not access raw bytes.
+3. Prefer the local MCP tools list_synthetic_fixtures and
+   analyze_synthetic_pczt, which return fixture names and sanitized findings.
+   Never request raw PCZT bytes.
 4. For real confidential PCZTs, tell developers to run the CLI or SDK
    locally themselves; do not load transaction intermediates into an LLM.
 5. Never infer that a passing rule check is a comprehensive privacy audit.
@@ -44,10 +45,29 @@ This should return PCZT-TRANSPARENT-OUTPUTS and exit status 2.
 ## MCP
 
 The read-only local server exposes analyze_synthetic_pczt,
-compare_synthetic_pczt_stages, and zerynex_policy_schema. See docs/agents.md for its opt-in setup.
+compare_synthetic_pczt_stages, list_synthetic_fixtures,
+explain_zerynex_rule, run_synthetic_smoke_suite and
+zerynex_policy_schema. The tools use the canonical Rust CLI.
+
+Before enabling a host, run zerynex-mcp-doctor with explicit --server,
+--cli and --fixtures paths to verify a genuine stdio connection and
+4/4 expected synthetic regressions. No hosted MCP connection exists.
+See docs/agents.md for opt-in setup.
 ZERYNEX_AGENT_ALLOWED_ROOT should designate synthetic fixtures only.
 
 ## Boundaries of expertise
 
 Do not claim production-readiness or formal cryptographic verification.
 Separate policy findings from proven vulnerabilities and untested hypotheses.
+
+## Reproducible agent-facing exercise
+
+1. Call list_synthetic_fixtures; report names only.
+2. Call run_synthetic_smoke_suite, treat each matched_expectation as a
+   test result; do not confuse an intentionally detected finding
+   with a privacy policy passing.
+3. Call explain_zerynex_rule with PCZT-TRANSPARENT-OUTPUTS.
+4. Optionally call compare_synthetic_pczt_stages on
+   clean-v6.bin and flagged-v6.bin and explain the introduced finding.
+5. Report the exact implemented limitations and never claim a
+   cryptographic privacy guarantee or perform signing.

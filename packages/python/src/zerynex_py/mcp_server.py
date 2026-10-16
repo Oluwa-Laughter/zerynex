@@ -85,6 +85,136 @@ def compare_synthetic_fixtures(
     return report.agent_summary()
 
 
+
+# Fixed explanations are intentionally free from fixture bytes or agent-supplied
+# instructions. The authoritative result still comes from the Rust analyzer.
+RULE_GUIDANCE: dict[str, tuple[str, str]] = {
+    "PCZT-DUMMY-KEY": (
+        "An accessible intermediate dummy spending key was found.",
+        "Review the signer/prover role boundary. Do not disclose the dummy spend key to an untrusted recipient.",
+    ),
+    "PCZT-GLOBAL-METADATA": (
+        "A global proprietary metadata field is available at this handoff.",
+        "Review the metadata's necessity and redact the field in a test workflow before external handoff.",
+    ),
+    "PCZT-UNREVIEWED-METADATA": (
+        "A proprietary spend or output metadata field is available.",
+        "Review role-specific metadata and use the upstream PCZT redactor where appropriate.",
+    ),
+    "PCZT-RESTRICTED-DISCLOSURE": (
+        "A field blocked by the restricted handoff policy is present.",
+        "Check whether the receiving role really needs this field. Restricted profiles may not suit every signer.",
+    ),
+    "PCZT-SAPLING-POLICY": (
+        "Sapling components exist despite an application-level deny policy.",
+        "Review the app-specific Sapling restriction; Sapling is not inherently forbidden by Zcash consensus.",
+    ),
+    "PCZT-TRANSPARENT-INPUTS": (
+        "The PCZT includes transparent inputs under a shielded-only policy.",
+        "Review transparent input selection and policy configuration before moving to signing.",
+    ),
+    "PCZT-TRANSPARENT-OUTPUTS": (
+        "The PCZT includes transparent outputs under a shielded-only policy.",
+        "Review output construction and destination pool selection; recheck with a synthetic fixture.",
+    ),
+}
+
+
+def discover_synthetic_fixtures(root: Path) -> dict[str, object]:
+    """List a bounded subset of approved, regular .bin files without reading bytes."""
+    try:
+        base = root.expanduser().resolve(strict=True)
+        if not base.is_dir():
+            raise OSError("invalid")
+        names: list[str] = []
+        inspected = 0
+        # Avoid unbounded work on an unexpectedly large, untrusted directory.
+        for path in base.iterdir():
+            inspected += 1
+            if inspected > 256:
+                break
+            if not SAFE_NAME.fullmatch(path.name) or path.is_symlink():
+                continue
+            if not path.is_file() or not 0 < path.stat().st_size <= 8 * 1024 * 1024:
+                continue
+            names.append(path.name)
+        names.sort()
+        return {
+            "fixtures": names[:32],
+            "truncated": len(names) > 32 or inspected > 256,
+            "note": "Names from the explicitly approved synthetic-fixture root only; no bytes returned.",
+        }
+    except (OSError, ValueError):
+        raise ZerynexError("Approved synthetic-fixture directory unavailable.") from None
+
+
+def explain_policy_rule(rule_id: str) -> dict[str, str]:
+    """Explain only enumerated rules. Never echo arbitrary agent prompt contents."""
+    if not isinstance(rule_id, str) or rule_id not in RULE_GUIDANCE:
+        raise ZerynexError("Unknown supported privacy rule.")
+    meaning, next_step = RULE_GUIDANCE[rule_id]
+    return {
+        "rule": rule_id,
+        "meaning": meaning,
+        "suggested_review": next_step,
+        "limitation": "Policy guidance, not a complete security review or cryptographic verification.",
+    }
+
+
+def evaluate_synthetic_smoke_suite(client: ZerynexClient, root: Path) -> dict[str, object]:
+    """Prove that scan + compare tool paths work with an approved bundled suite.
+
+    Expected failures are *successful test detections*. Never return file
+    contents, external absolute paths or CLI error details.
+    """
+    tests: list[dict[str, object]] = []
+
+    for name, expected_rules in (
+        ("clean-v6.bin", ()),
+        ("transparent-v6.bin", ("PCZT-TRANSPARENT-OUTPUTS",)),
+        ("flagged-v6.bin", ("PCZT-GLOBAL-METADATA",)),
+    ):
+        try:
+            result = scan_fixture(client, root, name)
+            found = sorted({finding["rule"] for finding in result["findings"]})
+            matched = found == sorted(expected_rules) and result["passed"] == (not expected_rules)
+        except (ZerynexError, OSError):
+            found = []
+            matched = False
+        tests.append({
+            "scenario": name.removesuffix(".bin"),
+            "matched_expectation": matched,
+            "detected_rules": found,
+        })
+
+    try:
+        changes = compare_synthetic_fixtures(
+            client, root, "clean-v6.bin", "flagged-v6.bin"
+        )
+        added = sorted({finding["rule"] for finding in changes["added_findings"]})
+        matched = (
+            added == ["PCZT-GLOBAL-METADATA"] and
+            changes["no_new_findings"] is False and
+            changes["passed"] is False
+        )
+    except (ZerynexError, OSError):
+        added = []
+        matched = False
+    tests.append({
+        "scenario": "clean-to-flagged",
+        "matched_expectation": matched,
+        "detected_rules": added,
+    })
+    matched_count = sum(case["matched_expectation"] is True for case in tests)
+    return {
+        "passed": matched_count == len(tests),
+        "matched": matched_count,
+        "total": len(tests),
+        "tests": tests,
+        "limitation": "Only approved synthetic PCZT fixtures. Checks policy invariants, not proofs or consensus.",
+    }
+
+
 def create_server(client: ZerynexClient, root: Path):
     """Bind MCP tools only after the operator explicitly supplies a fixture root."""
     try:
@@ -128,6 +258,27 @@ def create_server(client: ZerynexClient, root: Path):
             )
         except ZerynexError:
             return {"error": "Fixture was rejected or the local stage comparison failed."}
+
+    @server.tool()
+    def list_synthetic_fixtures() -> dict:
+        """Discover permitted synthetic .bin fixture basenames; never read or return their contents."""
+        try:
+            return discover_synthetic_fixtures(root)
+        except ZerynexError:
+            return {"error": "Cannot inspect the approved fixture directory."}
+
+    @server.tool()
+    def explain_zerynex_rule(rule_id: str) -> dict:
+        """Get reviewed plain-language interpretation and suggested developer follow-up for a known Zerynex rule."""
+        try:
+            return explain_policy_rule(rule_id)
+        except ZerynexError:
+            return {"error": "Unknown supported Zerynex policy rule."}
+
+    @server.tool()
+    def run_synthetic_smoke_suite() -> dict:
+        """Run four local Rust-backed fixture checks and report which expected findings matched. Test failures stay failures."""
+        return evaluate_synthetic_smoke_suite(client, root)
 
     @server.tool()
     def zerynex_policy_schema() -> dict:

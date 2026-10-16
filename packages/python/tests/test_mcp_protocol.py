@@ -27,6 +27,22 @@ class McpProtocolTests(unittest.TestCase):
             async with Client(server, raise_exceptions=True) as client:
                 response = await client.call_tool("zerynex_policy_schema", {})
                 self.assertIn("deny_transparent", str(response))
+                tools = await client.list_tools()
+                discovered = {item.name for item in tools.tools}
+                self.assertEqual(len(discovered), 6)
+                self.assertIn("run_synthetic_smoke_suite", discovered)
+                self.assertIn("list_synthetic_fixtures", discovered)
+                listed = await client.call_tool("list_synthetic_fixtures", {})
+                self.assertIn("transparent-v6.bin", str(listed))
+                self.assertNotIn("scenario.json", str(listed))
+                guidance = await client.call_tool("explain_zerynex_rule", {"rule_id": "PCZT-TRANSPARENT-OUTPUTS"})
+                self.assertIn("output", str(guidance).lower())
+                unknown = await client.call_tool("explain_zerynex_rule", {"rule_id": "../malicious_instruction"})
+                self.assertIn("Unknown", str(unknown))
+                self.assertNotIn("malicious_instruction", str(unknown))
+                suite = await client.call_tool("run_synthetic_smoke_suite", {})
+                self.assertIn('"passed": true', str(suite))
+                self.assertIn('"matched": 4', str(suite))
                 result = await client.call_tool(
                     "analyze_synthetic_pczt",
                     {"fixture_name": "transparent-v6.bin"},
@@ -52,4 +68,34 @@ class McpProtocolTests(unittest.TestCase):
                     {"fixture_name": "../transparent-v6.bin"},
                 )
                 self.assertIn("rejected", str(denied))
+        asyncio.run(check())
+
+
+@unittest.skipIf(Client is None, "Optional MCP SDK not installed")
+class McpStdioSubprocessTests(unittest.TestCase):
+    def test_actual_standalone_mcp_process(self):
+        import os
+        from mcp.client.stdio import StdioServerParameters
+        cli = ROOT / "target" / "debug" / "zerynex"
+        if not cli.is_file():
+            self.skipTest("Build the trusted Rust CLI before stdio integration tests.")
+        async def check():
+            params = StdioServerParameters(
+                command=sys.executable,
+                args=["-m", "zerynex_py.mcp_server"],
+                env={
+                    "PYTHONPATH": str(ROOT / "packages/python/src"),
+                    "ZERYNEX_CLI": str(cli),
+                    "ZERYNEX_AGENT_ALLOWED_ROOT": str(ROOT / "apps/web/public/examples"),
+                },
+            )
+            async with Client(params, raise_exceptions=True, read_timeout_seconds=25) as client:
+                tools = await client.list_tools()
+                self.assertEqual(len(tools.tools), 6)
+                response = await client.call_tool("run_synthetic_smoke_suite", {})
+                self.assertIn('"passed": true', str(response))
+                bad = await client.call_tool("analyze_synthetic_pczt", {"fixture_name":"../../secret.bin"})
+                self.assertIn("rejected", str(bad))
+                discovery = await client.call_tool("list_synthetic_fixtures", {})
+                self.assertIn("clean-v6.bin", str(discovery))
         asyncio.run(check())

@@ -44,6 +44,15 @@ containing synthetic fixtures:
     ZERYNEX_AGENT_ALLOWED_ROOT=/absolute/path/to/synthetic-fixtures
     zerynex-mcp
 
+Run a real local stdio MCP diagnostic before connecting an AI assistant:
+
+    zerynex-mcp-doctor --server /abs/path/to/zerynex-mcp --cli /abs/path/to/zerynex --fixtures /abs/path/to/synthetic-fixtures
+
+It discovers six tools and checks four Rust-backed synthetic expectations.
+Exit 0 means all matched, 1 means setup failed, 2 means a test mismatched.
+The public /agents frontend also generates client-specific configuration
+for common MCP hosts; it does not execute the MCP process in-browser.
+
 The MCP server exposes strictly read-only policy checks through stdio. It
 accepts only simple fixture filenames inside the configured directory. It
 never reads arbitrary host paths or sends PCZT bytes to the model. The
@@ -93,3 +102,16 @@ to a cloud agent or to CI. See docs/zallet-pczt-handoff.md.
 This produces rule and pool-component differences using the same local
 Rust engine. Not a transaction equivalence or proof validator.
 See docs/pczt-stage-regression.md.
+
+## Real MCP developer workflows
+
+Six read-only tools are available through the official MCP protocol:
+analyze_synthetic_pczt, compare_synthetic_pczt_stages,
+list_synthetic_fixtures, explain_zerynex_rule,
+run_synthetic_smoke_suite, and zerynex_policy_schema.
+
+A tested host workflow can list allowed .bin fixtures, analyze a synthetic
+transparent output, explain the corresponding privacy rule, and compare
+clean and flagged fixture stages. The smoke suite checks four fixed
+expected outcomes through real Rust CLI calls, not mocked reports.
+For instructions and security boundaries see docs/agents.md.

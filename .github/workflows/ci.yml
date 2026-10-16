@@ -145,6 +145,9 @@ jobs:
         run: python -m pip install './packages/python[mcp]'
       - name: Run Python/Rust and MCP protocol integration tests
         run: python -m unittest discover -s packages/python/tests -v
+      - name: Verify real MCP stdio process with official client
+        run: |
+          zerynex-mcp-doctor             --server "$(command -v zerynex-mcp)"             --cli "$(pwd)/target/debug/zerynex"             --fixtures "$(pwd)/apps/web/public/examples"
       - name: Validate portable Agent Skill structure
         run: python scripts/validate-agent-skill.py
       - name: Verify CLI never writes a wallet secret to findings
