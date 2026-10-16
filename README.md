@@ -31,7 +31,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open http://127.0.0.1:3000, choose **Launch studio**, load a genuine local binary PCZT or one of the three **synthetic examples**, select a profile, and run **real Rust WebAssembly analysis** without transferring your PCZT to any backend.
+Open http://127.0.0.1:3000, open **Developer Tools**, load a genuine local binary PCZT or one of the three **synthetic examples**, select a profile, and run **real Rust WebAssembly analysis** without transferring your PCZT to any backend.
 
 The prebuilt browser WASM is included under `apps/web/public/wasm`. The build script reproducibly regenerates it. GitHub Actions builds Rust + WASM + web.
 
@@ -149,3 +149,21 @@ interfaces rather than depending on the website.
 See [integration contracts](docs/integration-contracts.md) for current support,
 honest gaps in Zallet, Zaino, and prover integrations, and release gates.
 See [report JSON Schema](docs/report.schema.json) for interoperable results.
+
+
+## Install and adopt Zerynex (no hosted account)
+
+- **Rust**: install CLI directly using Cargo from this GitHub repository.
+- **Zallet/PCZT workflows**: pass local binary or base64 PCZTs to the CLI,
+  including through stdin without an intermediary conversion service.
+- **Python**: install the source adapter locally; it supports in-memory
+  base64-to-Rust analysis as well as private local files.
+- **TypeScript**: use the repo-local SDK with trusted bundled Rust/WASM.
+  Public npm publishing is not complete yet.
+- **GitHub Actions**: use this repository as a **composite action** in other
+  repos, with only synthetic fixtures; no application SDK installation.
+
+See [adoption guide](docs/github-action.md) and
+[Zallet PCZT handoffs](docs/zallet-pczt-handoff.md). Zerynex does not call
+Zallet RPC directly or complete wallet signing/proving. Testnet/regtest
+end-to-end compatibility is a separate pending milestone.

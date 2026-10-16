@@ -67,3 +67,16 @@ Use zerynex-z3-check to probe only Zebra's documented loopback-bound
 
 See docs/z3-local.md. This checks two readiness signals only, not Zcash
 consensus, Zallet wallet operation or Zaino gRPC.
+
+## Consume a locally held Zallet PCZT without a temporary file
+
+For a trusted application with an in-memory base64 PCZT string:
+
+    from zerynex_py import ZerynexClient, Policy
+    result = ZerynexClient(cli="/path/to/zerynex").analyze_base64(
+        pczt_base64, Policy(deny_transparent=True)
+    )
+
+The Python adapter passes the encoded bytes over Rust CLI stdin and only
+returns sanitized report fields. Do not provide confidential intermediates
+to a cloud agent or to CI. See docs/zallet-pczt-handoff.md.

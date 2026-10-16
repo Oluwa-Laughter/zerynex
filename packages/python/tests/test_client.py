@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from pathlib import Path
@@ -41,6 +42,18 @@ class IntegrationTests(unittest.TestCase):
         denied = self.client.analyze_file(fixture, Policy(deny_transparent=True))
         self.assertFalse(denied.passed)
         self.assertEqual(denied.findings[0].rule, "PCZT-TRANSPARENT-OUTPUTS")
+
+    def test_zallet_style_base64_in_memory_matches_binary(self):
+        data = (FIXTURES / "transparent-v6.bin").read_bytes()
+        b64 = base64.b64encode(data).decode("ascii")
+        result = self.client.analyze_base64(b64, Policy(deny_transparent=True))
+        self.assertFalse(result.passed)
+        self.assertEqual(result.findings[0].rule, "PCZT-TRANSPARENT-OUTPUTS")
+
+    def test_zallet_bad_base64_never_echoes_contents(self):
+        with self.assertRaises(ZerynexError) as error:
+            self.client.analyze_base64("SYNTHETIC_PRIVATE_NEVER_ECHO!")
+        self.assertNotIn("SYNTHETIC_PRIVATE_NEVER_ECHO", str(error.exception))
 
     def test_real_invalid_binary_does_not_echo_private_contents(self):
         with tempfile.TemporaryDirectory() as tmp:

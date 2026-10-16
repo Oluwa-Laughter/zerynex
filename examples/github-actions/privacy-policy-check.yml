@@ -1,21 +1,26 @@
-# Example for an integrating repository. Commit synthetic fixtures only.
-name: Zcash PCZT policy check
+# Copy this workflow to an integrating Zcash repository.
+# ONLY commit synthetic non-spendable PCZT fixtures; never wallet files.
+name: Zcash PCZT privacy policy
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
-  pczt-policy:
+  privacy-regression:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Fetch Zerynex source
-        run: git clone --depth 1 https://github.com/Oluwa-Laughter/zerynex.git .zerynex
-      - name: Compile the CLI
-        run: cargo build --locked --release --manifest-path .zerynex/Cargo.toml
-      - name: Check synthetic fixtures
-        run: |
-          set -eu
-          for file in tests/fixtures/*.pczt; do
-            .zerynex/target/release/zerynex "$file" --policy-file .zerynex/policies/shielded-only.json --json
-          done
+      # Pin Zerynex to a reviewed commit SHA for production use.
+      # @main here is an easy-to-try example, NOT an immutable release.
+      - name: Check synthetic wallet fixture
+        id: privacy
+        uses: Oluwa-Laughter/zerynex@main
+        with:
+          pczt-path: tests/fixtures/clean-v6.bin
+          policy-path: policies/shielded-only.json
+          input-format: binary
+          fail-on-findings: 'true'
+      - name: Confirm fixture passes the selected policy
+        shell: bash
+        env:
+          ZERYNEX_PASSED: ${{ steps.privacy.outputs.passed }}
+        run: test "$ZERYNEX_PASSED" = true

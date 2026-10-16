@@ -1300,6 +1300,7 @@ dependencies = [
 name = "zerynex"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "clap",
  "pczt",
  "serde",

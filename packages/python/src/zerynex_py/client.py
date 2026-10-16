@@ -139,8 +139,26 @@ class ZerynexClient:
         except (OSError, ValueError, TypeError):
             raise ZerynexError("Cannot read the selected PCZT file.") from None
 
+        return self._run([str(candidate)], config)
+
+    def analyze_base64(self, base64_pczt: str, policy: Policy | None = None) -> Report:
+        """Analyze a local Zallet-style base64 PCZT in memory via Rust stdin.
+
+        No temporary transaction file, stdout of raw bytes, RPC call, or shell.
+        Keep this data in a trusted local process, never an agent prompt.
+        """
+        config = policy if policy is not None else Policy()
+        if not isinstance(config, Policy):
+            raise ZerynexError("A Policy object is required.")
+        if (not isinstance(base64_pczt, str) or
+                not 0 < len(base64_pczt) <= (MAX_PCZT_BYTES + 2) // 3 * 4 + 256 or
+                not base64_pczt.isascii()):
+            raise ZerynexError("Encoded PCZT is missing or exceeds the input limit.")
+        return self._run(["-", "--input-format", "base64"], config, base64_pczt)
+
+    def _run(self, input_args: list[str], config: Policy, stdin_text: str | None = None) -> Report:
         args = [
-            str(self._cli), str(candidate), "--profile", config.profile.replace("_", "-"), "--json",
+            str(self._cli), *input_args, "--profile", config.profile.replace("_", "-"), "--json",
         ]
         if config.deny_transparent:
             args.append("--deny-transparent")
@@ -150,7 +168,8 @@ class ZerynexClient:
             completed = subprocess.run(
                 args,
                 shell=False,
-                stdin=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL if stdin_text is None else None,
+                input=stdin_text,
                 capture_output=True,
                 text=True,
                 timeout=self._timeout,
@@ -159,7 +178,7 @@ class ZerynexClient:
         except (OSError, subprocess.TimeoutExpired):
             raise ZerynexError("Local Rust analyzer failed or timed out.") from None
         if completed.returncode not in (0, 2):
-            # Avoid propagating stderr, filenames, or upstream parser diagnostics.
+            # Never echo PCZT bytes, stderr or CLI diagnostics.
             raise ZerynexError("PCZT could not be analyzed.")
         report = _parse_report(completed.stdout)
         if report.profile != config.profile or (

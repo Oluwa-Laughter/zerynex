@@ -1,5 +1,7 @@
 //! External integration contract: fixture input, exit codes, JSON report shape.
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde_json::Value;
+use std::io::Write;
 use std::{
     path::PathBuf,
     process::{Command, Output},
@@ -71,4 +73,71 @@ fn unreadable_input_uses_distinct_error_code() {
     let output = execute(&["missing.pczt", "--json"]);
     assert_eq!(output.status.code(), Some(1));
     assert!(output.stdout.is_empty());
+}
+
+#[test]
+fn zallet_style_base64_on_stdin_matches_binary_policy_findings() {
+    let input = std::fs::read(base().join("apps/web/public/examples/transparent-v6.bin"))
+        .expect("synthetic PCZT fixture exists");
+    let base64 = STANDARD.encode(&input);
+    let mut child = Command::new(env!("CARGO_BIN_EXE_zerynex"))
+        .args([
+            "-",
+            "--input-format",
+            "base64",
+            "--deny-transparent",
+            "--json",
+        ])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .expect("start Rust binary");
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(base64.as_bytes())
+        .unwrap();
+    let result = child.wait_with_output().expect("retrieve report");
+    assert_eq!(result.status.code(), Some(2));
+    let report = json(&result);
+    assert_eq!(report["findings"][0]["rule"], "PCZT-TRANSPARENT-OUTPUTS");
+    assert_eq!(report["deny_transparent"], true);
+}
+
+#[test]
+fn binary_stdin_matches_regular_file() {
+    let source = std::fs::read(base().join("apps/web/public/examples/clean-v6.bin")).unwrap();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_zerynex"))
+        .args(["-", "--json"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    child.stdin.take().unwrap().write_all(&source).unwrap();
+    let report = child.wait_with_output().unwrap();
+    assert_eq!(report.status.code(), Some(0));
+    assert_eq!(json(&report)["findings"].as_array().unwrap().len(), 0);
+}
+
+#[test]
+fn malformed_base64_returns_sanitized_exit_one() {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_zerynex"))
+        .args(["-", "--input-format", "base64", "--json"])
+        .stdin(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(b"SYNTHETIC_SENSITIVE_STRING!")
+        .unwrap();
+    let result = child.wait_with_output().unwrap();
+    assert_eq!(result.status.code(), Some(1));
+    assert!(result.stdout.is_empty());
+    assert!(!String::from_utf8_lossy(&result.stderr).contains("SYNTHETIC_SENSITIVE_STRING!"));
 }

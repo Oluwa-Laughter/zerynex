@@ -1,0 +1,59 @@
+name: Zerynex PCZT Privacy Policy
+description: Check synthetic Zcash PCZT fixtures against Rust-backed privacy policies in pull requests.
+author: Zerynex contributors
+branding:
+  icon: shield
+  color: purple
+inputs:
+  pczt-path:
+    description: Path to a synthetic PCZT fixture within the caller repository.
+    required: true
+  policy-path:
+    description: Optional JSON policy path within the caller repository.
+    required: false
+    default: ''
+  input-format:
+    description: Binary or base64 PCZT transport.
+    required: false
+    default: binary
+  deny-transparent:
+    description: Disallow transparent PCZT inputs and outputs.
+    required: false
+    default: 'true'
+  deny-sapling:
+    description: Prohibit Sapling components in this particular application policy.
+    required: false
+    default: 'false'
+  fail-on-findings:
+    description: Fail this job when Rust reports policy findings.
+    required: false
+    default: 'true'
+outputs:
+  finding-count:
+    description: Number of sanitized disclosure policy findings.
+    value: ${{ steps.report.outputs.finding_count }}
+  passed:
+    description: 'true only when the configured Rust policy reported zero findings.'
+    value: ${{ steps.report.outputs.passed }}
+runs:
+  using: composite
+  steps:
+    - name: Install trusted Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    - name: Build Zerynex from this action source
+      shell: bash
+      env:
+        CARGO_TARGET_DIR: ${{ runner.temp }}/zerynex-target
+      run: cargo build --locked --release --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml" --bin zerynex
+    - name: Check the local PCZT using configured policy
+      id: report
+      shell: bash
+      env:
+        ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex
+        ZERYNEX_PCZT_PATH: ${{ inputs.pczt-path }}
+        ZERYNEX_POLICY_PATH: ${{ inputs.policy-path }}
+        ZERYNEX_INPUT_FORMAT: ${{ inputs.input-format }}
+        ZERYNEX_DENY_TRANSPARENT: ${{ inputs.deny-transparent }}
+        ZERYNEX_DENY_SAPLING: ${{ inputs.deny-sapling }}
+        ZERYNEX_FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
+      run: python3 "$GITHUB_ACTION_PATH/scripts/action_check.py"

@@ -78,3 +78,18 @@ Before a new integration is called supported, require:
 The /studio and /console paths redirect to /tools to preserve older links.
 That naming is a website detail; applications should depend on the Rust,
 CLI or SDK contracts, not a website route.
+
+
+## New transport and CI interfaces
+
+The Rust CLI now accepts either raw binary PCZT input, base64 PCZT transport
+via --input-format base64, or stdin using file path "-". Base64 input is
+compatible with the transport expected by Zallet PCZT RPCs; this does NOT
+imply live RPC integration. Python SDK also supports analyze_base64() through
+a private in-memory stdin handoff.
+
+A reusable GitHub composite action at action.yml builds the CLI and runs
+synthetic policy fixtures within the consuming repository's CI runner.
+See docs/github-action.md for supported inputs, safety restrictions, and
+results outputs. This was added to reduce integration setup cost without
+turning Zerynex into an online service.

@@ -1,5 +1,11 @@
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use clap::{Parser, ValueEnum};
-use std::{fs, path::PathBuf, process::ExitCode};
+use std::{
+    fs,
+    io::{self, Read},
+    path::PathBuf,
+    process::ExitCode,
+};
 use zerynex::{analyze_with_policy, parse_policy_json, PolicyConfig, Profile};
 
 #[derive(Parser)]
@@ -9,8 +15,11 @@ use zerynex::{analyze_with_policy, parse_policy_json, PolicyConfig, Profile};
     about = "Local PCZT disclosure-policy checks for Zcash"
 )]
 struct Args {
-    /// Binary PCZT file, processed locally.
+    /// PCZT file path. Use "-" to read from standard input, never from an argument.
     file: PathBuf,
+    /// Input encoding: raw binary PCZT or Zallet-compatible base64 transport.
+    #[arg(long, value_enum, default_value = "binary")]
+    input_format: InputFormat,
     /// Built-in policy profile. Mutually exclusive with --policy-file.
     #[arg(long, value_enum, conflicts_with = "policy_file")]
     profile: Option<Policy>,
@@ -25,6 +34,11 @@ struct Args {
     deny_sapling: bool,
     #[arg(long)]
     json: bool,
+}
+#[derive(Clone, Copy, ValueEnum)]
+enum InputFormat {
+    Binary,
+    Base64,
 }
 #[derive(Clone, Copy, ValueEnum)]
 enum Policy {
@@ -55,11 +69,47 @@ fn load_policy(args: &Args) -> Result<PolicyConfig, &'static str> {
 fn run() -> Result<ExitCode, &'static str> {
     let args = Args::parse();
     let policy = load_policy(&args)?;
-    let info = fs::metadata(&args.file).map_err(|_| "Cannot read PCZT file")?;
-    if !info.is_file() || info.len() > 8 * 1024 * 1024 {
-        return Err("Expected a regular PCZT file no larger than 8 MiB");
+    const MAX_PCZT_BYTES: usize = 8 * 1024 * 1024;
+    // Read at most one byte beyond the hard input limit, including stdin.
+    let max_encoded = MAX_PCZT_BYTES.div_ceil(3) * 4 + 256;
+    let max_input = match args.input_format {
+        InputFormat::Binary => MAX_PCZT_BYTES,
+        InputFormat::Base64 => max_encoded,
+    };
+    let mut encoded_or_raw = Vec::new();
+    if args.file.as_os_str() == "-" {
+        io::stdin()
+            .take((max_input + 1) as u64)
+            .read_to_end(&mut encoded_or_raw)
+            .map_err(|_| "Cannot read PCZT from standard input")?;
+    } else {
+        let info = fs::metadata(&args.file).map_err(|_| "Cannot read PCZT file")?;
+        if !info.is_file() || info.len() > max_input as u64 {
+            return Err("PCZT input is not a regular file or exceeds size limit");
+        }
+        encoded_or_raw = fs::read(&args.file).map_err(|_| "Cannot read PCZT file")?;
     }
-    let bytes = fs::read(&args.file).map_err(|_| "Cannot read PCZT file")?;
+    if encoded_or_raw.is_empty() || encoded_or_raw.len() > max_input {
+        return Err("PCZT input is empty or exceeds size limit");
+    }
+    let bytes = match args.input_format {
+        InputFormat::Binary => encoded_or_raw,
+        InputFormat::Base64 => {
+            // Raw base64 from pczt_create/prove/sign, optionally surrounded by
+            // transport whitespace. Not a JSON RPC response or a wallet API.
+            let trimmed = encoded_or_raw
+                .split(|byte| byte.is_ascii_whitespace())
+                .filter(|segment| !segment.is_empty())
+                .flat_map(|segment| segment.iter().copied())
+                .collect::<Vec<_>>();
+            STANDARD
+                .decode(trimmed)
+                .map_err(|_| "Invalid base64 PCZT input")?
+        }
+    };
+    if bytes.is_empty() || bytes.len() > MAX_PCZT_BYTES {
+        return Err("Decoded PCZT is empty or exceeds 8 MiB");
+    }
     let report = analyze_with_policy(&bytes, policy)?;
     if args.json {
         println!(

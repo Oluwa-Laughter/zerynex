@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow } from 'react-icons/lu'
+import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow, LuGitPullRequest } from 'react-icons/lu'
 
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
-type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3'
+type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'github'
 const integrations: {key:Integration,label:string,title:string,kind:string,description:string,code:string,documentation:string,icon:typeof LuCode}[] = [
   {
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
@@ -24,6 +24,12 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     description:'The current Python SDK invokes the same Rust CLI without duplicating PCZT parsing or sending files to a remote service.',
     code:"from zerynex_py import ZerynexClient, Policy\n\nclient = ZerynexClient(cli='./target/release/zerynex')\nreport = client.analyze_file(\n    'apps/web/public/examples/transparent-v6.bin',\n    Policy(deny_transparent=True),\n)\nprint(report.agent_summary())",
     documentation: repository + '/tree/main/packages/python',icon:LuCode,
+  },
+  {
+    key:'github',label:'GitHub Actions',title:'Continuous privacy checks in any repository',kind:'CI / NO APP DEPENDENCY',
+    description:'Drop a Zerynex composite action into a Zcash repository to check synthetic PCZT fixtures on pull requests. It compiles and runs the Rust engine locally in the runner.',
+    code:"# .github/workflows/privacy.yml\n- uses: actions/checkout@v4\n- uses: Oluwa-Laughter/zerynex@main\n  id: zerynex\n  with:\n    pczt-path: tests/fixtures/synthetic.pczt\n    policy-path: policies/shielded-only.json\n    fail-on-findings: 'true'\n\n# Production use: pin to a reviewed immutable commit SHA.\n# Never upload real PCZTs or wallet keys to CI.",
+    documentation: repository + '/blob/main/docs/github-action.md',icon:LuGitPullRequest,
   },
   {
     key:'agent',label:'AI agents / MCP',title:'Agent-assisted privacy regressions',kind:'LOCAL STDIO',
@@ -86,6 +92,6 @@ export default function ToolingIntegrations() {
         <a className="dev-integration-docs" href={current.documentation} target="_blank" rel="noopener noreferrer">READ INTEGRATION DOCUMENTATION <LuArrowUpRight size={15}/></a>
       </div>
     </div>
-    <p className="dev-integration-caveat">REFERENCE INTEGRATIONS ARE REPOSITORY-LOCAL. THE SDK PACKAGES HAVE NOT BEEN RELEASED TO PUBLIC REGISTRIES.</p>
+    <p className="dev-integration-caveat">GITHUB ACTION SUPPORTS EXTERNAL REPOSITORIES. SDK PACKAGES ARE STILL SOURCE-ONLY, NOT REGISTRY-RELEASED.</p>
   </section>
 }

@@ -150,3 +150,37 @@ jobs:
           assert not report.passed
           assert report.findings[0].rule == 'PCZT-TRANSPARENT-OUTPUTS'
           PY
+
+  consumer-action:
+    name: Reusable action consumer verification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Analyze clean synthetic fixture
+        id: clean
+        uses: ./
+        with:
+          pczt-path: apps/web/public/examples/clean-v6.bin
+          policy-path: policies/shielded-only.json
+      - name: Assert clean PCZT passes
+        env:
+          PASSED: ${{ steps.clean.outputs.passed }}
+          COUNT: ${{ steps.clean.outputs.finding-count }}
+        run: test "$PASSED" = true && test "$COUNT" = 0
+      - name: Find transparent policy violations without failing job
+        id: flagged
+        uses: ./
+        with:
+          pczt-path: apps/web/public/examples/transparent-v6.bin
+          fail-on-findings: 'false'
+      - name: Assert findings are surfaced to consuming workflow
+        env:
+          PASSED: ${{ steps.flagged.outputs.passed }}
+          COUNT: ${{ steps.flagged.outputs.finding-count }}
+        run: test "$PASSED" = false && test "$COUNT" = 1
+      - name: Exercise standalone action consumer tests
+        env:
+          ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex
+        run: python3 -m unittest discover -s tests -p 'test_action_check.py' -v

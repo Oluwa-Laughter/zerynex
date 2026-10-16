@@ -191,3 +191,12 @@ test('tooling integrator tabs expose setup instructions', async ({ page }) => {
   await page.getByRole('tab', {name:/Z3/}).click()
   await expect(page.getByText('zerynex-z3-check', {exact:false})).toBeVisible()
 })
+
+
+test('developer onboarding includes copyable external GitHub Action checks', async ({ page }) => {
+  await page.goto('/tools')
+  await page.getByRole('tab', {name:/GitHub Actions/}).click()
+  await expect(page.getByText('Oluwa-Laughter/zerynex@main', {exact:false})).toBeVisible()
+  await expect(page.getByText('Never upload real PCZTs', {exact:false})).toBeVisible()
+  await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/})).toHaveAttribute('href', /docs\/github-action\.md/)
+})
