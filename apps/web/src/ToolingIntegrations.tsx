@@ -11,7 +11,7 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
     description:'Run policy-as-code checks on a locally held PCZT. Exit status 0 is no findings, 2 means findings, and 1 indicates an input or runtime problem.',
     code:'cargo build --locked --release\n./target/release/zerynex apps/web/public/examples/transparent-v6.bin \\\n  --policy-file policies/shielded-only.json --json',
-    documentation: '/docs/policy-format.md',icon:LuTerminal,
+    documentation: '/docs/policy-format',icon:LuTerminal,
   },
   {
     key:'typescript',label:'TypeScript SDK',title:'Integrate with a browser application',kind:'REACT + NEXT.JS',
@@ -35,7 +35,7 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     key:'stages',label:'PCZT Stage Regression',title:'Catch exposure introduced by a transaction handoff',kind:'WALLET / CI / REGRESSION',
     description:'Compare two local PCZT stages using the same Rust policy engine. Flag newly present sensitive field locations and component-count changes; this is not a cryptographic equivalence check.',
     code:"cargo run --locked -- \\\n  apps/web/public/examples/clean-v6.bin \\\n  --compare-with apps/web/public/examples/flagged-v6.bin \\\n  --json\n\n# For GitHub Actions, configure baseline-path and pczt-path.\n# Only use synthetic, nonspendable fixtures in public CI.",
-    documentation: '/docs/pczt-stage-regression.md',icon:LuGitBranch,
+    documentation: '/docs/pczt-stage-regression',icon:LuGitBranch,
   },
   {
     key:'zk',label:'ZK / Prover handoffs',title:'Test privacy invariants around prover roles',kind:'ZK / RESEARCH + STRUCTURAL CHECKS',
@@ -47,19 +47,19 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     key:'handoff',label:'Wallet Role Harness',title:'Test synthetic PCZT roles without a node',kind:'RUST / SYNTHETIC / CI',
     description:'Run a manifest of expected disclosure outcomes against real upstream PCZT Creator, Updater, Combiner and Redactor operations. No wallet, signing or proof generation is required.',
     code:"cargo run --locked --example generate_role_handoff -- --check\n\ncargo run --locked --bin zerynex-handoff -- \\\n  --manifest tests/fixtures/role-handoff/scenario.json \\\n  --json\n\n# In another repository, use the Zerynex GitHub Action\n# with scenario-manifest instead of uploading transactions.",
-    documentation: '/docs/handoff-harness.md',icon:LuGitMerge,
+    documentation: '/docs/handoff-harness',icon:LuGitMerge,
   },
   {
     key:'github',label:'GitHub Actions',title:'Continuous privacy checks in any repository',kind:'CI / NO APP DEPENDENCY',
     description:'Drop a Zerynex composite action into a Zcash repository to check synthetic PCZT fixtures on pull requests. It compiles and runs the Rust engine locally in the runner.',
     code:"# .github/workflows/privacy.yml\n- uses: actions/checkout@v4\n- uses: Oluwa-Laughter/zerynex@main\n  id: zerynex\n  with:\n    pczt-path: tests/fixtures/synthetic.pczt\n    policy-path: policies/shielded-only.json\n    fail-on-findings: 'true'\n\n# Production use: pin to a reviewed immutable commit SHA.\n# Never upload real PCZTs or wallet keys to CI.",
-    documentation: '/docs/github-action.md',icon:LuGitPullRequest,
+    documentation: '/docs/github-action',icon:LuGitPullRequest,
   },
   {
     key:'agent',label:'AI agents / MCP',title:'Agent-assisted privacy regressions',kind:'LOCAL STDIO',
     description:'The optional MCP server exposes read-only checks for approved synthetic fixtures. It does not expose arbitrary file access, signing, or private wallet data.',
     code:"cargo build --locked --release\npython -m venv .venv\n.venv/bin/python -m pip install './packages/python[mcp]'\n\n# Set ZERYNEX_CLI to your compiled binary.\n# Set ZERYNEX_AGENT_ALLOWED_ROOT to an approved fixture directory.\n.venv/bin/zerynex-mcp",
-    documentation: '/docs/agents.md',icon:LuWorkflow,
+    documentation: '/docs/agents',icon:LuWorkflow,
   },
   {
     key:'rpc',label:'RPC Contracts',title:'Catch OpenRPC compatibility drift offline',kind:'ZALLET / JSON-RPC / PREVIEW',
@@ -71,7 +71,7 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     key:'z3',label:'Z3 / Zebra',title:'Diagnose local node readiness',kind:'LOOPBACK ONLY',
     description:'Check documented Zebra /healthy and /ready responses on localhost. This does not validate Zcash consensus, Zallet RPC, or Zaino indexing.',
     code:"cargo build --locked --release\npython -m venv .venv\n.venv/bin/python -m pip install ./packages/python\n.venv/bin/zerynex-z3-check --host 127.0.0.1 --port 8080",
-    documentation: '/docs/z3-local.md',icon:LuNetwork,
+    documentation: '/docs/z3-local',icon:LuNetwork,
   },
 ]
 

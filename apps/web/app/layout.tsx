@@ -12,6 +12,8 @@ import './cinema.css'
 import './tools.css'
 import './docs.css'
 import './workbench.css'
+import './rebrand.css'
+import ThemeSwitch from '../src/design/ThemeSwitch'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000')
@@ -19,7 +21,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ??
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Zerynex — Privacy is a property.',
+    default: 'Zerynex — Build privacy into your stack.',
     template: '%s · Zerynex',
   },
   description: 'A local-first privacy policy engine for Zcash PCZT workflows. Verify handoffs, reduce unwanted disclosure, and build with Rust and WebAssembly.',
@@ -27,7 +29,7 @@ export const metadata: Metadata = {
   keywords: ['Zcash', 'PCZT', 'privacy', 'Rust', 'developer tooling', 'Ironwood'],
   openGraph: {
     type: 'website',
-    title: 'Zerynex — Privacy is a property.',
+    title: 'Zerynex — Build privacy into your stack.',
     description: 'Privacy policy analysis for Zcash developers. Your PCZT remains on your device.',
     images: ['/og-card.svg'],
   },
@@ -39,9 +41,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#000000',
+  themeColor: '#111d1a',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-scroll-behavior="smooth"><body>{children}</body></html>
+  return <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning><body><script dangerouslySetInnerHTML={{__html: `(function(){try{var t=localStorage.getItem('zerynex-theme');var d=(t==='dark'||t==='light')?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);document.documentElement.style.colorScheme=d;}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`}}/>{children}<ThemeSwitch/></body></html>
 }

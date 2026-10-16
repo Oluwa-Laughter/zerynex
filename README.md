@@ -233,3 +233,13 @@ Full nodes, Zallet RPC signing, proof generation, and Zaino connectivity
 are not simulated as supported. Those need separate upstream tests.
 
 For public Next.js deployment and verification, see docs/deployment.md.
+
+## Phase II product and SDK onboarding
+
+The functional product UX includes language-only SDK tabs, a separate
+restricted-agent experience, a geometric logo/favicons, GSAP narrative
+animations, Motion interactive transitions, and persistent Light, Dark
+and System themes. See docs/product-experience.md.
+
+For no-install browser use and lightweight adapter distribution, see
+docs/sdk-distribution.md. Unpublished SDKs are identified explicitly.

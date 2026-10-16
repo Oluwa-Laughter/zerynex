@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test'
 test('homepage navigates to Zerynex developer tooling', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Zerynex/)
-  await expect(page.getByRole('heading', { name: /privacy is/i })).toBeVisible()
-  await page.locator('.topbar').getByRole('button', { name: 'Developer Tools' }).click()
+  await expect(page.getByRole('heading', { name: /Privacy tooling/i })).toBeVisible()
+  await page.locator('.topbar').getByRole('button', { name: 'Open workbench' }).click()
   await expect(page).toHaveURL(/\/tools/)
   await expect(page.getByRole('heading', { name: /Build with privacy/i })).toBeVisible()
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
@@ -36,8 +36,8 @@ test('mobile navigation is accessible and uses icon components', async ({ page, 
   const menu = page.getByRole('button', { name: 'Open menu' })
   await menu.click()
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible()
-  await expect(page.getByRole('navigation', {name:'Primary'}).getByRole('link', { name: /Documentation/ })).toBeVisible()
-  await page.locator('.topbar').getByRole('button', { name: 'Developer Tools' }).click()
+  await expect(page.getByRole('navigation', {name:'Primary'}).getByRole('link', { name: 'Docs' })).toBeVisible()
+  await page.locator('.topbar').getByRole('button', { name: 'Open workbench' }).click()
   await expect(page).toHaveURL(/\/tools/)
 })
 
@@ -98,70 +98,57 @@ test('rejects malformed policy imports without weakening the current policy', as
   await expect(page.getByLabel('Deny transparent components')).toBeChecked()
 })
 
-test('ecosystem atlas navigation and language onboarding are functional', async ({ page, isMobile }) => {
+test('SDK navigation shows language-only labels and a working Python quickstart', async ({ page, isMobile }) => {
   await page.goto('/')
-  if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
-  await page.getByRole('navigation', {name:'Primary'}).getByRole('button', { name: 'Ecosystem' }).click()
+  if (isMobile) await page.getByRole('button',{name:'Open menu'}).click()
+  await page.getByRole('navigation',{name:'Primary'}).getByRole('button',{name:'SDKs'}).click()
   await expect(page).toHaveURL(/\/ecosystem/)
-  await expect(page.getByRole('heading', { name: /Find your.*entry point/i })).toBeVisible()
-  await page.getByRole('button', { name: /Python developer/i }).click()
-  await expect(page.getByText('from zerynex_py import ZerynexClient', { exact: false })).toBeVisible()
-  await page.getByRole('button', { name: /Z3 \/ node operator/i }).click()
-  await expect(page.getByText('zerynex-z3-check', { exact: false }).first()).toBeVisible()
-  await expect(page.getByText('DOCS-BASED · NOT LIVE TELEMETRY')).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Speak your.*language/i})).toBeVisible()
+  await page.getByRole('button',{name:/^Python/}).click()
+  await expect(page.getByText('from zerynex_py import ZerynexClient',{exact:false})).toBeVisible()
+  await expect(page.getByRole('button',{name:/^Rust/})).toBeVisible()
+  await expect(page.getByRole('button',{name:/^Go/})).toBeVisible()
+  await expect(page.getByRole('button',{name:/^TypeScript/})).toBeVisible()
+  await expect(page.getByRole('button',{name:/Go engineer/})).toHaveCount(0)
 })
 
-test('ecosystem atlas works in small viewport', async ({ page }) => {
+test('language SDK page and agent route fit small viewports',async ({page})=>{
   await page.goto('/ecosystem')
-  await expect(page.getByRole('heading', { name: /One toolchain/i })).toBeVisible()
-  await page.getByRole('button', { name: /Agent builder/i }).click()
-  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT', { exact: false }).first()).toBeVisible()
-  const sizes = await page.evaluate(() => ({
-    body: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth,
-  }))
-  expect(sizes.body).toBeLessThanOrEqual(sizes.viewport + 1)
+  const size=await page.evaluate(()=>({width:document.documentElement.scrollWidth,view:document.documentElement.clientWidth}))
+  expect(size.width).toBeLessThanOrEqual(size.view+1)
+  await page.getByRole('link',{name:/MCP \+ agent skills/}).click()
+  await expect(page).toHaveURL(/\/agents/)
+  await expect(page.getByRole('heading',{name:/Automation.*with limits/i})).toBeVisible()
+  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT',{exact:false})).toBeVisible()
 })
 
-test('cinematic homepage keeps real navigation and readable content', async ({ page, isMobile }) => {
+test('new homepage has working tool links and no personal repository CTA',async ({page,isMobile})=>{
   await page.goto('/')
-  await expect(page.getByRole('heading', {name: 'Privacy is a property. Not a promise.'})).toBeVisible()
-  await expect(page.getByText('LOCAL ANALYSIS · NO HOSTED PCZT PROCESSING')).toBeVisible()
-  await expect(page.getByRole('link', {name:/Explore GitHub/})).toHaveAttribute('href', 'https://github.com/Oluwa-Laughter/zerynex')
-  await expect(page.getByRole('heading', {name:/Built for the unseen/})).toBeVisible()
-  const sizes = await page.evaluate(() => ({
-    pageWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-  }))
-  expect(sizes.pageWidth).toBeLessThanOrEqual(sizes.viewportWidth + 1)
-  if (isMobile) {
-    await page.getByRole('button', {name:'Open menu'}).click()
-    await expect(page.getByRole('navigation', {name:'Primary'})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Privacy tooling.*without friction/i})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Launch workbench/})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Explore GitHub/})).toHaveCount(0)
+  await expect(page.getByRole('link',{name:/Inspect a PCZT/})).toBeVisible()
+  const size=await page.evaluate(()=>({width:document.documentElement.scrollWidth,view:document.documentElement.clientWidth}))
+  expect(size.width).toBeLessThanOrEqual(size.view+1)
+  if(isMobile){
+    await page.getByRole('button',{name:'Open menu'}).click()
+    await expect(page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Agents'})).toBeVisible()
   }
 })
 
-test('carousel and FAQ controls are keyboard-accessible', async ({ page }) => {
+test('homepage actually detects transparent fixture with the Rust WASM parser',async ({page})=>{
   await page.goto('/')
-  const next = page.getByRole('button', {name:'Next tool'})
-  await expect(next).toBeEnabled()
-  await next.click()
-  await expect(page.getByRole('button', {name:'Previous tool'})).toBeEnabled()
-  const faq = page.getByRole('button', {name:'Does a passing report prove a transaction is private?'})
-  await faq.focus()
-  await page.keyboard.press('Enter')
-  await expect(faq).toHaveAttribute('aria-expanded','true')
-  await expect(page.getByText('Zerynex checks specific disclosure rules in intermediate PCZTs.')).toBeVisible()
-  await page.keyboard.press('Enter')
-  await expect(faq).toHaveAttribute('aria-expanded','false')
+  await page.getByRole('button',{name:'Run synthetic check'}).click()
+  await expect(page.getByText('PCZT-TRANSPARENT-OUTPUTS')).toBeVisible()
+  await expect(page.getByText('transparent.outputs',{exact:true})).toBeVisible()
 })
 
-test('reduced-motion mode retains visible hero and stops continuous aurora motion', async ({ page }) => {
+test('reduced-motion keeps hero and application controls accessible',async ({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'})
   await page.goto('/')
-  await expect(page.getByRole('heading', {name:'Privacy is a property. Not a promise.'})).toBeVisible()
-  const animation = await page.locator('.cinema-hero .aurora-layer-a').evaluate(el => getComputedStyle(el).animationName)
-  expect(animation).toBe('none')
-  await page.getByRole('region', {name:'Zerynex privacy infrastructure'}).getByRole('button', {name:'Open Developer Tools'}).click()
+  await expect(page.getByRole('heading',{name:/Privacy tooling/})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Launch workbench/})).toBeVisible()
+  await page.getByRole('link',{name:/Launch workbench/}).click()
   await expect(page).toHaveURL(/\/tools/)
 })
 
@@ -198,7 +185,7 @@ test('developer onboarding includes copyable external GitHub Action checks', asy
   await page.getByRole('tab', {name:/GitHub Actions/}).click()
   await expect(page.getByText('Oluwa-Laughter/zerynex@main', {exact:false})).toBeVisible()
   await expect(page.getByText('Never upload real PCZTs', {exact:false})).toBeVisible()
-  await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/})).toHaveAttribute('href', /docs\/github-action\.md/)
+  await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/})).toHaveAttribute('href', '/docs/github-action')
 })
 
 
@@ -208,7 +195,7 @@ test('Zerynex stage regression onboarding provides source-backed workflow', asyn
   await expect(page.getByText('--compare-with', {exact:false})).toBeVisible()
   await expect(page.getByText('cryptographic equivalence', {exact:false})).toBeVisible()
   await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/}))
-    .toHaveAttribute('href', /docs\/pczt-stage-regression\.md/)
+    .toHaveAttribute('href', '/docs/pczt-stage-regression')
 })
 
 
@@ -218,14 +205,14 @@ test('upstream PCZT role harness onboarding exposes executable manifest workflow
   await expect(page.getByText('zerynex-handoff', {exact:false})).toBeVisible()
   await expect(page.getByText('scenario-manifest', {exact:false})).toBeVisible()
   await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/}))
-    .toHaveAttribute('href', /docs\/handoff-harness\.md/)
+    .toHaveAttribute('href', '/docs/handoff-harness')
 })
 
 
 test('documentation navigation and guide discovery work from homepage', async ({ page, isMobile }) => {
   await page.goto('/')
   if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
-  await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: /Documentation/ }).click()
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Docs' }).click()
   await expect(page).toHaveURL(/\/docs$/)
   await expect(page.getByRole('heading', { name: /Build with confidence/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Go SDK/ }).first()).toBeVisible()
@@ -270,14 +257,14 @@ test('developer tools show Go and RPC guidance with internal docs', async ({ pag
 })
 
 
-test('ecosystem onboarding supports Go and ZK engineering with correct limitations', async ({ page }) => {
+test('Go SDK onboarding and ZK guidance are separated',async ({page})=>{
   await page.goto('/ecosystem')
-  await page.getByRole('button', { name: /Go engineer/ }).click()
-  await expect(page.getByText('zerynex.Client', { exact:false })).toBeVisible()
-  await expect(page.getByText('No reimplementation of Zcash protocol cryptography', { exact:false })).toBeVisible()
-  await page.getByRole('button', { name: /ZK engineer/ }).click()
-  await expect(page.getByText('ZK proof generation and verification are NOT implemented', { exact:false })).toBeVisible()
-  await page.getByRole('link',{ name: /ZK \/ PROVER/ }).click()
+  await page.getByRole('button',{name:/^Go/}).click()
+  await expect(page.getByText('zerynex.Client',{exact:false})).toBeVisible()
+  await page.getByRole('link',{name:'Read integration guide'}).click()
+  await expect(page).toHaveURL(/\/docs\/go-sdk/)
+  await page.goto('/ecosystem')
+  await page.getByRole('link',{name:/ZK \/ proving research/}).click()
   await expect(page).toHaveURL(/\/docs\/zk-prover-handoffs/)
 })
 
@@ -345,4 +332,46 @@ test('documentation and tools link to real browser workbenches', async ({ page }
   await page.goto('/tools')
   await page.getByRole('link', { name: /Role Handoff Tests/ }).first().click()
   await expect(page).toHaveURL(/\/tools\/handoff$/)
+})
+
+
+test('color themes switch and persist through navigation and reload',async ({page})=>{
+  await page.goto('/')
+  await page.getByRole('button',{name:'Change color theme'}).click()
+  await page.getByRole('button',{name:'Light'}).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light')
+  await page.getByRole('link',{name:/Launch workbench/}).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light')
+  await page.getByRole('button',{name:'Change color theme'}).click()
+  await page.getByRole('button',{name:'Dark'}).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark')
+  await page.goto('/docs')
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark')
+  await page.getByRole('button',{name:'Change color theme'}).click()
+  await page.getByRole('button',{name:'System'}).click()
+  expect(await page.evaluate(()=>localStorage.getItem('zerynex-theme'))).toBeNull()
+})
+
+test('system color theme tracks OS preference and is keyboard accessible',async ({page})=>{
+  await page.emulateMedia({colorScheme:'light'})
+  await page.goto('/docs')
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light')
+  await page.emulateMedia({colorScheme:'dark'})
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark')
+  await page.getByRole('button',{name:'Change color theme'}).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('group',{name:'Color theme'})).toBeVisible()
+  await expect(page.getByRole('button',{name:'Light'})).toBeVisible()
+})
+
+test('new agent page shows scoped MCP/skill/CI interfaces',async ({page})=>{
+  await page.goto('/agents')
+  await expect(page.getByRole('heading',{name:/Automation/})).toBeVisible()
+  await expect(page.getByRole('heading',{name:'Local MCP server'})).toBeVisible()
+  await expect(page.getByRole('heading',{name:'Portable agent skill'})).toBeVisible()
+  await expect(page.getByRole('heading',{name:'CI policy gate'})).toBeVisible()
+  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT',{exact:false})).toBeVisible()
+  await expect(page.getByText('No wallet keys, arbitrary filesystem access',{exact:false})).toBeVisible()
 })

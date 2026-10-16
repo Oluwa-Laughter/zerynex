@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { LuArrowLeft, LuArrowUpRight, LuBookOpen, LuGithub, LuShieldCheck } from 'react-icons/lu'
+import { LuArrowLeft, LuArrowUpRight, LuBookOpen, LuShieldCheck } from 'react-icons/lu'
 import type { ReactNode } from 'react'
 import { guideGroups, guides, type Guide } from './catalog'
 
-const source = 'https://github.com/Oluwa-Laughter/zerynex'
+
 
 export function Status({ status }: { status: Guide['status'] }) {
   return <span className={'docs-status docs-status-' + status}>{status.toUpperCase()}</span>
@@ -19,14 +19,14 @@ export default function DocsLayout({
   return <div className="docs-site">
     <header className="docs-header">
       <Link href="/" className="docs-brand" aria-label="Zerynex home">
-        <span className="docs-mark">Z.</span>
+        <span className="docs-mark"><svg viewBox="0 0 80 80" fill="none" width="25" height="25" aria-hidden="true"><path d="M20 23H59L21 57H60" stroke="currentColor" strokeWidth="9"/><circle cx="62" cy="19" r="5" fill="currentColor"/></svg></span>
         <strong>ZERYNEX</strong>
         <span className="docs-brand-tail">/ DOCUMENTATION</span>
       </Link>
       <nav aria-label="Documentation top navigation">
         <Link href="/tools">Developer Tools <LuArrowUpRight size={14}/></Link>
-        <Link href="/ecosystem">Ecosystem <LuArrowUpRight size={14}/></Link>
-        <a href={source} target="_blank" rel="noopener noreferrer"><LuGithub size={17}/> Source</a>
+        <Link href="/ecosystem">SDKs <LuArrowUpRight size={14}/></Link>
+        <Link href="/agents">Agents <LuArrowUpRight size={14}/></Link>
       </nav>
     </header>
     <div className="docs-frame">

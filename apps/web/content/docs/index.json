@@ -136,6 +136,22 @@
       "status": "supported",
       "audience": "Maintainers and deployment engineers",
       "summary": "Vercel monorepo configuration, browser workbench routes, and privacy-safe release checks."
+    },
+    {
+      "slug": "sdk-distribution",
+      "title": "SDKs and lightweight installation",
+      "group": "Getting started",
+      "status": "partial",
+      "audience": "Application developers",
+      "summary": "Zero-install browser tooling, source SDKs and versioned release roadmap."
+    },
+    {
+      "slug": "product-experience",
+      "title": "Product design and release policy",
+      "group": "Research",
+      "status": "supported",
+      "audience": "Product engineers",
+      "summary": "Visual system, motion, routes and deployment acceptance standards."
     }
   ]
 }

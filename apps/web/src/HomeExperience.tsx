@@ -4,299 +4,143 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import {
-  LuArrowRight, LuArrowLeft, LuArrowUpRight,
-  LuChevronDown, LuExternalLink, LuGitBranch, LuLockKeyhole,
-  LuScanLine, LuLayers3, LuWorkflow, LuTerminal,
-  LuShieldCheck, LuCode, LuBookOpen,
-} from 'react-icons/lu'
-
-const repo = 'https://github.com/Oluwa-Laughter/zerynex'
-type View = 'home' | 'tools' | 'ecosystem'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { LuArrowUpRight, LuArrowRight, LuShieldCheck, LuLayers, LuGitCompare,
+  LuLockKeyhole, LuTerminal, LuWorkflow, LuCheck, LuScanLine, LuCheckCheck, LuBookOpen,
+  LuPlay, LuNetwork, LuChevronRight, LuFileCode2 } from 'react-icons/lu'
+import { inspectPczt, loadEngine, type Report } from './analyzer'
 
 const capabilities = [
-  {
-    overline: '01 / BROWSER TOOLING',
-    title: 'Developer Tools',
-    description: 'Inspect a local PCZT, configure your disclosure policy, and export findings—using the real Rust engine compiled to WebAssembly.',
-    technical: 'PCZT · RUST / WASM',
-    icon: LuScanLine,
-    action: 'Open PCZT Inspector',
-    view: 'tools' as View,
-  },
-  {
-    overline: '02 / POLICY ENGINE',
-    title: 'Policy as code',
-    description: 'Automate repeatable privacy regression checks with transparent, Sapling, Orchard and Ironwood field policies.',
-    technical: 'RUST CLI · JSON',
-    icon: LuGitBranch,
-    action: 'Explore the policies',
-    href: repo + '/tree/main/policies',
-  },
-  {
-    overline: '03 / MULTI-LANGUAGE',
-    title: 'Developer SDKs',
-    description: 'Use the same core from TypeScript, Python and Rust without creating another service that receives transaction data.',
-    technical: 'TYPESCRIPT · PYTHON · RUST',
-    icon: LuCode,
-    action: 'Browse onboarding',
-    view: 'ecosystem' as View,
-  },
-  {
-    overline: '04 / AGENTIC WORKFLOWS',
-    title: 'Local agent tools',
-    description: 'Give AI assistants narrow MCP tools for synthetic fixtures and sanitized findings—not unrestricted access to wallet secrets.',
-    technical: 'MCP · AGENT SKILL',
-    icon: LuWorkflow,
-    action: 'Read the agent guide',
-    href: repo + '/blob/main/docs/agents.md',
-  },
-  {
-    overline: '05 / NODE OPERATIONS',
-    title: 'Z3 diagnostics',
-    description: 'Check Zebra liveness and readiness on loopback without accessing Zallet keys or treating a health signal as a consensus proof.',
-    technical: 'ZEBRA · Z3',
-    icon: LuLayers3,
-    action: 'View node workflow',
-    view: 'ecosystem' as View,
-  },
+  {n:'01', title:'Inspect a PCZT', desc:'Know which disclosure policy fields appear before signing or handoff.', icon:LuScanLine,href:'/tools',state:'LIVE IN BROWSER'},
+  {n:'02', title:'Compare stages', desc:'Detect new metadata and changed shielded or transparent components.',icon:LuGitCompare,href:'/tools/stages',state:'LIVE IN BROWSER'},
+  {n:'03', title:'Role handoffs',desc:'Replay reproducible PCZT role snapshots against expected privacy invariants.',icon:LuLayers,href:'/tools/handoff',state:'SYNTHETIC TESTS'},
+  {n:'04', title:'SDK and CI',desc:'Add checks to app pipelines with one canonical Rust engine and reusable adapters.',icon:LuTerminal,href:'/docs/installation',state:'SOURCE INTEGRATIONS'},
 ]
+const code = "const zerynex = createZerynexClient({\n  loadEngine: loadTrustedWasm\n})\n\nconst report = await zerynex.analyzeBlob(\n  file,\n  { deny_transparent: true }\n)\n\nconsole.log(report.findings)"
 
-const faq = [
-  {
-    question: 'Does Zerynex upload my transaction data?',
-    answer: 'No hosted PCZT analysis service is required. The PCZT Inspector processes files locally through the Rust WebAssembly engine, and the CLI runs on your machine. You should still use a trusted device and browser.',
-  },
-  {
-    question: 'Does a passing report prove a transaction is private?',
-    answer: 'No. Zerynex checks specific disclosure rules in intermediate PCZTs. It does not prove anonymity, validate consensus, authorize signing, or conduct a complete cryptographic audit.',
-  },
-  {
-    question: 'Can I use Zerynex with Python, TypeScript, or Rust?',
-    answer: 'Yes. The Rust engine and CLI are the foundation. The TypeScript SDK runs the compiled Rust engine through WebAssembly, while the Python SDK currently uses the trusted local Rust CLI.',
-  },
-  {
-    question: 'Can an AI agent review a Zcash workflow?',
-    answer: 'Zerynex provides a portable Agent Skill and an opt-in local MCP server for approved synthetic fixtures. The tools return limited, sanitized policy findings instead of wallet secrets or raw PCZT bytes.',
-  },
-]
-
-function WordTitle({ text, italic = false }: { text: string; italic?: boolean }) {
-  return <span className={'cinema-title-line' + (italic ? ' cinema-title-serif' : '')} aria-hidden="true">
-    {text.split(' ').map((word, i) => <span className="cinema-word-mask" key={i}>
-      <span className="cinema-word">{word}</span>
-    </span>)}
-  </span>
+function MotionTitle({children,className=''}:{children:React.ReactNode,className?:string}) {
+  return <motion.div className={className} initial={false}>{children}</motion.div>
 }
 
-function Aurora({ small = false }: { small?: boolean }) {
-  return <div aria-hidden="true" className={'aurora-scene' + (small ? ' aurora-small' : '')}>
-    <div className="aurora-layer aurora-layer-a"/>
-    <div className="aurora-layer aurora-layer-b"/>
-    <div className="aurora-layer aurora-layer-c"/>
-    <div className="aurora-horizon"/>
+function LivePreview() {
+  const [state,setState]=useState<'idle'|'loading'|'complete'|'error'>('idle')
+  const [ready,setReady]=useState(false)
+  useEffect(()=>{let live=true;loadEngine().then(()=>{if(live)setReady(true)}).catch(()=>{if(live)setState('error')});return ()=>{live=false}},[])
+  const [report,setReport]=useState<Report|null>(null)
+  async function run(){
+    setState('loading');setReport(null)
+    try {
+      const fetched=await fetch('/examples/transparent-v6.bin')
+      if(!fetched.ok)throw new Error('Fixture missing')
+      const bytes=await fetched.arrayBuffer()
+      const result=await inspectPczt(new File([bytes],'transparent-synthetic.pczt'),'external-signer',{denyTransparent:true,denySapling:false})
+      setReport(result);setState('complete')
+    } catch {setState('error')}
+  }
+  return <div className="zn-preview" aria-label="Interactive PCZT analyzer preview">
+    <div className="zn-preview-top"><span><i/><i/><i/></span><strong>privacy-check / synthetic.pczt</strong><span className="zn-preview-status">RUST / WASM</span></div>
+    <div className="zn-preview-body">
+      <div className="zn-preview-label"><LuFileCode2 size={16}/> SHIELDED-ONLY POLICY <span>v6 PCZT</span></div>
+      <div className="zn-preview-track">
+        <span><LuCheck size={14}/> Input decoded</span>
+        <span><LuShieldCheck size={14}/> Policy loaded</span>
+        <span className={state==='complete'?'zn-preview-hot':''}><LuScanLine size={14}/> Findings</span>
+      </div>
+      <div className="zn-preview-rule"><span>policy.deny_transparent</span><strong>true</strong></div>
+      <div className="zn-preview-rule"><span>input</span><strong>transparent-synthetic.pczt</strong></div>
+      <AnimatePresence mode="wait">
+        <motion.div key={state} className="zn-preview-result" initial={{opacity:0,y:9}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-7}} transition={{duration:.2}} aria-live="polite">
+          {state==='idle'&&<><span className="zn-preview-empty">Ready to analyze synthetic fixture.</span><small>Click run to invoke the actual Rust engine.</small></>}
+          {state==='loading'&&<span className="zn-preview-empty">Analyzing locally...</span>}
+          {state==='error'&&<span role="alert" className="zn-preview-error">Unable to load the local Rust/WASM engine.</span>}
+          {state==='complete'&&<><span className="zn-preview-result-head">DETECTED / {report?.findings.length??0} POLICY FINDING</span>{report?.findings.map((finding,i)=><div className="zn-preview-finding" key={i}><strong>{finding.rule}</strong><span>{finding.field}</span></div>)}</>}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+    <div className="zn-preview-footer"><button type="button" disabled={!ready||state==='loading'} onClick={()=>void run()}><LuPlay size={16}/>{!ready?'Preparing local engine':state==='complete'?'Run again':'Run synthetic check'}</button><span><LuLockKeyhole size={14}/> Zero private uploads</span></div>
   </div>
 }
 
-export default function HomeExperience({ navigate }: { navigate: (page: View) => void }) {
-  const ref = useRef<HTMLElement>(null)
-  const rail = useRef<HTMLDivElement>(null)
-  const [openFaq, setOpenFaq] = useState<number | null>(0)
-  const [atStart, setAtStart] = useState(true)
-  const [atEnd, setAtEnd] = useState(false)
-
-  function updateRail() {
-    const el = rail.current
-    if (!el) return
-    setAtStart(el.scrollLeft <= 2)
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2)
-  }
-
-  useEffect(() => {
-    const node = rail.current
-    if (!node) return
-    updateRail()
-    const resize = new ResizeObserver(updateRail)
-    resize.observe(node)
-    node.addEventListener('scroll', updateRail, { passive: true })
-    return () => {
-      resize.disconnect()
-      node.removeEventListener('scroll', updateRail)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!ref.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+export default function HomeExperience() {
+  const scope=useRef<HTMLElement>(null)
+  const reduced=useReducedMotion()
+  useEffect(()=>{
+    if(!scope.current||reduced)return
     gsap.registerPlugin(ScrollTrigger)
-    const context = gsap.context(() => {
-      const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
-      intro.from('.cinema-eyebrow', { y: 16, opacity: 0, filter: 'blur(8px)', duration: .55 })
-        .from('.cinema-word', {
-          yPercent: 90, opacity: 0, filter: 'blur(10px)', stagger: .055,
-          duration: .95, ease: 'power4.out',
-        }, '-=.25')
-        .from('.cinema-subtitle', { y: 24, opacity: 0, filter: 'blur(10px)', duration: .72 }, '-=.32')
-        .from('.cinema-actions', { y: 18, opacity: 0, duration: .65 }, '-=.42')
-        .from('.cinema-hero-note', { y: 16, opacity: 0, duration: .65 }, '-=.4')
-
-      gsap.utils.toArray<HTMLElement>('.cinema-reveal').forEach(element => {
-        gsap.from(element, {
-          y: 26, opacity: 0, filter: 'blur(8px)', duration: .9,
-          scrollTrigger: { trigger: element, start: 'top 91%', once: true },
-        })
+    const ctx=gsap.context(()=>{
+      gsap.fromTo('.zn-hero-content > div',{opacity:0,y:30},{opacity:1,y:0,duration:.68,stagger:.1,ease:'power3.out'})
+      gsap.utils.toArray<HTMLElement>('.zn-scroll-reveal').forEach(el=>{
+        gsap.fromTo(el,{opacity:0,y:35},{opacity:1,y:0,duration:.85,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 90%',once:true}})
       })
-      gsap.utils.toArray<HTMLElement>('.cinema-stagger').forEach(element => {
-        gsap.from(Array.from(element.children), {
-          y: 25, opacity: 0, filter: 'blur(7px)', stagger: .09, duration: .8,
-          scrollTrigger: { trigger: element, start: 'top 89%', once: true },
-        })
-      })
-      gsap.to('.cinema-statement-text', {
-        opacity: 1, filter: 'blur(0px)', ease: 'none',
-        scrollTrigger: { trigger: '.cinema-statement', start: 'top 75%', end: 'center 45%', scrub: true },
-      })
-    }, ref)
-    return () => context.revert()
-  }, [])
-
-  function slide(direction: -1 | 1) {
-    const el = rail.current
-    if (!el) return
-    const firstCard = el.querySelector<HTMLElement>('.cinema-work-card')
-    const distance = (firstCard?.getBoundingClientRect().width ?? 370) + 16
-    el.scrollBy({ left: distance * direction, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
-  }
-
-  return <main className="cinema-home" ref={ref}>
-    <section className="cinema-hero" aria-label="Zerynex privacy infrastructure">
-      <div className="cinema-hero-content">
-        <span className="cinema-eyebrow"><span className="cinema-status-dot"/> BUILT FOR ZCASH CORE & TOOLING</span>
-        <h1 className="cinema-heading" aria-label="Privacy is a property. Not a promise.">
-          <WordTitle text="Privacy is a"/>
-          <WordTitle text="property. Not a promise." italic/>
-        </h1>
-        <p className="cinema-subtitle">Privacy engineering should be testable. Inspect Zcash transaction handoffs, enforce explicit policies, and build on one local-first Rust foundation.</p>
-        <div className="cinema-actions">
-          <button type="button" className="cinema-button cinema-button-primary" onClick={() => navigate('tools')}>Open Developer Tools <LuArrowUpRight size={17}/></button>
-          <button type="button" className="cinema-button cinema-button-secondary" onClick={() => navigate('ecosystem')}>Explore developer tools <LuArrowRight size={17}/></button>
+      gsap.to('.zn-orbit-inner',{rotation:250,duration:38,ease:'none',repeat:-1,transformOrigin:'center center'})
+      gsap.to('.zn-orbit-outer',{rotation:-250,duration:56,ease:'none',repeat:-1,transformOrigin:'center center'})
+      gsap.to('.zn-hero-glow',{yPercent:13,ease:'none',scrollTrigger:{trigger:'.zn-hero',start:'top top',end:'bottom top',scrub:true}})
+    },scope)
+    return ()=>ctx.revert()
+  },[reduced])
+  return <main className="zn-home" ref={scope}>
+    <section className="zn-hero">
+      <div className="zn-hero-content">
+        <MotionTitle className="zn-overline"><span className="zn-overline-dot"/> ZCASH CORE INFRASTRUCTURE / LOCAL-FIRST BY DESIGN</MotionTitle>
+        <MotionTitle><h1>Privacy tooling,<br/><em>without friction.</em></h1></MotionTitle>
+        <MotionTitle><p className="zn-hero-text">Inspect transaction boundaries, catch regressions, and integrate privacy checks without building another wallet or uploading sensitive PCZTs.</p></MotionTitle>
+        <MotionTitle className="zn-hero-actions"><Link href="/tools" className="zn-primary">Launch workbench <LuArrowUpRight size={19}/></Link><Link href="/docs/installation" className="zn-secondary">Explore SDKs <LuArrowRight size={19}/></Link></MotionTitle>
+        <MotionTitle className="zn-hero-foot"><span><LuShieldCheck size={15}/> OPEN SOURCE ENGINE</span><span><LuLockKeyhole size={15}/> BROWSER-LOCAL ANALYSIS</span><span><LuNetwork size={15}/> ZCASH PCZT V6</span></MotionTitle>
+      </div>
+      <div className="zn-hero-visual" aria-hidden="true">
+        <div className="zn-hero-glow"/>
+        <svg className="zn-hero-geometry" viewBox="0 0 580 580" fill="none">
+          <circle cx="290" cy="290" r="235" stroke="currentColor" opacity=".20" strokeDasharray="5 9" className="zn-orbit-outer"/>
+          <circle cx="290" cy="290" r="180" stroke="currentColor" opacity=".38" strokeDasharray="2 11" className="zn-orbit-inner"/>
+          <circle cx="290" cy="290" r="118" stroke="currentColor" opacity=".50"/>
+          <circle cx="290" cy="55" r="7" fill="var(--zn-acid)"/>
+          <circle cx="110" cy="290" r="5" fill="var(--zn-acid)"/>
+          <path d="M224 231H366L224 351H364" stroke="var(--zn-acid)" strokeWidth="26" strokeLinejoin="round"/>
+          <circle cx="390" cy="225" r="10" fill="var(--zn-acid)"/>
+        </svg>
+        <span className="zn-geometry-label zn-label-top">FIELD-LEVEL INSPECTION</span>
+        <span className="zn-geometry-label zn-label-bottom">VERIFIABLE WORKFLOWS / 001</span>
+      </div>
+    </section>
+    <section className="zn-proof-strip"><span>ONE ENGINE / MANY WAYS TO BUILD</span><div><strong>Rust</strong><i/><strong>TypeScript</strong><i/><strong>Python</strong><i/><strong>Go</strong><i/><strong>MCP</strong></div><Link href="/ecosystem">See integrations <LuArrowUpRight size={17}/></Link></section>
+    <section className="zn-demonstration">
+      <div className="zn-section-copy zn-scroll-reveal">
+        <span className="zn-section-tag">01 / THE PRODUCT, NOT A PROMISE</span>
+        <h2>Go from question<br/>to <em>finding.</em></h2>
+        <p>Run an actual PCZT policy check here. We ship reproducible, harmless fixtures so you can test Zerynex before adding it to any application.</p>
+        <div className="zn-signal-list">
+          <div><LuCheck size={16}/> Parsed by the Rust PCZT engine</div>
+          <div><LuCheck size={16}/> Clear rule IDs and component paths</div>
+          <div><LuCheck size={16}/> No backend transaction processing</div>
         </div>
-        <p className="cinema-hero-note"><LuLockKeyhole size={14}/> LOCAL ANALYSIS · NO HOSTED PCZT PROCESSING</p>
+        <Link className="zn-inline-link" href="/tools/stages">Try stage comparisons <LuArrowUpRight size={17}/></Link>
       </div>
-      <Aurora/>
-      <div className="cinema-scroll-cue"><span>SCROLL TO EXPLORE</span><LuChevronDown size={15}/></div>
+      <div className="zn-scroll-reveal"><LivePreview/></div>
     </section>
-
-    <section className="cinema-marquee-zone" aria-label="Technology ecosystem">
-      <span className="cinema-marquee-label">AN OPEN TOOLCHAIN</span>
-      <div className="cinema-marquee">
-        <div className="cinema-marquee-track">
-          {Array.from({ length: 2 }).map((_, i) =>
-            <span className="cinema-marquee-group" key={i} aria-hidden={i === 1}>
-              <span>RUST</span><LuShieldCheck/><span>ZCASH</span><LuShieldCheck/>
-              <span>TYPESCRIPT</span><LuShieldCheck/><span>PYTHON</span><LuShieldCheck/>
-              <span>PCZT</span><LuShieldCheck/><span>MCP</span><LuShieldCheck/>
-              <span>WEBASSEMBLY</span><LuShieldCheck/><span>Z3</span><LuShieldCheck/>
-            </span>
-          )}
-        </div>
-      </div>
+    <section className="zn-capabilities">
+      <div className="zn-section-header zn-scroll-reveal"><span className="zn-section-tag">02 / THE TOOLBOX</span><h2>Less setup.<br/><em>More shipping.</em></h2><p>Real utilities, not showcase screens. Each one opens to a working capability or a tested integration guide.</p></div>
+      <div className="zn-capability-grid">{capabilities.map(cap=><motion.div key={cap.n} whileHover={reduced?{}:{y:-7}} transition={{type:'spring',stiffness:270,damping:23}} className="zn-scroll-reveal"><Link href={cap.href} className="zn-cap-card"><div><span>{cap.n} / {cap.state}</span><cap.icon size={25}/></div><h3>{cap.title}</h3><p>{cap.desc}</p><LuArrowUpRight size={21} className="zn-cap-arrow"/></Link></motion.div>)}</div>
     </section>
-
-    <section className="cinema-section cinema-product-section" id="capabilities">
-      <div className="cinema-center-heading cinema-reveal">
-        <span className="cinema-pill">THE TOOLCHAIN</span>
-        <h2>Built for the <em>unseen.</em></h2>
-        <p>Privacy rules you can run, test, and integrate. Explore the parts of Zerynex that work today.</p>
+    <section className="zn-adoption">
+      <div className="zn-scroll-reveal">
+        <span className="zn-section-tag">03 / BUILD WHERE YOU ALREADY WORK</span>
+        <h2>Your stack.<br/><em>One source of truth.</em></h2>
+        <p>Use the hosted workbench with zero installation. For your codebase, bring in the SDK or run the standalone CLI. You don&apos;t have to clone the monorepo to inspect a PCZT.</p>
+        <div className="zn-adoption-actions"><Link className="zn-primary" href="/ecosystem">Choose a language <LuArrowUpRight size={17}/></Link><Link href="/docs/installation" className="zn-secondary">Integration guide <LuBookOpen size={17}/></Link></div>
       </div>
-      <div className="cinema-work-rail cinema-stagger" ref={rail} aria-label="Developer tools" tabIndex={0}>
-        {capabilities.map((item, i) => <article className="cinema-work-card" key={item.title}>
-          <div className={'cinema-work-visual cinema-visual-' + (i % 3)}>
-            <div className="cinema-work-pattern" aria-hidden="true"/>
-            <item.icon size={66} strokeWidth={.8}/>
-            <span>{item.technical}</span>
-          </div>
-          <div className="cinema-work-info">
-            <span className="cinema-work-overline">{item.overline}</span>
-            <h3>{item.title}</h3>
-            <p>{item.description}</p>
-            {item.view
-              ? <button onClick={() => navigate(item.view)}>{item.action} <LuArrowUpRight size={16}/></button>
-              : <a href={item.href} target="_blank" rel="noopener noreferrer">{item.action} <LuExternalLink size={16}/></a>}
-          </div>
-        </article>)}
-      </div>
-      <div className="cinema-rail-controls">
-        <span>EXPLORE TOOLS / {capabilities.length.toString().padStart(2, '0')}</span>
-        <div>
-          <button aria-label="Previous tool" disabled={atStart} onClick={() => slide(-1)}><LuArrowLeft size={18}/></button>
-          <button aria-label="Next tool" disabled={atEnd} onClick={() => slide(1)}><LuArrowRight size={18}/></button>
-        </div>
+      <div className="zn-code-surface zn-scroll-reveal">
+        <div><span>TypeScript / source SDK example</span><LuTerminal size={17}/></div>
+        <pre><code>{code}</code></pre>
+        <div><span>Local Rust/WASM · package publication in progress</span><LuCheckCheck size={17}/></div>
       </div>
     </section>
-
-    <section className="cinema-statement" id="principles">
-      <span className="cinema-pill cinema-reveal">OUR PRINCIPLE</span>
-      <h2 className="cinema-statement-text">A shielded transaction can still have an exposed journey. <em>Test the boundary before information changes hands.</em></h2>
-      <button className="cinema-button cinema-button-primary cinema-reveal" onClick={() => navigate('tools')}>Run a PCZT check <LuArrowUpRight size={16}/></button>
-    </section>
-
-    <section className="cinema-section cinema-method" id="protocol">
-      <div className="cinema-center-heading cinema-reveal">
-        <span className="cinema-pill">HOW IT WORKS</span>
-        <h2>Three steps to <em>clarity.</em></h2>
-        <p>Real PCZT parsing, explicit field policies, and useful findings. No simulated cryptographic guarantees.</p>
-      </div>
-      <div className="cinema-method-grid cinema-stagger">
-        {[
-          { number: '01', icon: LuLayers3, title: 'Choose a boundary', content: 'Select a signing or restricted-handoff policy. Apply shielded-only constraints where required.' },
-          { number: '02', icon: LuScanLine, title: 'Inspect locally', content: 'Run the Rust analyzer in your browser, CLI, Python workflow, or trusted development environment.' },
-          { number: '03', icon: LuTerminal, title: 'Act on findings', content: 'Get rule identifiers and field paths without copying the underlying transaction data into a hosted service.' },
-        ].map(step => <article className="cinema-method-step" key={step.number}>
-          <span className="cinema-step-number">{step.number}</span>
-          <div className="cinema-method-icon"><step.icon size={29} strokeWidth={1.4}/></div>
-          <h3>{step.title}</h3>
-          <p>{step.content}</p>
-        </article>)}
+    <section className="zn-agent-feature zn-scroll-reveal">
+      <div><span className="zn-section-tag">04 / ASSISTED ENGINEERING</span><h2>Agents with<br/><em>boundaries.</em></h2><p>A local MCP server, reusable agent skill, and CI gates. Agent workflows analyze approved synthetic fixtures and return sanitized findings—not unrestricted wallet access.</p><Link className="zn-inline-link" href="/agents">Explore agent tooling <LuArrowUpRight size={17}/></Link></div>
+      <div className="zn-agent-path">
+        <span><LuWorkflow size={19}/> AI assistant</span><LuChevronRight size={16}/><span><LuShieldCheck size={19}/> Restricted MCP</span><LuChevronRight size={16}/><span><LuFileCode2 size={19}/> Synthetic fixture</span>
+        <small>READ-ONLY · NO SIGNING KEYS · NO WALLET RPC</small>
       </div>
     </section>
-
-    <section className="cinema-section cinema-faq" id="faq">
-      <div className="cinema-center-heading cinema-reveal">
-        <span className="cinema-pill">FREQUENT QUESTIONS</span>
-        <h2>Privacy, in <em>plain English.</em></h2>
-        <p>Clear guarantees, clear limitations, and no surprises about the data your tools handle.</p>
-      </div>
-      <div className="cinema-faq-list">
-        {faq.map((item, i) => <div className={'cinema-faq-item' + (openFaq === i ? ' cinema-faq-open' : '')} key={item.question}>
-          <h3><button aria-expanded={openFaq === i} aria-controls={'cinema-faq-answer-' + i} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-            {item.question}<span className="cinema-faq-icon">{openFaq === i ? '−' : '+'}</span>
-          </button></h3>
-          <div id={'cinema-faq-answer-' + i} className="cinema-faq-answer" hidden={openFaq !== i}><p>{item.answer}</p></div>
-        </div>)}
-      </div>
-    </section>
-
-    <section className="cinema-last-section">
-      <div className="cinema-last-card cinema-reveal">
-        <span className="cinema-pill">BUILT TO BE BUILT ON</span>
-        <h2>Make privacy a <em>testable property.</em></h2>
-        <p>Start with a local PCZT fixture, choose a disclosure policy, and see what Zerynex checks—not what it pretends to prove.</p>
-        <div className="cinema-actions">
-          <button onClick={() => navigate('tools')} className="cinema-button cinema-button-primary">Run PCZT Inspector <LuArrowUpRight size={16}/></button>
-          <a href={repo} target="_blank" rel="noopener noreferrer" className="cinema-button cinema-button-secondary">Explore GitHub <LuExternalLink size={16}/></a>
-        </div>
-        <Aurora small/>
-      </div>
-    </section>
-    <footer className="cinema-footer">
-      <div><strong>ZERYNEX<span>.</span></strong><p>Privacy checks, not empty promises.</p></div>
-      <nav aria-label="Footer">
-        <button onClick={() => navigate('ecosystem')}>Developer ecosystem</button>
-        <button onClick={() => navigate('tools')}>Developer Tools</button>
-        <Link href="/docs">Documentation <LuBookOpen size={13}/></Link>
-        <a href={repo} target="_blank" rel="noopener noreferrer">Source code <LuExternalLink size={13}/></a>
-      </nav>
-      <div className="cinema-footer-bottom"><span>ZERYNEX / ZCASH CORE & TOOLING</span><span>OPEN SOURCE · RESEARCH SOFTWARE · {new Date().getFullYear()}</span></div>
-    </footer>
+    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>BUILD PRIVACY INTO YOUR STACK.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
   </main>
 }

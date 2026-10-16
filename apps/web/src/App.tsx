@@ -6,7 +6,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
-import { LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuChevronDown as ChevronDown, LuCircleAlert as CircleAlert, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
+import { LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuCircleAlert as CircleAlert, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
 import { inspectPczt, loadEngine } from './analyzer'
 import Ecosystem from './Ecosystem'
 import HomeExperience from './HomeExperience'
@@ -14,53 +14,40 @@ import ToolingIntegrations from './ToolingIntegrations'
 import { exportPolicyJson, parsePolicyJson, type Policy as SdkPolicy } from '@zerynex/sdk'
 import type { Profile, Report } from './analyzer'
 
-const repository = 'https://github.com/Oluwa-Laughter/zerynex'
+
 type View = 'home' | 'tools' | 'ecosystem'
 type EngineStatus = 'loading' | 'ready' | 'unavailable'
 
 function Mark({ small = false }: { small?: boolean }) {
   return <span className={'brand-mark' + (small ? ' brand-mark-small' : '')} aria-hidden="true">
-    <svg viewBox="0 0 96 96" fill="none">
-      <path d="M20 29H70L25 69H74" stroke="currentColor" strokeWidth="10" strokeLinecap="square" strokeLinejoin="miter"/>
-      <path d="M66 15V35M56 25H76" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    <svg viewBox="0 0 80 80" fill="none">
+      <path d="M20 23H59L21 57H60" stroke="currentColor" strokeWidth="9" strokeLinejoin="round"/>
+      <path d="M22 14V25M58 55V66" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+      <circle cx="62" cy="19" r="5" fill="currentColor"/>
     </svg>
   </span>
 }
 function Brand({ onClick }: { onClick: () => void }) {
   return <button type="button" className="brand" onClick={onClick} aria-label="Zerynex home">
-    <Mark />
-    <span>ZERYNEX<span className="brand-dot">.</span></span>
+    <Mark/><span>ZERYNEX</span>
   </button>
 }
 function Kicker({ children, number }: { children: React.ReactNode; number?: string }) {
   return <div className="kicker"><Asterisk className="kicker-cross" size={15} strokeWidth={2}/>{number && <span className="kicker-index">{number} /</span>} {children}</div>
 }
 function Header({ current, navigate }: { current: View; navigate: (v: View) => void }) {
-  const router = useRouter()
   const [menu, setMenu] = useState(false)
-  const toHomeSection = (id: string) => {
-    setMenu(false)
-    if (current === 'home') {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-    } else {
-      router.push('/#' + id)
-    }
-  }
   return <header className="topbar">
-    <Brand onClick={() => { setMenu(false); navigate('home') }} />
+    <Brand onClick={() => {setMenu(false);navigate('home')}}/>
     <nav className={'desktop-nav' + (menu ? ' nav-open' : '')} aria-label="Primary">
-      <button className={current === 'home' ? 'nav-active' : ''} onClick={() => {setMenu(false);navigate('home')}}>Overview</button>
-      <button className={current === 'ecosystem' ? 'nav-active' : ''} onClick={() => {setMenu(false);navigate('ecosystem')}}>Ecosystem</button>
-      <button onClick={() => toHomeSection('protocol')}>Protocol</button>
-      <button onClick={() => toHomeSection('principles')}>Principles</button>
-      {/* Native document navigation is intentional here: docs remain accessible before hydration. */}
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/docs" onClick={() => setMenu(false)}>Documentation <ArrowUpRight size={12}/></a>
+      <button className={current==='home'?'nav-active':''} onClick={() => {setMenu(false);navigate('home')}}>Overview</button>
+      <button className={current==='ecosystem'?'nav-active':''} onClick={() => {setMenu(false);navigate('ecosystem')}}>SDKs</button>
+      <Link href="/agents" onClick={()=>setMenu(false)}>Agents</Link>
+      <Link href="/docs" onClick={()=>setMenu(false)}>Docs</Link>
     </nav>
     <div className="nav-actions">
-      <span className="topbar-network"><span className="pulse-dot"/> CORE / TOOLING</span>
-      <button className="nav-console" onClick={() => {setMenu(false);navigate('tools')}}>Developer Tools <ArrowUpRight size={15}/></button>
-      <button className="mobile-toggle" aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} onClick={() => setMenu(v => !v)}>{menu ? <X size={23}/> : <Menu size={23}/>}</button>
+      <button className="nav-console" onClick={()=>{setMenu(false);navigate('tools')}}>Open workbench <ArrowUpRight size={15}/></button>
+      <button className="mobile-toggle" aria-label={menu?'Close menu':'Open menu'} aria-expanded={menu} onClick={()=>setMenu(v=>!v)}>{menu?<X size={23}/>:<Menu size={23}/>}</button>
     </div>
   </header>
 }
@@ -276,7 +263,7 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
         <div className="results-bottom"><span><span className="live-led"/> ZERO UPLOAD ARCHITECTURE</span><span>EARLY ACCESS / V0.1</span></div>
       </section>
     </div>
-    <section className="studio-help studio-reveal"><div><Terminal size={19}/><strong>Prefer your terminal?</strong><p>Run the same engine as a local Rust CLI. No service dependency.</p></div><code>cargo run -- path/to/file.pczt --profile external-signer --json</code><a href={repository} target="_blank" rel="noopener noreferrer">View the repository <ArrowUpRight size={16}/></a></section>
+    <section className="studio-help studio-reveal"><div><Terminal size={19}/><strong>Prefer your terminal?</strong><p>Run the same engine as a local Rust CLI. No service dependency.</p></div><code>cargo run -- path/to/file.pczt --profile external-signer --json</code><Link href="/docs/installation">Read installation guide <ArrowUpRight size={16}/></Link></section>
     <ToolingIntegrations/>
     <div className="studio-bottom-note"><span>NOT A CONSENSUS VALIDATOR OR SECURITY AUDIT</span><a href="https://zips.z.cash/zip-0374" target="_blank" rel="noopener noreferrer">ZIP-374 REFERENCE <ArrowUpRight size={13}/></a></div>
   </main>
@@ -292,8 +279,8 @@ export default function App({ page }: { page: View }) {
     <a href="#main-content" className="skip-link">Skip to main content</a>
     <div id="main-content">
       <Header current={view} navigate={navigate}/>
-      {view === 'home' ? <HomeExperience navigate={navigate}/> : view === 'ecosystem' ? <Ecosystem/> : <DeveloperTools navigate={navigate}/>}
+      {view === 'home' ? <HomeExperience/> : view === 'ecosystem' ? <Ecosystem/> : <DeveloperTools navigate={navigate}/>}
     </div>
-    <div className="floating-index" aria-hidden="true"><span>ZNX</span><span>{view==='home'?'01 / 03':view==='tools'?'02 / 03':'03 / 03'}</span><ChevronDown size={14}/></div>
+
   </>
 }

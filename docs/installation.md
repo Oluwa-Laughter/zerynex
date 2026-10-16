@@ -1,5 +1,7 @@
 # Install and integrate Zerynex
 
+**Try Zerynex without installing anything:** [Open the browser workbench](/tools). For application integration, see [SDK and lightweight installation](sdk-distribution.md) and confirm publication status before copying registry commands.
+
 Zerynex is a **local-first Rust privacy policy engine** for Zcash PCZT workflows.
 A node, wallet, hosted account or API token is not needed for synthetic PCZT
 linting or role-handoff regression tests.

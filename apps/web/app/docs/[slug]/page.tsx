@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { LuArrowLeft, LuArrowUpRight, LuGithub } from 'react-icons/lu'
+import { LuArrowLeft, LuArrowUpRight } from 'react-icons/lu'
 import DocsLayout, { Status } from '../../../src/docs/DocsLayout'
 import { docsHref, getGuide, guides } from '../../../src/docs/catalog'
 
@@ -30,7 +30,7 @@ export default async function DocumentationArticle({params}: {params: Promise<{ 
         <h1>{guide.title}</h1>
         <p>{guide.summary}</p>
         <div className="docs-article-labels"><Status status={guide.status}/>
-          <a href={'https://github.com/Oluwa-Laughter/zerynex/blob/main/docs/' + slug + '.md'} target="_blank" rel="noopener noreferrer"><LuGithub size={15}/> View canonical Markdown <LuArrowUpRight size={14}/></a>
+
         </div>
       </div>
       {(slug==='pczt-stage-regression'||slug==='handoff-harness')&&
