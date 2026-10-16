@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test'
 
-test('home page is usable and studio navigation is functional', async ({ page }) => {
+test('homepage navigates to Zerynex developer tooling', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Zerynex/)
   await expect(page.getByRole('heading', { name: /privacy is/i })).toBeVisible()
-  await page.getByRole('button', { name: /launch studio/i }).click()
-  await expect(page).toHaveURL(/\/studio/)
-  await expect(page.getByRole('heading', { name: /inspect the/i })).toBeVisible()
+  await page.locator('.topbar').getByRole('button', { name: 'Developer Tools' }).click()
+  await expect(page).toHaveURL(/\/tools/)
+  await expect(page.getByRole('heading', { name: /Build with privacy/i })).toBeVisible()
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
 })
 
 test('real local WebAssembly analysis catches a synthetic disclosure', async ({ page }) => {
-  await page.goto('/studio')
+  await page.goto('/tools')
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
   await page.getByRole('button', { name: /Flagged v6/i }).click()
   await expect(page.getByText('flagged-synthetic-v6.pczt')).toBeVisible()
@@ -22,7 +22,7 @@ test('real local WebAssembly analysis catches a synthetic disclosure', async ({ 
 })
 
 test('a clean synthetic PCZT passes implemented privacy policies', async ({ page }) => {
-  await page.goto('/studio')
+  await page.goto('/tools')
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
   await page.getByRole('button', { name: /Clean v6/i }).click()
   await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/i }).click()
@@ -36,13 +36,13 @@ test('mobile navigation is accessible and uses icon components', async ({ page, 
   const menu = page.getByRole('button', { name: 'Open menu' })
   await menu.click()
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Documentation/ })).toBeVisible()
-  await page.getByRole('button', { name: /launch studio/i }).click()
-  await expect(page).toHaveURL(/\/studio/)
+  await expect(page.getByRole('navigation', {name:'Primary'}).getByRole('link', { name: /Documentation/ })).toBeVisible()
+  await page.locator('.topbar').getByRole('button', { name: 'Developer Tools' }).click()
+  await expect(page).toHaveURL(/\/tools/)
 })
 
 test('privacy invariants are enforced by Rust and exportable as JSON', async ({ page }) => {
-  await page.goto('/studio')
+  await page.goto('/tools')
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
   await page.getByLabel('Deny transparent components').check()
   await page.getByLabel('Deny Sapling components').check()
@@ -57,7 +57,7 @@ test('privacy invariants are enforced by Rust and exportable as JSON', async ({ 
 })
 
 test('shielded-only privacy policy rejects an actual synthetic transparent output', async ({ page }) => {
-  await page.goto('/studio')
+  await page.goto('/tools')
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
   await page.getByLabel('Deny transparent components').check()
   await page.getByRole('button', { name: /Transparent v6/ }).click()
@@ -67,7 +67,7 @@ test('shielded-only privacy policy rejects an actual synthetic transparent outpu
 })
 
 test('locally imports a valid policy file and applies its restrictions', async ({ page }) => {
-  await page.goto('/studio')
+  await page.goto('/tools')
   await page.getByLabel('Select JSON policy file').setInputFiles({
     name: 'strict-policy.json',
     mimeType: 'application/json',
@@ -86,7 +86,7 @@ test('locally imports a valid policy file and applies its restrictions', async (
 })
 
 test('rejects malformed policy imports without weakening the current policy', async ({ page }) => {
-  await page.goto('/studio')
+  await page.goto('/tools')
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
   await page.getByLabel('Deny transparent components').check()
   await page.getByLabel('Select JSON policy file').setInputFiles({
@@ -101,7 +101,7 @@ test('rejects malformed policy imports without weakening the current policy', as
 test('ecosystem atlas navigation and language onboarding are functional', async ({ page, isMobile }) => {
   await page.goto('/')
   if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
-  await page.getByRole('button', { name: 'Ecosystem' }).click()
+  await page.getByRole('navigation', {name:'Primary'}).getByRole('button', { name: 'Ecosystem' }).click()
   await expect(page).toHaveURL(/\/ecosystem/)
   await expect(page.getByRole('heading', { name: /Find your.*entry point/i })).toBeVisible()
   await page.getByRole('button', { name: /Python developer/i }).click()
@@ -121,4 +121,73 @@ test('ecosystem atlas works in small viewport', async ({ page }) => {
     viewport: document.documentElement.clientWidth,
   }))
   expect(sizes.body).toBeLessThanOrEqual(sizes.viewport + 1)
+})
+
+test('cinematic homepage keeps real navigation and readable content', async ({ page, isMobile }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', {name: 'Privacy is a property. Not a promise.'})).toBeVisible()
+  await expect(page.getByText('LOCAL ANALYSIS · NO HOSTED PCZT PROCESSING')).toBeVisible()
+  await expect(page.getByRole('link', {name:/Explore GitHub/})).toHaveAttribute('href', 'https://github.com/Oluwa-Laughter/zerynex')
+  await expect(page.getByRole('heading', {name:/Built for the unseen/})).toBeVisible()
+  const sizes = await page.evaluate(() => ({
+    pageWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }))
+  expect(sizes.pageWidth).toBeLessThanOrEqual(sizes.viewportWidth + 1)
+  if (isMobile) {
+    await page.getByRole('button', {name:'Open menu'}).click()
+    await expect(page.getByRole('navigation', {name:'Primary'})).toBeVisible()
+  }
+})
+
+test('carousel and FAQ controls are keyboard-accessible', async ({ page }) => {
+  await page.goto('/')
+  const next = page.getByRole('button', {name:'Next tool'})
+  await expect(next).toBeEnabled()
+  await next.click()
+  await expect(page.getByRole('button', {name:'Previous tool'})).toBeEnabled()
+  const faq = page.getByRole('button', {name:'Does a passing report prove a transaction is private?'})
+  await faq.focus()
+  await page.keyboard.press('Enter')
+  await expect(faq).toHaveAttribute('aria-expanded','true')
+  await expect(page.getByText('Zerynex checks specific disclosure rules in intermediate PCZTs.')).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(faq).toHaveAttribute('aria-expanded','false')
+})
+
+test('reduced-motion mode retains visible hero and stops continuous aurora motion', async ({ page }) => {
+  await page.emulateMedia({reducedMotion:'reduce'})
+  await page.goto('/')
+  await expect(page.getByRole('heading', {name:'Privacy is a property. Not a promise.'})).toBeVisible()
+  const animation = await page.locator('.cinema-hero .aurora-layer-a').evaluate(el => getComputedStyle(el).animationName)
+  expect(animation).toBe('none')
+  await page.getByRole('button', {name:/Open Developer Tools/}).click()
+  await expect(page).toHaveURL(/\/tools/)
+})
+
+test('Developer tooling retains real WASM analysis after visual overhaul', async ({ page }) => {
+  await page.goto('/tools')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByRole('button',{name:/Flagged v6/}).click()
+  await page.getByRole('button',{name:/RUN PRIVACY ANALYSIS/}).click()
+  await expect(page.getByText('PCZT-GLOBAL-METADATA')).toBeVisible()
+})
+
+test('legacy Studio and Console URLs redirect to Developer Tools', async ({ page }) => {
+  await page.goto('/studio')
+  await expect(page).toHaveURL(/\/tools/)
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.goto('/console')
+  await expect(page).toHaveURL(/\/tools/)
+})
+
+test('tooling integrator tabs expose setup instructions', async ({ page }) => {
+  await page.goto('/tools')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByRole('tab', {name:/Python SDK/}).click()
+  await expect(page.getByText('from zerynex_py import ZerynexClient', {exact:false})).toBeVisible()
+  await page.getByRole('tab', {name:/AI agents/}).click()
+  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT', {exact:false})).toBeVisible()
+  await page.getByRole('tab', {name:/Z3/}).click()
+  await expect(page.getByText('zerynex-z3-check', {exact:false})).toBeVisible()
 })

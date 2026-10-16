@@ -8,6 +8,8 @@ import '@fontsource/dm-mono/500.css'
 import '@fontsource/instrument-serif/400.css'
 import '@fontsource/instrument-serif/400-italic.css'
 import './globals.css'
+import './cinema.css'
+import './tools.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000')
@@ -35,7 +37,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0b100f',
+  themeColor: '#000000',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Zerynex PCZT Policy Report",
+  "description": "A partial disclosure-policy report, not a cryptographic proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile", "deny_transparent", "deny_sapling", "checked_pools", "findings", "disclaimer"],
+  "properties": {
+    "profile": {"enum": ["external_signer", "restricted_handoff"]},
+    "deny_transparent": {"type": "boolean"},
+    "deny_sapling": {"type": "boolean"},
+    "checked_pools": {
+      "type": "array",
+      "items": {"enum": ["transparent", "sapling", "orchard", "ironwood"]},
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "field", "explanation"],
+        "properties": {
+          "rule": {"type": "string", "minLength": 1},
+          "field": {"type": "string", "minLength": 1},
+          "explanation": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "disclaimer": {"type": "string", "minLength": 1}
+  }
+}

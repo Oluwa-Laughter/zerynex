@@ -1,18 +1,20 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent } from 'react'
-import { LuArrowDown as ArrowDown, LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuChevronDown as ChevronDown, LuCircleAlert as CircleAlert, LuCircleCheck as CircleCheck, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLayers3 as Layers3, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuMoveUpRight as MoveUpRight, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, DragEvent } from 'react'
+import { LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuChevronDown as ChevronDown, LuCircleAlert as CircleAlert, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
 import { inspectPczt, loadEngine } from './analyzer'
 import Ecosystem from './Ecosystem'
+import HomeExperience from './HomeExperience'
+import ToolingIntegrations from './ToolingIntegrations'
 import { exportPolicyJson, parsePolicyJson, type Policy as SdkPolicy } from '@zerynex/sdk'
 import type { Profile, Report } from './analyzer'
 
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
-type View = 'home' | 'studio' | 'ecosystem'
+type View = 'home' | 'tools' | 'ecosystem'
 type EngineStatus = 'loading' | 'ready' | 'unavailable'
 
 function Mark({ small = false }: { small?: boolean }) {
@@ -27,11 +29,6 @@ function Brand({ onClick }: { onClick: () => void }) {
   return <button type="button" className="brand" onClick={onClick} aria-label="Zerynex home">
     <Mark />
     <span>ZERYNEX<span className="brand-dot">.</span></span>
-  </button>
-}
-function LinkArrow({ label, onClick, light = false }: { label: string; onClick: () => void; light?: boolean }) {
-  return <button type="button" className={'action-button' + (light ? ' action-light' : '')} onClick={onClick}>
-    {label}<span className="action-arrow"><ArrowUpRight size={17}/></span>
   </button>
 }
 function Kicker({ children, number }: { children: React.ReactNode; number?: string }) {
@@ -59,113 +56,10 @@ function Header({ current, navigate }: { current: View; navigate: (v: View) => v
     </nav>
     <div className="nav-actions">
       <span className="topbar-network"><span className="pulse-dot"/> CORE / TOOLING</span>
-      <button className="nav-console" onClick={() => {setMenu(false);navigate('studio')}}>Launch studio <ArrowUpRight size={15}/></button>
+      <button className="nav-console" onClick={() => {setMenu(false);navigate('tools')}}>Developer Tools <ArrowUpRight size={15}/></button>
       <button className="mobile-toggle" aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} onClick={() => setMenu(v => !v)}>{menu ? <X size={23}/> : <Menu size={23}/>}</button>
     </div>
   </header>
-}
-function Lens() {
-  const root = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!root.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    gsap.registerPlugin(ScrollTrigger)
-    const ctx = gsap.context(() => {
-      gsap.to('.iris-ring-a', { rotate: 360, duration: 48, repeat: -1, ease: 'none' })
-      gsap.to('.iris-ring-b', { rotate: -360, duration: 35, repeat: -1, ease: 'none' })
-      gsap.to('.iris-ring-c', { rotate: 360, duration: 70, repeat: -1, ease: 'none' })
-      gsap.to('.lens-core', { scale: 1.04, opacity: .9, yoyo: true, repeat: -1, duration: 3.2, ease: 'sine.inOut' })
-      gsap.from('.lens-label', { y: 18, opacity: 0, duration: 1, stagger: .16, delay: .45 })
-    }, root)
-    return () => ctx.revert()
-  }, [])
-  return <div className="lens-visual" ref={root} aria-label="Animated illustration of an encrypted privacy boundary" role="img">
-    <div className="lens-grid" aria-hidden="true"/>
-    <div className="lens-ring iris-ring-c"><span className="radial-notch notch-one"/><span className="radial-notch notch-two"/></div>
-    <div className="lens-ring iris-ring-a"><span className="ring-label">DATA MINIMIZATION · ZERO TRUST ·</span></div>
-    <div className="lens-ring iris-ring-b"><span className="notch-chip"/></div>
-    <div className="lens-core"><svg viewBox="0 0 96 96" fill="none"><path d="M20 29H70L25 69H74" stroke="currentColor" strokeWidth="7"/><path d="M65 17v18M56 26h18" stroke="currentColor" strokeWidth="2"/></svg></div>
-    <div className="lens-label lens-label-one"><span className="signal-on"/> ACTIVE SIGNAL <span>01/04</span></div>
-    <div className="lens-label lens-label-two">FIELD / ZERO-KNOWLEDGE</div>
-    <div className="lens-label lens-label-three">ENFORCE THE BOUNDARY <ArrowUpRight size={14}/></div>
-    <div className="lens-reticle reticle-a"/><div className="lens-reticle reticle-b"/>
-  </div>
-}
-const records = [
-  {key:'01', title:'Transaction handoffs', text:'Inspect intermediate PCZT fields before information crosses a signing boundary.', icon:Layers3},
-  {key:'02', title:'Policy-driven checks', text:'Choose a disclosure profile and identify unwanted metadata at the field level.', icon:ScanLine},
-  {key:'03', title:'Local by design', text:'Your transaction data stays in your browser or on your machine. No hosted analysis API.', icon:LockKeyhole},
-  {key:'04', title:'Developer-native output', text:'Structured findings, machine-readable reports and deterministic exit codes for CI.', icon:Terminal},
-]
-function Home({ navigate }: { navigate: (v: View) => void }) {
-  const scope = useRef<HTMLElement>(null)
-  useEffect(() => {
-    if (!scope.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline()
-      tl.from('.hero-eyebrow', { opacity: 0, y: 25, duration: .75 })
-        .from('.hero-title .title-row', { opacity: 0, yPercent: 85, rotateX: -7, stagger: .13, duration: 1.05, ease: 'power4.out' }, '-=.48')
-        .from('.hero-desc, .hero-controls, .hero-footnote', { opacity: 0, y: 28, duration: .8, stagger: .1 }, '-=.5')
-      gsap.utils.toArray<HTMLElement>('.reveal').forEach(node => {
-        gsap.from(node, { y: 54, opacity: 0, duration: .9, ease: 'power3.out', scrollTrigger: { trigger: node, start: 'top 88%', once: true } })
-      })
-    }, scope)
-    return () => ctx.revert()
-  }, [])
-  return <main ref={scope}>
-    <section className="hero screen-grid" aria-label="Zerynex introduction">
-      <div className="hero-copy">
-        <div className="hero-eyebrow"><span className="micro-diamond"/> A NEW STANDARD FOR ZCASH PRIVACY INFRASTRUCTURE <span className="line-fade"/></div>
-        <h1 className="hero-title">
-          <span className="title-clip"><span className="title-row">Privacy is</span></span>
-          <span className="title-clip"><span className="title-row title-italic">a property<span className="green-stop">.</span></span></span>
-          <span className="title-clip"><span className="title-row title-outline">Not a promise.</span></span>
-        </h1>
-        <p className="hero-desc">Meet Zerynex. A developer-first toolkit that turns invisible privacy assumptions into explicit, testable rules for Zcash transaction workflows.</p>
-        <div className="hero-controls"><LinkArrow label="Enter privacy studio" onClick={() => navigate('studio')}/><a className="secondary-link" href={repository} target="_blank" rel="noopener noreferrer">Explore the source <ArrowUpRight size={17}/></a></div>
-        <div className="hero-footnote"><span><i/> RUST × WEBASSEMBLY</span><span>001 — INDEPENDENT INFRASTRUCTURE</span></div>
-      </div>
-      <div className="hero-art"><Lens/></div>
-      <div className="hero-side-label">SCROLL TO DECODE <ArrowDown size={14}/></div>
-    </section>
-    <div className="ticker" aria-label="Zerynex technologies"><div className="ticker-track">{Array.from({length:4}).map((_,i)=><span key={i}> ZCASH <Asterisk className="ticker-star" size={14} strokeWidth={2}/> ORCHARD <Asterisk className="ticker-star" size={14} strokeWidth={2}/> IRONWOOD <Asterisk className="ticker-star" size={14} strokeWidth={2}/> PCZT <Asterisk className="ticker-star" size={14} strokeWidth={2}/> PRIVACY BY CONSTRUCTION <Asterisk className="ticker-star" size={14} strokeWidth={2}/></span>)}</div></div>
-    <section className="section protocol-section" id="protocol">
-      <div className="section-meta reveal"><Kicker number="01">THE PROBLEM</Kicker><span className="section-hairline"/></div>
-      <div className="problem-grid">
-        <div className="problem-title reveal"><h2>A shielded transaction can still have an <em>exposed journey.</em></h2></div>
-        <div className="problem-copy reveal"><p>Zcash protects on-chain transaction details. But a partially constructed transaction can carry sensitive metadata between creators, provers, signers, and other components.</p><p>Zerynex checks that boundary before it becomes someone else&apos;s problem.</p><a className="text-link" href="https://zips.z.cash/zip-0374" target="_blank" rel="noopener noreferrer">READ ZIP-374 <ArrowUpRight size={15}/></a></div>
-      </div>
-      <div className="journey reveal" aria-label="Transaction lifecycle">
-        {['CREATE', 'INSPECT', 'AUTHORIZE', 'HANDOFF'].map((label,i)=><div className={'journey-step' + (i===1?' journey-selected':'')} key={label}>
-          <div className="journey-top"><span>0{i+1}</span><span>{i===1?<ScanLine size={24}/>:<MoveUpRight size={21}/>}</span></div>
-          <div className="journey-bottom"><strong>{label}</strong><span>{i===1?'POLICY CHECK':'TRANSACTION STAGE'}</span></div>
-          {i<3 && <ArrowRight className="journey-arrow" size={22}/>}
-        </div>)}
-      </div>
-      <div className="journey-caption reveal"><span>THE POINT OF INTERVENTION</span><p>Not another wallet. A check at the precise moment private data changes hands.</p></div>
-    </section>
-    <section className="section capabilities-section" id="capabilities">
-      <div className="section-meta reveal"><Kicker number="02">CAPABILITIES</Kicker><span className="section-hairline"/></div>
-      <div className="cap-head reveal"><h2>Built for the <em>unseen.</em></h2><p>Substance over spectacle. Engineering you can reproduce, inspect, and integrate.</p></div>
-      <div className="cap-grid">{records.map(record=><article className="cap-card reveal" key={record.key}><div className="cap-card-top"><span>[ {record.key} ]</span><record.icon size={26} strokeWidth={1.4}/></div><div><h3>{record.title}</h3><p>{record.text}</p></div><div className="cap-corner"><ArrowUpRight size={18}/></div></article>)}</div>
-    </section>
-    <section className="statement-section" id="principles">
-      <div className="statement-panel reveal">
-        <div className="statement-left"><Kicker number="03">OUR PRINCIPLE</Kicker><Asterisk className="statement-glyph" size={98} strokeWidth={1.4}/><span className="statement-foot">DESIGNED FOR HUMAN TRUST.<br/>BUILT FOR MACHINE VERIFICATION.</span></div>
-        <div className="statement-right"><h2>Less disclosure.<br/><em>More certainty.</em></h2><p>Privacy is not a visual effect or a checkbox. It is a concrete engineering constraint. We make those constraints visible.</p><LinkArrow light label="Test a handoff" onClick={() => navigate('studio')}/></div>
-      </div>
-    </section>
-    <section className="section section-open">
-      <div className="section-meta reveal"><Kicker number="04">OPEN INFRASTRUCTURE</Kicker><span className="section-hairline"/></div>
-      <div className="open-grid">
-        <div className="reveal"><span className="open-kicker">START WHERE YOU ARE</span><h2>Production-minded.<br/><em>Open from day one.</em></h2><p>A real Rust core, the same analysis engine in a local-first browser workspace, documented limitations, and a GitHub CI baseline. No wallet secrets. No hidden server.</p><div className="open-actions"><LinkArrow label="Open the studio" onClick={() => navigate('studio')}/></div></div>
-        <div className="terminal-card reveal"><div className="terminal-top"><span><i/><i/><i/></span><span>TERMINAL · ZERYNEX CLI</span></div><div className="terminal-lines"><div><ArrowRight className="terminal-prompt" size={14} aria-hidden="true"/> cargo run -- ./handoff.pczt --json</div><div className="terminal-muted"># Local policy analysis</div><div className="terminal-muted"># Check Orchard & Ironwood handoffs</div><div className="terminal-ok"><CircleCheck size={15}/> Reports emit field paths, never values.</div></div><div className="terminal-bottom">RUST CORE <span>MIT LICENSE</span></div></div>
-      </div>
-    </section>
-    <footer className="footer">
-      <div className="footer-upper"><div><Mark small/><h2>Make privacy <em>provable.</em></h2></div><button onClick={() => navigate('studio')} className="footer-cta">OPEN STUDIO <ArrowUpRight size={28}/></button></div>
-      <div className="footer-lower"><span>© {new Date().getFullYear()} ZERYNEX · BUILT FOR ZCASH</span><span>OPEN SOURCE · RUST · PCZT</span><a href={repository} target="_blank" rel="noopener noreferrer">GITHUB <ArrowUpRight size={13}/></a></div>
-    </footer>
-  </main>
 }
 const synthetic = [
   { name:'External signer', message:'A recipient sees only the metadata your policy explicitly allows.', fields:[{ name:'spend.dummy_sk', status:'blocked' },{name:'output.proprietary', status:'review'},{name:'output.recipient',status:'permitted'}]},
@@ -181,7 +75,7 @@ function PolicyIllustration({ restricted }: { restricted: boolean }) {
     <p>{data.message}</p>
   </div>
 }
-function Studio({ navigate }: { navigate: (v: View) => void }) {
+function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
   const input = useRef<HTMLInputElement>(null)
   const policyInput = useRef<HTMLInputElement>(null)
   const [policyNotice, setPolicyNotice] = useState<string | null>(null)
@@ -204,11 +98,25 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
   }, [])
   useEffect(() => {
     if (!root.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    gsap.registerPlugin(ScrollTrigger)
     const ctx = gsap.context(() => {
-      gsap.from('.studio-reveal', { y: 20, opacity: 0, stagger: .09, duration: .7, ease:'power3.out' })
+      gsap.from('.studio-top, .studio-heading', { y: 22, opacity: 0, filter: 'blur(7px)', stagger: .13, duration: .8, ease:'power3.out' })
+      gsap.utils.toArray<HTMLElement>('.studio-box, .studio-help, .console-reveal').forEach(element => {
+        gsap.from(element, {y: 22, opacity: 0, filter: 'blur(6px)', duration: .75, ease: 'power3.out',
+          scrollTrigger: {trigger: element, start:'top 92%', once:true} })
+      })
     }, root)
     return () => ctx.revert()
   }, [])
+  useEffect(() => {
+    if (!report || !root.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const ctx = gsap.context(() => {
+      gsap.from('.report-status, .report-details, .finding', {
+        y: 16, opacity: 0, filter: 'blur(3px)', duration: .55, stagger: .08, ease: 'power3.out',
+      })
+    }, root)
+    return () => ctx.revert()
+  }, [report])
   const choose = (candidate?: File | null) => {
     if(!candidate) return
     setFile(candidate)
@@ -296,8 +204,8 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
     setCopied(true)
   }
   return <main ref={root} className="studio-page">
-    <div className="studio-top studio-reveal"><button className="back-button" onClick={() => navigate('home')}><ArrowLeft size={17}/> BACK TO OVERVIEW</button><span className="studio-code">ZERYNEX / WORKSPACE <span>001</span></span></div>
-    <div className="studio-heading studio-reveal"><div><Kicker>YOUR PRIVATE WORKSPACE</Kicker><h1>Inspect the <em>invisible.</em></h1><p>One local file. Explicit policies. No secrets leave this device.</p></div><div className={'engine-pill '+engine}><span className="live-led"/>{engine === 'ready' ? 'RUST ENGINE READY' : engine === 'loading' ? 'ENGINE INITIALIZING' : 'ENGINE UNAVAILABLE'}</div></div>
+    <div className="studio-top studio-reveal"><button className="back-button" onClick={() => navigate('home')}><ArrowLeft size={17}/> BACK TO OVERVIEW</button><span className="studio-code">ZERYNEX / DEVELOPER TOOLS <span>001</span></span></div>
+    <div className="studio-heading studio-reveal"><div><Kicker>ZERYNEX TOOLING / LOCAL FIRST</Kicker><h1>Build with <em>privacy.</em></h1><p>Run real PCZT checks, enforce disclosure policies and integrate tested Rust tooling into Zcash applications.</p></div><div className={'engine-pill '+engine}><span className="live-led"/>{engine === 'ready' ? 'RUST ENGINE READY' : engine === 'loading' ? 'ENGINE INITIALIZING' : 'ENGINE UNAVAILABLE'}</div></div>
     <div className="studio-grid">
       <div className="studio-left">
         <section className="studio-box studio-reveal">
@@ -354,6 +262,7 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
       </section>
     </div>
     <section className="studio-help studio-reveal"><div><Terminal size={19}/><strong>Prefer your terminal?</strong><p>Run the same engine as a local Rust CLI. No service dependency.</p></div><code>cargo run -- path/to/file.pczt --profile external-signer --json</code><a href={repository} target="_blank" rel="noopener noreferrer">View the repository <ArrowUpRight size={16}/></a></section>
+    <ToolingIntegrations/>
     <div className="studio-bottom-note"><span>NOT A CONSENSUS VALIDATOR OR SECURITY AUDIT</span><a href="https://zips.z.cash/zip-0374" target="_blank" rel="noopener noreferrer">ZIP-374 REFERENCE <ArrowUpRight size={13}/></a></div>
   </main>
 }
@@ -361,15 +270,15 @@ export default function App({ page }: { page: View }) {
   const router = useRouter()
   const view: View = page
   const navigate = (next: View) => {
-    router.push(next === 'studio' ? '/studio' : next === 'ecosystem' ? '/ecosystem' : '/')
+    router.push(next === 'tools' ? '/tools' : next === 'ecosystem' ? '/ecosystem' : '/')
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
   return <>
     <a href="#main-content" className="skip-link">Skip to main content</a>
     <div id="main-content">
       <Header current={view} navigate={navigate}/>
-      {view === 'home' ? <Home navigate={navigate}/> : view === 'ecosystem' ? <Ecosystem/> : <Studio navigate={navigate}/>}
+      {view === 'home' ? <HomeExperience navigate={navigate}/> : view === 'ecosystem' ? <Ecosystem/> : <DeveloperTools navigate={navigate}/>}
     </div>
-    <div className="floating-index" aria-hidden="true"><span>ZNX</span><span>{view==='home'?'01 / 03':view==='studio'?'02 / 03':'03 / 03'}</span><ChevronDown size={14}/></div>
+    <div className="floating-index" aria-hidden="true"><span>ZNX</span><span>{view==='home'?'01 / 03':view==='tools'?'02 / 03':'03 / 03'}</span><ChevronDown size={14}/></div>
   </>
 }
