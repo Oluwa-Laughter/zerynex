@@ -82,3 +82,9 @@ sanitized findings, not ingest actual transaction intermediates.
 
 This does not establish a sandbox against a compromised host or a
 cryptographic security certification.
+
+## Node health is opt-in and separate
+
+The zerynex-z3-check Python command can check loopback-only Zebra health
+endpoints. This command is NOT exposed through the MCP agent tools by
+default. See docs/z3-local.md.

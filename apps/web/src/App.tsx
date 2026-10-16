@@ -7,11 +7,12 @@ import { LuArrowDown as ArrowDown, LuAsterisk as Asterisk, LuArrowLeft as ArrowL
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inspectPczt, loadEngine } from './analyzer'
+import Ecosystem from './Ecosystem'
 import { exportPolicyJson, parsePolicyJson, type Policy as SdkPolicy } from '@zerynex/sdk'
 import type { Profile, Report } from './analyzer'
 
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
-type View = 'home' | 'studio'
+type View = 'home' | 'studio' | 'ecosystem'
 type EngineStatus = 'loading' | 'ready' | 'unavailable'
 
 function Mark({ small = false }: { small?: boolean }) {
@@ -51,6 +52,7 @@ function Header({ current, navigate }: { current: View; navigate: (v: View) => v
     <Brand onClick={() => { setMenu(false); navigate('home') }} />
     <nav className={'desktop-nav' + (menu ? ' nav-open' : '')} aria-label="Primary">
       <button className={current === 'home' ? 'nav-active' : ''} onClick={() => {setMenu(false);navigate('home')}}>Overview</button>
+      <button className={current === 'ecosystem' ? 'nav-active' : ''} onClick={() => {setMenu(false);navigate('ecosystem')}}>Ecosystem</button>
       <button onClick={() => toHomeSection('protocol')}>Protocol</button>
       <button onClick={() => toHomeSection('principles')}>Principles</button>
       <a href={repository + '#readme'} target="_blank" rel="noopener noreferrer" onClick={() => setMenu(false)}>Documentation <ArrowUpRight size={12}/></a>
@@ -359,15 +361,15 @@ export default function App({ page }: { page: View }) {
   const router = useRouter()
   const view: View = page
   const navigate = (next: View) => {
-    router.push(next === 'studio' ? '/studio' : '/')
+    router.push(next === 'studio' ? '/studio' : next === 'ecosystem' ? '/ecosystem' : '/')
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
   return <>
     <a href="#main-content" className="skip-link">Skip to main content</a>
     <div id="main-content">
       <Header current={view} navigate={navigate}/>
-      {view === 'home' ? <Home navigate={navigate}/> : <Studio navigate={navigate}/>}
+      {view === 'home' ? <Home navigate={navigate}/> : view === 'ecosystem' ? <Ecosystem/> : <Studio navigate={navigate}/>}
     </div>
-    <div className="floating-index" aria-hidden="true"><span>ZNX</span><span>{view==='home'?'01 / 02':'02 / 02'}</span><ChevronDown size={14}/></div>
+    <div className="floating-index" aria-hidden="true"><span>ZNX</span><span>{view==='home'?'01 / 03':view==='studio'?'02 / 03':'03 / 03'}</span><ChevronDown size={14}/></div>
   </>
 }

@@ -87,6 +87,7 @@ test('locally imports a valid policy file and applies its restrictions', async (
 
 test('rejects malformed policy imports without weakening the current policy', async ({ page }) => {
   await page.goto('/studio')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
   await page.getByLabel('Deny transparent components').check()
   await page.getByLabel('Select JSON policy file').setInputFiles({
     name: 'invalid-policy.json',
@@ -95,4 +96,29 @@ test('rejects malformed policy imports without weakening the current policy', as
   })
   await expect(page.getByRole('status')).toContainText('Invalid policy file')
   await expect(page.getByLabel('Deny transparent components')).toBeChecked()
+})
+
+test('ecosystem atlas navigation and language onboarding are functional', async ({ page, isMobile }) => {
+  await page.goto('/')
+  if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
+  await page.getByRole('button', { name: 'Ecosystem' }).click()
+  await expect(page).toHaveURL(/\/ecosystem/)
+  await expect(page.getByRole('heading', { name: /Find your.*entry point/i })).toBeVisible()
+  await page.getByRole('button', { name: /Python developer/i }).click()
+  await expect(page.getByText('from zerynex_py import ZerynexClient', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: /Z3 \/ node operator/i }).click()
+  await expect(page.getByText('zerynex-z3-check', { exact: false }).first()).toBeVisible()
+  await expect(page.getByText('DOCS-BASED · NOT LIVE TELEMETRY')).toBeVisible()
+})
+
+test('ecosystem atlas works in small viewport', async ({ page }) => {
+  await page.goto('/ecosystem')
+  await expect(page.getByRole('heading', { name: /One toolchain/i })).toBeVisible()
+  await page.getByRole('button', { name: /Agent builder/i }).click()
+  await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT', { exact: false }).first()).toBeVisible()
+  const sizes = await page.evaluate(() => ({
+    body: document.documentElement.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+  }))
+  expect(sizes.body).toBeLessThanOrEqual(sizes.viewport + 1)
 })

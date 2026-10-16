@@ -125,3 +125,14 @@ agent/skills/zcash-privacy-check/SKILL.md and use the read-only local
 MCP server from the optional Python integration. Details are in
 docs/agents.md. The server only scans approved synthetic fixtures; it
 does not load arbitrary files or transmit PCZT data to hosted models.
+
+## Ecosystem Atlas and Z3 onboarding
+
+The /ecosystem route provides an interactive developer onboarding atlas with
+Rust, TypeScript, Python, MCP / Agent Skills and Z3 node operator quickstarts.
+The Z3 topology diagram is based on upstream documentation and is NOT live
+node telemetry.
+
+The Python SDK includes zerynex-z3-check: a read-only loopback-only
+Zebra /healthy and /ready diagnostic. No wallet RPC credentials are used.
+See docs/z3-local.md.

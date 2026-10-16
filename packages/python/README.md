@@ -57,3 +57,13 @@ field paths enforced by Rust. The user controls which executable is trusted.
 
 Future direction: use PyO3/maturin to ship native wheels based on the same
 Rust core, avoiding the CLI dependency. This is not implemented yet.
+
+## Z3 local diagnostics
+
+Use zerynex-z3-check to probe only Zebra's documented loopback-bound
+/healthy and /ready endpoints:
+
+    zerynex-z3-check --host 127.0.0.1 --port 8080
+
+See docs/z3-local.md. This checks two readiness signals only, not Zcash
+consensus, Zallet wallet operation or Zaino gRPC.
