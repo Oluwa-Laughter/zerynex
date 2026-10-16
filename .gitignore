@@ -18,3 +18,10 @@
 /apps/web/playwright-report/
 /packages/sdk/node_modules/
 /packages/sdk/dist/
+
+# Python SDK
+.venv/
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+**/.pytest_cache/

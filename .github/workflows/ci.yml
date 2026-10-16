@@ -119,3 +119,34 @@ jobs:
         run: |
           npm run build
           npm test
+
+  python-agents:
+    name: Python SDK and read-only MCP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Compile trusted Rust engine
+        run: cargo build --locked
+      - name: Install Python SDK with optional official MCP runtime
+        run: python -m pip install './packages/python[mcp]'
+      - name: Run Python/Rust and MCP protocol integration tests
+        run: python -m unittest discover -s packages/python/tests -v
+      - name: Validate portable Agent Skill structure
+        run: python scripts/validate-agent-skill.py
+      - name: Verify CLI never writes a wallet secret to findings
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zerynex_py import ZerynexClient, Policy
+          cli = ZerynexClient(cli=Path('target/debug/zerynex').resolve())
+          report = cli.analyze_file(
+              'apps/web/public/examples/transparent-v6.bin',
+              Policy(deny_transparent=True),
+          )
+          assert not report.passed
+          assert report.findings[0].rule == 'PCZT-TRANSPARENT-OUTPUTS'
+          PY

@@ -113,3 +113,15 @@ The Studio can import/export repository-local JSON policy files with
 strict validation performed by @zerynex/sdk. A malformed policy does not
 alter the selected disclosure safeguards. Imported data is read on-device,
 and exported policies can be used directly with the Rust --policy-file CLI.
+
+## Python and AI-agent integrations
+
+The new Python adapter in packages/python invokes the trusted local Rust CLI
+without reimplementing Zcash cryptography. It provides typed Policy, Report,
+Finding, and ZerynexClient interfaces and sanitized policy findings.
+
+Agent developers can install the portable skill at
+agent/skills/zcash-privacy-check/SKILL.md and use the read-only local
+MCP server from the optional Python integration. Details are in
+docs/agents.md. The server only scans approved synthetic fixtures; it
+does not load arbitrary files or transmit PCZT data to hosted models.
