@@ -9,17 +9,16 @@ export type Report = {
   disclaimer: string
 }
 type WasmModule = {
-  default: (input?: RequestInfo | URL | BufferSource | WebAssembly.Module) => Promise<unknown>
+  default: (input?: { module_or_path: RequestInfo | URL | BufferSource | WebAssembly.Module }) => Promise<unknown>
   analyze_pczt: (bytes: Uint8Array, restricted: boolean) => string
 }
 let loaded: Promise<WasmModule> | undefined
 export function loadEngine(): Promise<WasmModule> {
   if (!loaded) {
-    const runtimePath = '/wasm/zerynex.js'
-    loaded = import(/* @vite-ignore */ runtimePath)
+    loaded = import('./wasm/zerynex.js')
       .then(async (module) => {
         const wasm = module as WasmModule
-        await wasm.default('/wasm/zerynex_bg.wasm')
+        await wasm.default({ module_or_path: '/wasm/zerynex_bg.wasm' })
         return wasm
       })
       .catch((error: unknown) => {

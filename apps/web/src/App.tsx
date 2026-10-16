@@ -1,12 +1,14 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Check, CheckCheck, ChevronDown, CircleAlert, CircleCheck, Copy, Download, FileCode2, Fingerprint, Layers3, LockKeyhole, Menu, MoveUpRight, ScanLine, Terminal, X, } from 'lucide-react'
+import { ArrowDown, Asterisk, ArrowLeft, ArrowRight, ArrowUpRight, Check, CheckCheck, ChevronDown, CircleAlert, CircleCheck, Copy, Download, FileCode2, Fingerprint, Layers3, LockKeyhole, Menu, MoveUpRight, ScanLine, Terminal, X, } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inspectPczt, loadEngine } from './analyzer'
 import type { Profile, Report } from './analyzer'
 
-gsap.registerPlugin(ScrollTrigger)
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
 type View = 'home' | 'studio'
 type EngineStatus = 'loading' | 'ready' | 'unavailable'
@@ -31,14 +33,18 @@ function LinkArrow({ label, onClick, light = false }: { label: string; onClick: 
   </button>
 }
 function Kicker({ children, number }: { children: React.ReactNode; number?: string }) {
-  return <div className="kicker"><span className="kicker-cross">✳</span>{number && <span className="kicker-index">{number} /</span>} {children}</div>
+  return <div className="kicker"><Asterisk className="kicker-cross" size={15} strokeWidth={2}/>{number && <span className="kicker-index">{number} /</span>} {children}</div>
 }
 function Header({ current, navigate }: { current: View; navigate: (v: View) => void }) {
+  const router = useRouter()
   const [menu, setMenu] = useState(false)
   const toHomeSection = (id: string) => {
     setMenu(false)
-    navigate('home')
-    window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 50)
+    if (current === 'home') {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      router.push('/#' + id)
+    }
   }
   return <header className="topbar">
     <Brand onClick={() => { setMenu(false); navigate('home') }} />
@@ -59,6 +65,7 @@ function Lens() {
   const root = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!root.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    gsap.registerPlugin(ScrollTrigger)
     const ctx = gsap.context(() => {
       gsap.to('.iris-ring-a', { rotate: 360, duration: 48, repeat: -1, ease: 'none' })
       gsap.to('.iris-ring-b', { rotate: -360, duration: 35, repeat: -1, ease: 'none' })
@@ -117,12 +124,12 @@ function Home({ navigate }: { navigate: (v: View) => void }) {
       <div className="hero-art"><Lens/></div>
       <div className="hero-side-label">SCROLL TO DECODE <ArrowDown size={14}/></div>
     </section>
-    <div className="ticker" aria-label="Zerynex technologies"><div className="ticker-track">{Array.from({length:4}).map((_,i)=><span key={i}> ZCASH <span className="ticker-star">✳</span> ORCHARD <span className="ticker-star">✳</span> IRONWOOD <span className="ticker-star">✳</span> PCZT <span className="ticker-star">✳</span> PRIVACY BY CONSTRUCTION <span className="ticker-star">✳</span></span>)}</div></div>
+    <div className="ticker" aria-label="Zerynex technologies"><div className="ticker-track">{Array.from({length:4}).map((_,i)=><span key={i}> ZCASH <Asterisk className="ticker-star" size={14} strokeWidth={2}/> ORCHARD <Asterisk className="ticker-star" size={14} strokeWidth={2}/> IRONWOOD <Asterisk className="ticker-star" size={14} strokeWidth={2}/> PCZT <Asterisk className="ticker-star" size={14} strokeWidth={2}/> PRIVACY BY CONSTRUCTION <Asterisk className="ticker-star" size={14} strokeWidth={2}/></span>)}</div></div>
     <section className="section protocol-section" id="protocol">
       <div className="section-meta reveal"><Kicker number="01">THE PROBLEM</Kicker><span className="section-hairline"/></div>
       <div className="problem-grid">
         <div className="problem-title reveal"><h2>A shielded transaction can still have an <em>exposed journey.</em></h2></div>
-        <div className="problem-copy reveal"><p>Zcash protects on-chain transaction details. But a partially constructed transaction can carry sensitive metadata between creators, provers, signers, and other components.</p><p>Zerynex checks that boundary before it becomes someone else's problem.</p><a className="text-link" href="https://zips.z.cash/zip-0374" target="_blank" rel="noopener noreferrer">READ ZIP-374 <ArrowUpRight size={15}/></a></div>
+        <div className="problem-copy reveal"><p>Zcash protects on-chain transaction details. But a partially constructed transaction can carry sensitive metadata between creators, provers, signers, and other components.</p><p>Zerynex checks that boundary before it becomes someone else&apos;s problem.</p><a className="text-link" href="https://zips.z.cash/zip-0374" target="_blank" rel="noopener noreferrer">READ ZIP-374 <ArrowUpRight size={15}/></a></div>
       </div>
       <div className="journey reveal" aria-label="Transaction lifecycle">
         {['CREATE', 'INSPECT', 'AUTHORIZE', 'HANDOFF'].map((label,i)=><div className={'journey-step' + (i===1?' journey-selected':'')} key={label}>
@@ -140,7 +147,7 @@ function Home({ navigate }: { navigate: (v: View) => void }) {
     </section>
     <section className="statement-section" id="principles">
       <div className="statement-panel reveal">
-        <div className="statement-left"><Kicker number="03">OUR PRINCIPLE</Kicker><span className="statement-glyph">✳</span><span className="statement-foot">DESIGNED FOR HUMAN TRUST.<br/>BUILT FOR MACHINE VERIFICATION.</span></div>
+        <div className="statement-left"><Kicker number="03">OUR PRINCIPLE</Kicker><Asterisk className="statement-glyph" size={98} strokeWidth={1.4}/><span className="statement-foot">DESIGNED FOR HUMAN TRUST.<br/>BUILT FOR MACHINE VERIFICATION.</span></div>
         <div className="statement-right"><h2>Less disclosure.<br/><em>More certainty.</em></h2><p>Privacy is not a visual effect or a checkbox. It is a concrete engineering constraint. We make those constraints visible.</p><LinkArrow light label="Test a handoff" onClick={() => navigate('studio')}/></div>
       </div>
     </section>
@@ -148,7 +155,7 @@ function Home({ navigate }: { navigate: (v: View) => void }) {
       <div className="section-meta reveal"><Kicker number="04">OPEN INFRASTRUCTURE</Kicker><span className="section-hairline"/></div>
       <div className="open-grid">
         <div className="reveal"><span className="open-kicker">START WHERE YOU ARE</span><h2>Production-minded.<br/><em>Open from day one.</em></h2><p>A real Rust core, the same analysis engine in a local-first browser workspace, documented limitations, and a GitHub CI baseline. No wallet secrets. No hidden server.</p><div className="open-actions"><LinkArrow label="Open the studio" onClick={() => navigate('studio')}/></div></div>
-        <div className="terminal-card reveal"><div className="terminal-top"><span><i/><i/><i/></span><span>TERMINAL · ZERYNEX CLI</span></div><div className="terminal-lines"><div><span className="terminal-prompt">➜</span> cargo run -- ./handoff.pczt --json</div><div className="terminal-muted"># Local policy analysis</div><div className="terminal-muted"># Check Orchard & Ironwood handoffs</div><div className="terminal-ok"><CircleCheck size={15}/> Reports emit field paths, never values.</div></div><div className="terminal-bottom">RUST CORE <span>MIT LICENSE</span></div></div>
+        <div className="terminal-card reveal"><div className="terminal-top"><span><i/><i/><i/></span><span>TERMINAL · ZERYNEX CLI</span></div><div className="terminal-lines"><div><ArrowRight className="terminal-prompt" size={14} aria-hidden="true"/> cargo run -- ./handoff.pczt --json</div><div className="terminal-muted"># Local policy analysis</div><div className="terminal-muted"># Check Orchard & Ironwood handoffs</div><div className="terminal-ok"><CircleCheck size={15}/> Reports emit field paths, never values.</div></div><div className="terminal-bottom">RUST CORE <span>MIT LICENSE</span></div></div>
       </div>
     </section>
     <footer className="footer">
@@ -300,14 +307,12 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
     <div className="studio-bottom-note"><span>NOT A CONSENSUS VALIDATOR OR SECURITY AUDIT</span><a href="https://zips.z.cash/zip-0374" target="_blank" rel="noopener noreferrer">ZIP-374 REFERENCE <ArrowUpRight size={13}/></a></div>
   </main>
 }
-export default function App() {
-  const viewFromHash = (): View => window.location.hash.startsWith('#/studio') ? 'studio' : 'home'
-  const [view,setView] = useState<View>(viewFromHash)
-  useEffect(() => { const onHash = () => setView(viewFromHash()); window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange',onHash) },[])
+export default function App({ page }: { page: View }) {
+  const router = useRouter()
+  const view: View = page
   const navigate = (next: View) => {
-    window.location.hash = next==='studio' ? '/studio' : '/'
-    setView(next)
-    window.scrollTo({top:0,behavior:'instant'})
+    router.push(next === 'studio' ? '/studio' : '/')
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
   return <>
     <a href="#main-content" className="skip-link">Skip to main content</a>
