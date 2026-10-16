@@ -2,16 +2,46 @@ name: Zerynex CI
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   rust:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - run: cargo fmt -- --check
+          targets: wasm32-unknown-unknown
+      - run: cargo fmt --all -- --check
       - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: cargo test --locked
+      - run: cargo test --locked --all-targets
+      - run: cargo check --locked --target wasm32-unknown-unknown --features browser
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen-cli@0.2.129
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: bash scripts/build-wasm.sh
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/web
+      - run: pnpm build
+        working-directory: apps/web
+      - run: test -s apps/web/dist/wasm/zerynex_bg.wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zerynex-web
+          path: apps/web/dist

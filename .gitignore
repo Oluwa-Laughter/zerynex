@@ -5,3 +5,7 @@
 *.pczt
 *.key
 *.seed
+
+/apps/web/node_modules/
+/apps/web/dist/
+/apps/web/*.tsbuildinfo

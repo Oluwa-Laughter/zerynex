@@ -1,41 +1,56 @@
 # Zerynex
 
-Zcash privacy-policy tooling for developers. A Rust-first, local-only PCZT handoff linter built as a new Core & Tooling project for Zecathon 2026.
+**Privacy is a property. Not a promise.**
 
-## Why this exists
+A Rust-first privacy-policy toolkit for Zcash Partially Created Zcash Transactions (PCZTs). Created for Zecathon 2026's **Core & Tooling** track.
 
-ZIP-374 warns that PCZT intermediary data can expose far more than final shielded transactions, including viewing information, output recipients and note randomness. Zerynex aims to enforce explicitly configured privacy requirements during transaction handoffs and in CI.
+**Problem:** ZIP-374 intermediary PCZT files may carry sensitive metadata that never appears in a final shielded transaction. Zerynex helps developers establish explicit policies at those handoff boundaries.
 
-## What is currently implemented
+## Architecture
 
-- Parse binary PCZTs using the upstream Rust pczt implementation.
-- Inspect Orchard and Ironwood action fields for dummy spending keys and unknown proprietary metadata.
-- Optional restrictive handoff policy checks whether recipient, value, seed randomness or user-facing address fields remain in output structures.
-- Emit sanitized text or JSON reports; no private field contents.
-- Exit code 0: no findings; 1: file/parsing error; 2: policy violations.
+- **Rust library** (`src/lib.rs`): real PCZT parsing via the Zcash `pczt` crate, policy checks on global proprietary metadata and selected Orchard/Ironwood fields.
+- **CLI** (`src/main.rs`): local binary input, text/JSON report, 0 pass / 1 input error / 2 policy findings.
+- **Browser engine**: the *same* Rust core compiled to WebAssembly; no hosted file upload or analysis API.
+- **Studio** (`apps/web`): React 19, TypeScript, Vite, Tailwind 4, GSAP animation, adaptive responsive UX, local file analysis, JSON export.
+- **Fixtures** (`examples/generate_fixtures.rs`): synthetic non-spendable v6 PCZT files, clean and flagged.
 
-## Running
+## Development
 
-    cargo run -- path/to/input.pczt --profile external-signer
-    cargo run -- path/to/input.pczt --profile restricted-handoff --json
-    cargo test
+Requires Rust stable, Node.js >=22 and pnpm 10.
 
-Never upload a genuine PCZT to an external debugging service. Real PCZT files can contain sensitive wallet data.
+```bash
+cargo test --locked --all-targets
+cargo run -- path/to/transaction.pczt --profile external-signer --json
+cargo install wasm-bindgen-cli --version 0.2.129 --locked
+bash scripts/build-wasm.sh
+cd apps/web
+pnpm install --frozen-lockfile
+pnpm dev
+```
 
-## Limitations
+Open http://127.0.0.1:5173, choose **Launch studio**, load a genuine local binary PCZT or one of the two **synthetic examples**, select a profile, and run **real Rust WebAssembly analysis** without transferring your PCZT to any backend.
 
-Early proof of concept, **not audited**. Passing the current checks does NOT imply full wallet privacy, consensus correctness, safe custody, or proof validation. Checks do not yet include transparent and Sapling bundles. Restrictive policy may block legitimate signer handoffs that require disclosed amounts and recipient details. No automated mutation or redaction is performed.
+The prebuilt browser WASM is included under `apps/web/public/wasm`. The build script reproducibly regenerates it. GitHub Actions builds Rust + WASM + web.
+
+## Current policies
+
+- `external-signer`: flags dummy spending keys and unreviewed proprietary metadata.
+- `restricted-handoff`: additionally flags selected output recipient/value/seed/address fields. This may reject legitimate signer workflows.
+
+Reports contain rule IDs and field paths, **not private field values**.
+
+## Security notice
+
+**Early research software, not audited.** Passing implemented checks does **not** imply anonymity, complete private-data handling, consensus validity, safe signing, or a production security audit. Sapling and transparent checks are not yet complete, and network side channels are outside v0.1 scope. No wallet keys belong in committed fixtures.
+
+Full threat-model summary: [docs/privacy-model.md](docs/privacy-model.md).
 
 ## Next milestones
 
-- Synthetic binary fixtures and testable positive/negative handoffs.
-- Complete Sapling, transparent and Ironwood field coverage.
-- Explicit capability- and role-aware policy configuration.
-- Real Zcash PCZT signing/extraction compatibility tests.
-- Reliable privacy regression workflow for GitHub Actions.
+Expanded role-specific policies, real signer/prover compatibility fixtures, comprehensive pool checks, CI regression examples, upstream integration, privacy review.
 
-## Sources
+## References
 
-- ZIP-374: https://zips.z.cash/zip-0374
-- librustzcash: https://github.com/zcash/librustzcash
-- pczt crate: https://docs.rs/pczt/
+[ZIP-374](https://zips.z.cash/zip-0374) · [librustzcash](https://github.com/zcash/librustzcash) · [pczt documentation](https://docs.rs/pczt/).
+
+MIT licensed. Open source.
