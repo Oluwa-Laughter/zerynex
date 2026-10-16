@@ -180,6 +180,18 @@ jobs:
           PASSED: ${{ steps.flagged.outputs.passed }}
           COUNT: ${{ steps.flagged.outputs.finding-count }}
         run: test "$PASSED" = false && test "$COUNT" = 1
+      - name: Compare stages with the reusable action
+        id: stages
+        uses: ./
+        with:
+          baseline-path: apps/web/public/examples/clean-v6.bin
+          pczt-path: apps/web/public/examples/flagged-v6.bin
+          fail-on-findings: 'false'
+      - name: Assert new disclosure is detected
+        env:
+          PASSED: ${{ steps.stages.outputs.passed }}
+          REGRESSIONS: ${{ steps.stages.outputs.regression-count }}
+        run: test "$PASSED" = false && test "$REGRESSIONS" = 1
       - name: Exercise standalone action consumer tests
         env:
           ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex

@@ -8,9 +8,10 @@ from .client import (
     Finding,
     Policy,
     Report,
+    StageComparison,
     ZerynexClient,
     ZerynexError,
 )
 
-__all__ = ["Finding", "Policy", "Report", "ZerynexClient", "ZerynexError", "ZebraHealthReport", "check_zebra_local"]
+__all__ = ["Finding", "Policy", "Report", "StageComparison", "ZerynexClient", "ZerynexError", "ZebraHealthReport", "check_zebra_local"]
 __version__ = "0.1.0"

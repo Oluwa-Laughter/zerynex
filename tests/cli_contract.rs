@@ -141,3 +141,73 @@ fn malformed_base64_returns_sanitized_exit_one() {
     assert!(result.stdout.is_empty());
     assert!(!String::from_utf8_lossy(&result.stderr).contains("SYNTHETIC_SENSITIVE_STRING!"));
 }
+
+#[test]
+fn stage_comparison_detects_new_policy_findings_without_raw_values() {
+    let output = execute(&[
+        "apps/web/public/examples/clean-v6.bin",
+        "--compare-with",
+        "apps/web/public/examples/flagged-v6.bin",
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    let report = json(&output);
+    assert_eq!(report["added_findings"][0]["rule"], "PCZT-GLOBAL-METADATA");
+    assert_eq!(report["added_findings"][0]["field"], "global.proprietary");
+    assert_eq!(report["before_findings_count"], 0);
+    assert_eq!(report["after_findings_count"], 1);
+    assert_eq!(report["passed"], false);
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("synthetic-only"));
+}
+
+#[test]
+fn stage_comparison_flags_component_changes_without_revealing_values() {
+    let output = execute(&[
+        "apps/web/public/examples/clean-v6.bin",
+        "--compare-with",
+        "apps/web/public/examples/transparent-v6.bin",
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    let report = json(&output);
+    assert_eq!(report["added_findings"].as_array().unwrap().len(), 0);
+    assert_eq!(
+        report["component_deltas"][0]["component"],
+        "transparent.outputs"
+    );
+    assert_eq!(report["component_deltas"][0]["before"], 0);
+    assert_eq!(report["component_deltas"][0]["after"], 1);
+    assert_eq!(report["passed"], false);
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("123"));
+}
+
+#[test]
+fn stage_comparison_passes_when_policy_violation_is_resolved() {
+    let output = execute(&[
+        "apps/web/public/examples/flagged-v6.bin",
+        "--compare-with",
+        "apps/web/public/examples/clean-v6.bin",
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(0));
+    let report = json(&output);
+    assert_eq!(
+        report["resolved_findings"][0]["rule"],
+        "PCZT-GLOBAL-METADATA"
+    );
+    assert_eq!(report["passed"], true);
+}
+
+#[test]
+fn stage_comparison_does_not_mask_existing_violations() {
+    let output = execute(&[
+        "apps/web/public/examples/flagged-v6.bin",
+        "--compare-with",
+        "apps/web/public/examples/flagged-v6.bin",
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    let report = json(&output);
+    assert_eq!(report["no_new_findings"], true);
+    assert_eq!(report["passed"], false);
+}

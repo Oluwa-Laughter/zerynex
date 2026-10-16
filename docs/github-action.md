@@ -64,3 +64,21 @@ proof correctness, or safe signing. Zerynex is an unaudited research tool.
 
 For the complete fixture/workflow example see
 examples/github-actions/privacy-policy-check.yml.
+
+## Compare transaction handoff stages
+
+An optional baseline-path changes the action from one-PCZT linting
+into a stage-to-stage regression test.
+
+    - uses: Oluwa-Laughter/zerynex@main
+      with:
+        baseline-path: tests/fixtures/before.pczt
+        pczt-path: tests/fixtures/after.pczt
+        fail-on-findings: 'true'
+
+The regression-count output counts newly found rule/field issues and
+pool component structure changes. finding-count still represents
+remaining candidate policy violations. Preexisting policy violations
+are not hidden by a clean regression result.
+
+See docs/pczt-stage-regression.md for strong limitations.

@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow, LuGitPullRequest } from 'react-icons/lu'
+import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow, LuGitPullRequest, LuGitBranch } from 'react-icons/lu'
 
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
-type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'github'
+type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'github' | 'stages'
 const integrations: {key:Integration,label:string,title:string,kind:string,description:string,code:string,documentation:string,icon:typeof LuCode}[] = [
   {
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
@@ -24,6 +24,12 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     description:'The current Python SDK invokes the same Rust CLI without duplicating PCZT parsing or sending files to a remote service.',
     code:"from zerynex_py import ZerynexClient, Policy\n\nclient = ZerynexClient(cli='./target/release/zerynex')\nreport = client.analyze_file(\n    'apps/web/public/examples/transparent-v6.bin',\n    Policy(deny_transparent=True),\n)\nprint(report.agent_summary())",
     documentation: repository + '/tree/main/packages/python',icon:LuCode,
+  },
+  {
+    key:'stages',label:'PCZT Stage Regression',title:'Catch exposure introduced by a transaction handoff',kind:'WALLET / CI / REGRESSION',
+    description:'Compare two local PCZT stages using the same Rust policy engine. Flag newly present sensitive field locations and component-count changes; this is not a cryptographic equivalence check.',
+    code:"cargo run --locked -- \\\n  apps/web/public/examples/clean-v6.bin \\\n  --compare-with apps/web/public/examples/flagged-v6.bin \\\n  --json\n\n# For GitHub Actions, configure baseline-path and pczt-path.\n# Only use synthetic, nonspendable fixtures in public CI.",
+    documentation: repository + '/blob/main/docs/pczt-stage-regression.md',icon:LuGitBranch,
   },
   {
     key:'github',label:'GitHub Actions',title:'Continuous privacy checks in any repository',kind:'CI / NO APP DEPENDENCY',

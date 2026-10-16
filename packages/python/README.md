@@ -80,3 +80,16 @@ For a trusted application with an in-memory base64 PCZT string:
 The Python adapter passes the encoded bytes over Rust CLI stdin and only
 returns sanitized report fields. Do not provide confidential intermediates
 to a cloud agent or to CI. See docs/zallet-pczt-handoff.md.
+
+## Compare PCZT role handoffs
+
+    result = client.compare_files(
+        "path/to/before-synthetic.pczt",
+        "path/to/after-synthetic.pczt",
+        Policy(deny_transparent=True),
+    )
+    print(result.agent_summary())
+
+This produces rule and pool-component differences using the same local
+Rust engine. Not a transaction equivalence or proof validator.
+See docs/pczt-stage-regression.md.

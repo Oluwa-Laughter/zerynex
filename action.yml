@@ -8,6 +8,10 @@ inputs:
   pczt-path:
     description: Path to a synthetic PCZT fixture within the caller repository.
     required: true
+  baseline-path:
+    description: Optional initial PCZT stage fixture; compares against pczt-path instead of inspecting one fixture.
+    required: false
+    default: ''
   policy-path:
     description: Optional JSON policy path within the caller repository.
     required: false
@@ -32,8 +36,11 @@ outputs:
   finding-count:
     description: Number of sanitized disclosure policy findings.
     value: ${{ steps.report.outputs.finding_count }}
+  regression-count:
+    description: Count of newly added rule findings and PCZT structure changes when baseline-path is used.
+    value: ${{ steps.report.outputs.regression_count }}
   passed:
-    description: 'true only when the configured Rust policy reported zero findings.'
+    description: 'true only when current policy checks pass and, for comparisons, component structure is unchanged.'
     value: ${{ steps.report.outputs.passed }}
 runs:
   using: composite
@@ -51,6 +58,7 @@ runs:
       env:
         ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex
         ZERYNEX_PCZT_PATH: ${{ inputs.pczt-path }}
+        ZERYNEX_BASELINE_PATH: ${{ inputs.baseline-path }}
         ZERYNEX_POLICY_PATH: ${{ inputs.policy-path }}
         ZERYNEX_INPUT_FORMAT: ${{ inputs.input-format }}
         ZERYNEX_DENY_TRANSPARENT: ${{ inputs.deny-transparent }}

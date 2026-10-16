@@ -113,6 +113,92 @@ def _parse_report(raw: str) -> Report:
     except (KeyError, TypeError, ValueError):
         raise ZerynexError("Invalid report structure.") from None
 
+@dataclass(frozen=True)
+class StageComparison:
+    """Value-free classification of changes between two PCZT processing stages."""
+    passed: bool
+    no_new_findings: bool
+    before_findings_count: int
+    after_findings_count: int
+    added_findings: tuple[tuple[str, str], ...]
+    resolved_findings: tuple[tuple[str, str], ...]
+    component_deltas: tuple[tuple[str, int, int], ...]
+    disclaimer: str
+
+    def agent_summary(self) -> dict[str, object]:
+        return {
+            "passed": self.passed,
+            "no_new_findings": self.no_new_findings,
+            "before_findings_count": self.before_findings_count,
+            "after_findings_count": self.after_findings_count,
+            "added_findings": [
+                {"rule": rule, "field": field} for rule, field in self.added_findings
+            ],
+            "resolved_findings": [
+                {"rule": rule, "field": field} for rule, field in self.resolved_findings
+            ],
+            "component_deltas": [
+                {"component": name, "before": before, "after": after}
+                for name, before, after in self.component_deltas
+            ],
+            "limitation": self.disclaimer,
+        }
+
+
+def _parse_stage_comparison(raw: str) -> StageComparison:
+    if len(raw) > MAX_REPORT_BYTES:
+        raise ZerynexError("Stage report exceeds output limit.")
+    try:
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            raise ValueError("format")
+        passed = data["passed"]
+        no_new = data["no_new_findings"]
+        counts = (data["before_findings_count"], data["after_findings_count"])
+        if type(passed) is not bool or type(no_new) is not bool:
+            raise ValueError("status")
+        if any(type(c) is not int or not 0 <= c <= 1000 for c in counts):
+            raise ValueError("counts")
+        parsed = []
+        for key in ("added_findings", "resolved_findings"):
+            entries = data[key]
+            if not isinstance(entries, list) or len(entries) > 1000:
+                raise ValueError(key)
+            values = []
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    raise ValueError(key)
+                rule, field = entry["rule"], entry["field"]
+                if any(not isinstance(value, str) or not 0 < len(value) <= 500
+                       for value in (rule, field)):
+                    raise ValueError(key)
+                values.append((rule, field))
+            parsed.append(tuple(values))
+        changes = []
+        deltas = data["component_deltas"]
+        if not isinstance(deltas, list) or len(deltas) > 6:
+            raise ValueError("components")
+        for item in deltas:
+            component, before, after = item["component"], item["before"], item["after"]
+            if component not in (
+                "transparent.inputs", "transparent.outputs", "sapling.spends",
+                "sapling.outputs", "orchard.actions", "ironwood.actions"
+            ) or any(type(c) is not int or not 0 <= c <= 1000000 for c in (before, after)):
+                raise ValueError("components")
+            changes.append((component, before, after))
+        if passed != (not parsed[0] and not changes and counts[1] == 0):
+            raise ValueError("status mismatch")
+        disclaimer = data["disclaimer"]
+        if not isinstance(disclaimer, str) or not disclaimer:
+            raise ValueError("disclaimer")
+        return StageComparison(
+            passed, no_new, counts[0], counts[1], parsed[0], parsed[1],
+            tuple(changes), disclaimer,
+        )
+    except (KeyError, TypeError, ValueError):
+        raise ZerynexError("Invalid stage comparison report.") from None
+
+
 class ZerynexClient:
     """Invoke trusted Rust CLI locally; never run a shell or log PCZT content."""
 
@@ -140,6 +226,46 @@ class ZerynexClient:
             raise ZerynexError("Cannot read the selected PCZT file.") from None
 
         return self._run([str(candidate)], config)
+
+    def compare_files(
+        self,
+        baseline: str | Path,
+        candidate: str | Path,
+        policy: Policy | None = None,
+    ) -> StageComparison:
+        """Compare selected policy findings and pool counts, locally.
+
+        Not a signature, commitment, amount, recipient or proof equivalence check.
+        """
+        config = policy if policy is not None else Policy()
+        if not isinstance(config, Policy):
+            raise ZerynexError("A Policy object is required.")
+        sources = []
+        for value in (baseline, candidate):
+            try:
+                path = Path(value).expanduser().resolve(strict=True)
+                if not path.is_file() or not 0 < path.stat().st_size <= MAX_PCZT_BYTES:
+                    raise ZerynexError("PCZT must be a nonempty regular file no larger than 8 MiB.")
+                sources.append(str(path))
+            except (OSError, ValueError, TypeError):
+                raise ZerynexError("Cannot read a selected PCZT stage file.") from None
+        args = [str(self._cli), sources[0], "--compare-with", sources[1], "--json",
+                "--profile", config.profile.replace("_", "-")]
+        if config.deny_transparent:
+            args.append("--deny-transparent")
+        if config.deny_sapling:
+            args.append("--deny-sapling")
+        try:
+            result = subprocess.run(args, shell=False, stdin=subprocess.DEVNULL,
+                                    capture_output=True, text=True, timeout=self._timeout)
+        except (OSError, subprocess.TimeoutExpired):
+            raise ZerynexError("Local Rust stage comparison failed or timed out.") from None
+        if result.returncode not in (0, 2):
+            raise ZerynexError("PCZT stages could not be compared.") from None
+        report = _parse_stage_comparison(result.stdout)
+        if (result.returncode == 0) != report.passed:
+            raise ZerynexError("Rust stage result and exit code disagree.")
+        return report
 
     def analyze_base64(self, base64_pczt: str, policy: Policy | None = None) -> Report:
         """Analyze a local Zallet-style base64 PCZT in memory via Rust stdin.

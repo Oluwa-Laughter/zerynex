@@ -93,3 +93,13 @@ synthetic policy fixtures within the consuming repository's CI runner.
 See docs/github-action.md for supported inputs, safety restrictions, and
 results outputs. This was added to reduce integration setup cost without
 turning Zerynex into an online service.
+
+## PCZT handoff stage regression
+
+The Rust core compare_stages_with_policy compares privacy rule findings
+and component counts between two local PCZT snapshots. The CLI supports
+--compare-with; Python uses compare_files; the GitHub Action uses an
+optional baseline-path. See docs/pczt-stage-regression.md.
+
+It is not a cryptographic transaction equivalence check. Field values,
+signer authorization and ZK proofs are outside its verification scope.

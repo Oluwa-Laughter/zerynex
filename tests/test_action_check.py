@@ -68,6 +68,27 @@ class ConsumerActionTests(unittest.TestCase):
             self.assertEqual(status, 2)
             self.assertEqual(report["findings"][0]["rule"], "PCZT-TRANSPARENT-OUTPUTS")
 
+    def test_stage_comparison_reports_new_disclosure(self):
+        status, report = check(self.env(
+            "apps/web/public/examples/flagged-v6.bin",
+            ZERYNEX_BASELINE_PATH="apps/web/public/examples/clean-v6.bin",
+        ))
+        self.assertEqual(status, 2)
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["regression_count"], 1)
+        self.assertEqual(report["finding_count"], 1)
+
+    def test_stage_comparison_rejects_changed_transaction_structure(self):
+        status, report = check(self.env(
+            "apps/web/public/examples/transparent-v6.bin",
+            ZERYNEX_BASELINE_PATH="apps/web/public/examples/clean-v6.bin",
+            ZERYNEX_DENY_TRANSPARENT="false",
+        ))
+        self.assertEqual(status, 2)
+        self.assertEqual(report["regression_count"], 1)
+        self.assertEqual(report["finding_count"], 0)
+        self.assertEqual(report["findings"][0]["rule"], "PCZT-STRUCTURE-DRIFT")
+
     def test_denies_outside_workspace_and_symlinks(self):
         with self.assertRaises(ValueError):
             check(self.env("/etc/hosts"))

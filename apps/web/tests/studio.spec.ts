@@ -200,3 +200,13 @@ test('developer onboarding includes copyable external GitHub Action checks', asy
   await expect(page.getByText('Never upload real PCZTs', {exact:false})).toBeVisible()
   await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/})).toHaveAttribute('href', /docs\/github-action\.md/)
 })
+
+
+test('Zerynex stage regression onboarding provides source-backed workflow', async ({ page }) => {
+  await page.goto('/tools')
+  await page.getByRole('tab', {name:/PCZT Stage Regression/}).click()
+  await expect(page.getByText('--compare-with', {exact:false})).toBeVisible()
+  await expect(page.getByText('cryptographic equivalence', {exact:false})).toBeVisible()
+  await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/}))
+    .toHaveAttribute('href', /docs\/pczt-stage-regression\.md/)
+})

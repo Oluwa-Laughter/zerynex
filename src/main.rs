@@ -6,7 +6,9 @@ use std::{
     path::PathBuf,
     process::ExitCode,
 };
-use zerynex::{analyze_with_policy, parse_policy_json, PolicyConfig, Profile};
+use zerynex::{
+    analyze_with_policy, compare_stages_with_policy, parse_policy_json, PolicyConfig, Profile,
+};
 
 #[derive(Parser)]
 #[command(
@@ -20,6 +22,10 @@ struct Args {
     /// Input encoding: raw binary PCZT or Zallet-compatible base64 transport.
     #[arg(long, value_enum, default_value = "binary")]
     input_format: InputFormat,
+    /// Optional candidate PCZT. Compare two stages, reporting only privacy-field
+    /// and component count differences. Both inputs use --input-format.
+    #[arg(long)]
+    compare_with: Option<PathBuf>,
     /// Built-in policy profile. Mutually exclusive with --policy-file.
     #[arg(long, value_enum, conflicts_with = "policy_file")]
     profile: Option<Policy>,
@@ -66,33 +72,31 @@ fn load_policy(args: &Args) -> Result<PolicyConfig, &'static str> {
     policy.deny_sapling |= args.deny_sapling;
     Ok(policy)
 }
-fn run() -> Result<ExitCode, &'static str> {
-    let args = Args::parse();
-    let policy = load_policy(&args)?;
+fn read_pczt(file: &PathBuf, input_format: InputFormat) -> Result<Vec<u8>, &'static str> {
     const MAX_PCZT_BYTES: usize = 8 * 1024 * 1024;
     // Read at most one byte beyond the hard input limit, including stdin.
     let max_encoded = MAX_PCZT_BYTES.div_ceil(3) * 4 + 256;
-    let max_input = match args.input_format {
+    let max_input = match input_format {
         InputFormat::Binary => MAX_PCZT_BYTES,
         InputFormat::Base64 => max_encoded,
     };
     let mut encoded_or_raw = Vec::new();
-    if args.file.as_os_str() == "-" {
+    if file.as_os_str() == "-" {
         io::stdin()
             .take((max_input + 1) as u64)
             .read_to_end(&mut encoded_or_raw)
             .map_err(|_| "Cannot read PCZT from standard input")?;
     } else {
-        let info = fs::metadata(&args.file).map_err(|_| "Cannot read PCZT file")?;
+        let info = fs::metadata(file).map_err(|_| "Cannot read PCZT file")?;
         if !info.is_file() || info.len() > max_input as u64 {
             return Err("PCZT input is not a regular file or exceeds size limit");
         }
-        encoded_or_raw = fs::read(&args.file).map_err(|_| "Cannot read PCZT file")?;
+        encoded_or_raw = fs::read(file).map_err(|_| "Cannot read PCZT file")?;
     }
     if encoded_or_raw.is_empty() || encoded_or_raw.len() > max_input {
         return Err("PCZT input is empty or exceeds size limit");
     }
-    let bytes = match args.input_format {
+    let bytes = match input_format {
         InputFormat::Binary => encoded_or_raw,
         InputFormat::Base64 => {
             // Raw base64 from pczt_create/prove/sign, optionally surrounded by
@@ -109,6 +113,48 @@ fn run() -> Result<ExitCode, &'static str> {
     };
     if bytes.is_empty() || bytes.len() > MAX_PCZT_BYTES {
         return Err("Decoded PCZT is empty or exceeds 8 MiB");
+    }
+    Ok(bytes)
+}
+
+fn run() -> Result<ExitCode, &'static str> {
+    let args = Args::parse();
+    let policy = load_policy(&args)?;
+    let bytes = read_pczt(&args.file, args.input_format)?;
+    if let Some(candidate_path) = &args.compare_with {
+        if candidate_path.as_os_str() == "-" {
+            return Err("Cannot compare two standard-input streams; supply a candidate file");
+        }
+        let candidate = read_pczt(candidate_path, args.input_format)?;
+        let result = compare_stages_with_policy(&bytes, &candidate, policy)?;
+        if args.json {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&result).map_err(|_| "Cannot encode comparison")?
+            );
+        } else {
+            println!(
+                "Zerynex stages: {} added findings, {} resolved, {} component changes; passed: {}",
+                result.added_findings.len(),
+                result.resolved_findings.len(),
+                result.component_deltas.len(),
+                result.passed
+            );
+            for f in &result.added_findings {
+                println!("NEW {} at {}", f.rule, f.field);
+            }
+            for change in &result.component_deltas {
+                println!(
+                    "CHANGED {} count: {} -> {}",
+                    change.component, change.before, change.after
+                );
+            }
+        }
+        return Ok(if result.passed {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::from(2)
+        });
     }
     let report = analyze_with_policy(&bytes, policy)?;
     if args.json {

@@ -46,6 +46,8 @@ def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
     input_format = env.get("ZERYNEX_INPUT_FORMAT", "binary")
     if input_format not in ("binary", "base64"):
         raise ValueError("Input format must be binary or base64.")
+    baseline_arg = env.get("ZERYNEX_BASELINE_PATH", "")
+    baseline = safe_file(workspace, baseline_arg, 12 * 1024 * 1024) if baseline_arg else None
     policy_arg = env.get("ZERYNEX_POLICY_PATH", "")
     policy = safe_file(workspace, policy_arg, 4096) if policy_arg else None
     deny_transparent = bool_env(env, "ZERYNEX_DENY_TRANSPARENT", "true")
@@ -55,7 +57,10 @@ def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
     if not binary.is_file():
         raise ValueError("Compiled Rust binary unavailable.")
 
-    command = [str(binary), str(pczt), "--json", "--input-format", input_format]
+    command = [str(binary), str(baseline) if baseline else str(pczt),
+               "--json", "--input-format", input_format]
+    if baseline:
+        command.extend(["--compare-with", str(pczt)])
     if policy:
         command.extend(["--policy-file", str(policy)])
     if deny_transparent:
@@ -73,22 +78,50 @@ def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
         report = json.loads(process.stdout)
     except (TypeError, ValueError):
         raise ValueError("Invalid Rust report.") from None
-    if not isinstance(report, dict) or not isinstance(report.get("findings"), list):
+
+    if not isinstance(report, dict):
         raise ValueError("Invalid report structure.")
-    findings = report["findings"]
-    if len(findings) > 1000 or any(
+    if baseline:
+        added = report.get("added_findings")
+        changes = report.get("component_deltas")
+        if not isinstance(added, list) or not isinstance(changes, list):
+            raise ValueError("Invalid stage comparison report.")
+        if len(added) > 1000 or len(changes) > 6:
+            raise ValueError("Too many findings.")
+        findings = [
+            {"rule": item.get("rule"), "field": item.get("field")}
+            for item in added if isinstance(item, dict)
+        ]
+        findings += [
+            {"rule": "PCZT-STRUCTURE-DRIFT", "field": item.get("component")}
+            for item in changes if isinstance(item, dict)
+        ]
+        passed = report.get("passed")
+        current_count = report.get("after_findings_count")
+        if type(passed) is not bool or type(current_count) is not int or not 0 <= current_count <= 1000:
+            raise ValueError("Invalid stage status.")
+        if len(findings) != len(added) + len(changes):
+            raise ValueError("Invalid stage findings.")
+    else:
+        findings = report.get("findings")
+        if not isinstance(findings, list) or len(findings) > 1000:
+            raise ValueError("Invalid findings structure.")
+        passed = not findings
+        current_count = len(findings)
+    if any(
         not isinstance(item, dict)
         or not all(isinstance(item.get(key), str) and 0 < len(item[key]) <= 500
-                   for key in ("rule", "field", "explanation"))
+                   for key in ("rule", "field"))
         for item in findings
     ):
         raise ValueError("Invalid findings structure.")
-    if bool(findings) != (process.returncode == 2):
-        raise ValueError("Unexpected Rust report status.")
+    if passed != (process.returncode == 0):
+        raise ValueError("Rust findings and exit code disagree.")
     sanitized = [{"rule": item["rule"], "field": item["field"]} for item in findings]
-    return (2 if fail_on_findings and findings else 0), {
-        "passed": len(findings) == 0,
-        "finding_count": len(findings),
+    return (2 if fail_on_findings and not passed else 0), {
+        "passed": passed,
+        "finding_count": current_count,
+        "regression_count": len(sanitized) if baseline else 0,
         "findings": sanitized,
     }
 
@@ -100,19 +133,20 @@ def main() -> int:
         print("::error::Zerynex could not complete local PCZT policy analysis. Check input paths and options.")
         return 1
     count = report["finding_count"]
+    regressions = report["regression_count"]
     passed = str(report["passed"]).lower()
     outputs = os.environ.get("GITHUB_OUTPUT")
     if outputs:
         with open(outputs, "a", encoding="utf-8") as output:
-            output.write(f"finding_count={count}\npassed={passed}\n")
+            output.write(f"finding_count={count}\nregression_count={regressions}\npassed={passed}\n")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
         with open(summary_path, "a", encoding="utf-8") as summary:
-            summary.write(f"### Zerynex PCZT policy check\n\nFindings: {count}; passed: {passed}\n\n")
+            summary.write(f"### Zerynex PCZT policy check\n\nCurrent findings: {count}; regression observations: {regressions}; passed: {passed}\n\n")
             for item in report["findings"]:
                 summary.write(f"- {item['rule']} at {item['field']}\n")
             summary.write("\nSelected disclosure checks only, not an anonymity proof.\n")
-    print(f"Zerynex: {count} sanitized policy finding(s). Passed: {passed}.")
+    print(f"Zerynex: {count} current finding(s); {regressions} stage regression observation(s). Passed: {passed}.")
     return status
 
 

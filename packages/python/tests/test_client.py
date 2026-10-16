@@ -55,6 +55,21 @@ class IntegrationTests(unittest.TestCase):
             self.client.analyze_base64("SYNTHETIC_PRIVATE_NEVER_ECHO!")
         self.assertNotIn("SYNTHETIC_PRIVATE_NEVER_ECHO", str(error.exception))
 
+    def test_stage_comparison_detects_new_metadata_disclosure(self):
+        report = self.client.compare_files(
+            FIXTURES / "clean-v6.bin", FIXTURES / "flagged-v6.bin",
+        )
+        self.assertFalse(report.passed)
+        self.assertEqual(report.added_findings[0][0], "PCZT-GLOBAL-METADATA")
+        self.assertNotIn("synthetic-only", json.dumps(report.agent_summary()))
+
+    def test_stage_comparison_rejects_topology_drift(self):
+        report = self.client.compare_files(
+            FIXTURES / "clean-v6.bin", FIXTURES / "transparent-v6.bin",
+        )
+        self.assertFalse(report.passed)
+        self.assertEqual(report.component_deltas[0][0], "transparent.outputs")
+
     def test_real_invalid_binary_does_not_echo_private_contents(self):
         with tempfile.TemporaryDirectory() as tmp:
             secret = "example-private-wallet-secret"

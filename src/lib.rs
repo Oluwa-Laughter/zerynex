@@ -266,6 +266,119 @@ pub fn analyze_parsed_with_policy(pczt: &Pczt, policy: PolicyConfig) -> Report {
     }
 }
 
+/// Privacy regression observations between two PCZT stages. No notes, keys,
+/// recipients, amounts, proofs or transaction bytes are exposed in this output.
+#[derive(Debug, Serialize)]
+pub struct StageFinding {
+    pub rule: &'static str,
+    pub field: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ComponentDelta {
+    pub component: &'static str,
+    pub before: usize,
+    pub after: usize,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StageComparison {
+    pub profile: &'static str,
+    pub deny_transparent: bool,
+    pub deny_sapling: bool,
+    pub before_findings_count: usize,
+    pub after_findings_count: usize,
+    pub added_findings: Vec<StageFinding>,
+    pub resolved_findings: Vec<StageFinding>,
+    pub component_deltas: Vec<ComponentDelta>,
+    pub no_new_findings: bool,
+    pub passed: bool,
+    pub disclaimer: &'static str,
+}
+
+/// Detect additional policy findings and changed component counts between
+/// wallet construction/proving/signing stages. NOT a transaction-digest or
+/// cryptographic equivalence check: field values can change undetected.
+pub fn compare_stages_with_policy(
+    before: &[u8],
+    after: &[u8],
+    policy: PolicyConfig,
+) -> Result<StageComparison, &'static str> {
+    use std::collections::BTreeSet;
+
+    let before = Pczt::parse(before).map_err(|_| "Invalid or unsupported baseline PCZT")?;
+    let after = Pczt::parse(after).map_err(|_| "Invalid or unsupported candidate PCZT")?;
+    let baseline = analyze_parsed_with_policy(&before, policy);
+    let candidate = analyze_parsed_with_policy(&after, policy);
+
+    let old: BTreeSet<(&'static str, String)> = baseline
+        .findings
+        .iter()
+        .map(|item| (item.rule, item.field.clone()))
+        .collect();
+    let new: BTreeSet<(&'static str, String)> = candidate
+        .findings
+        .iter()
+        .map(|item| (item.rule, item.field.clone()))
+        .collect();
+    let added_findings = new
+        .difference(&old)
+        .map(|(rule, field)| StageFinding {
+            rule,
+            field: field.clone(),
+        })
+        .collect();
+    let resolved_findings = old
+        .difference(&new)
+        .map(|(rule, field)| StageFinding {
+            rule,
+            field: field.clone(),
+        })
+        .collect();
+
+    let before_components = [
+        ("transparent.inputs", before.transparent().inputs().len()),
+        ("transparent.outputs", before.transparent().outputs().len()),
+        ("sapling.spends", before.sapling().spends().len()),
+        ("sapling.outputs", before.sapling().outputs().len()),
+        ("orchard.actions", before.orchard().actions().len()),
+        ("ironwood.actions", before.ironwood().actions().len()),
+    ];
+    let after_components = [
+        ("transparent.inputs", after.transparent().inputs().len()),
+        ("transparent.outputs", after.transparent().outputs().len()),
+        ("sapling.spends", after.sapling().spends().len()),
+        ("sapling.outputs", after.sapling().outputs().len()),
+        ("orchard.actions", after.orchard().actions().len()),
+        ("ironwood.actions", after.ironwood().actions().len()),
+    ];
+    let component_deltas: Vec<_> = before_components
+        .iter()
+        .zip(after_components.iter())
+        .filter(|(old, new)| old.1 != new.1)
+        .map(|(old, new)| ComponentDelta {
+            component: old.0,
+            before: old.1,
+            after: new.1,
+        })
+        .collect();
+    let no_new_findings = new.difference(&old).next().is_none();
+    let passed = no_new_findings && component_deltas.is_empty() && new.is_empty();
+    Ok(StageComparison {
+        profile: policy.profile.name(),
+        deny_transparent: policy.deny_transparent,
+        deny_sapling: policy.deny_sapling,
+        before_findings_count: baseline.findings.len(),
+        after_findings_count: candidate.findings.len(),
+        added_findings,
+        resolved_findings,
+        component_deltas,
+        no_new_findings,
+        passed,
+        disclaimer: "Limited stage regression observations only. Not a transaction equivalence check, proof validation, full privacy audit, or guarantee that field values were unchanged.",
+    })
+}
+
 // The same Rust engine runs in-browser via WebAssembly. No hosted transaction processing.
 #[cfg(feature = "browser")]
 #[wasm_bindgen::prelude::wasm_bindgen]
@@ -385,6 +498,71 @@ mod tests {
             "Invalid or unsupported binary PCZT"
         );
     }
+    #[test]
+    fn stage_regression_detects_new_proprietary_metadata_without_values() {
+        let before = fixture().serialize().unwrap();
+        let after = Updater::new(fixture())
+            .update_global_with(|mut global| {
+                global.set_proprietary(
+                    "private-synthetic-marker".into(),
+                    b"synthetic-only".to_vec(),
+                )
+            })
+            .finish()
+            .serialize()
+            .unwrap();
+        let result = compare_stages_with_policy(&before, &after, PolicyConfig::default()).unwrap();
+        assert!(!result.passed);
+        assert!(!result.no_new_findings);
+        assert_eq!(result.added_findings[0].rule, "PCZT-GLOBAL-METADATA");
+        let serialized = serde_json::to_string(&result).unwrap();
+        assert!(!serialized.contains("private-synthetic-marker"));
+        assert!(!serialized.contains("synthetic-only"));
+        assert!(result.component_deltas.is_empty());
+    }
+
+    #[test]
+    fn stage_regression_detects_structural_changes_even_when_policy_allows_pool() {
+        let before = fixture().serialize().unwrap();
+        let after = include_bytes!("../apps/web/public/examples/transparent-v6.bin");
+        let result = compare_stages_with_policy(&before, after, PolicyConfig::default()).unwrap();
+        assert!(!result.passed);
+        assert!(result.added_findings.is_empty());
+        assert_eq!(result.component_deltas.len(), 1);
+        assert_eq!(result.component_deltas[0].component, "transparent.outputs");
+        assert_eq!(result.component_deltas[0].before, 0);
+        assert_eq!(result.component_deltas[0].after, 1);
+    }
+
+    #[test]
+    fn stage_comparison_reports_resolved_findings_and_clean_pass() {
+        let before = include_bytes!("../apps/web/public/examples/flagged-v6.bin");
+        let after = fixture().serialize().unwrap();
+        let result = compare_stages_with_policy(before, &after, PolicyConfig::default()).unwrap();
+        assert!(result.passed);
+        assert_eq!(result.resolved_findings[0].rule, "PCZT-GLOBAL-METADATA");
+        let unchanged =
+            compare_stages_with_policy(&after, &after, PolicyConfig::default()).unwrap();
+        assert!(unchanged.passed);
+    }
+
+    #[test]
+    fn stage_comparison_fails_on_preexisting_policy_violations() {
+        let flagged = include_bytes!("../apps/web/public/examples/flagged-v6.bin");
+        let result = compare_stages_with_policy(flagged, flagged, PolicyConfig::default()).unwrap();
+        assert!(result.no_new_findings);
+        assert!(
+            !result.passed,
+            "existing violations cannot be disguised as a clean regression"
+        );
+    }
+
+    #[test]
+    fn stage_comparison_rejects_invalid_source() {
+        let clean = fixture().serialize().unwrap();
+        assert!(compare_stages_with_policy(b"invalid", &clean, PolicyConfig::default()).is_err());
+    }
+
     #[test]
     fn report_contains_only_safe_field_paths() {
         let report = Report {

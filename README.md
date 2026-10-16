@@ -167,3 +167,15 @@ See [adoption guide](docs/github-action.md) and
 [Zallet PCZT handoffs](docs/zallet-pczt-handoff.md). Zerynex does not call
 Zallet RPC directly or complete wallet signing/proving. Testnet/regtest
 end-to-end compatibility is a separate pending milestone.
+
+## Ecosystem research and stage-to-stage PCZT privacy testing
+
+Our [Zcash ecosystem research](docs/ecosystem-research-2026-10.md)
+maps concrete official gaps to possible new Zerynex capabilities,
+without asserting originality that hasn't been independently verified.
+
+[PCZT Stage Regression](docs/pczt-stage-regression.md) is now supported
+by the Rust library/CLI, Python adapter and reusable GitHub Action.
+It compares locally held PCZTs to flag newly present sensitive policy
+fields and changed pool component counts. It does NOT prove two
+transactions are cryptographically equivalent.
