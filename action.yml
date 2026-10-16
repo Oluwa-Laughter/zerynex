@@ -7,7 +7,12 @@ branding:
 inputs:
   pczt-path:
     description: Path to a synthetic PCZT fixture within the caller repository.
-    required: true
+    required: false
+    default: ''
+  scenario-manifest:
+    description: Optional node-free role-handoff manifest; mutually exclusive with pczt-path and baseline-path.
+    required: false
+    default: ''
   baseline-path:
     description: Optional initial PCZT stage fixture; compares against pczt-path instead of inspecting one fixture.
     required: false
@@ -36,6 +41,12 @@ outputs:
   finding-count:
     description: Number of sanitized disclosure policy findings.
     value: ${{ steps.report.outputs.finding_count }}
+  scenario-count:
+    description: Number of expected synthetic role-handoff scenarios in the manifest.
+    value: ${{ steps.report.outputs.scenario_count }}
+  scenario-matched:
+    description: Number of synthetic handoff scenarios that matched their expected policy behavior.
+    value: ${{ steps.report.outputs.scenario_matched }}
   regression-count:
     description: Count of newly added rule findings and PCZT structure changes when baseline-path is used.
     value: ${{ steps.report.outputs.regression_count }}
@@ -51,12 +62,14 @@ runs:
       shell: bash
       env:
         CARGO_TARGET_DIR: ${{ runner.temp }}/zerynex-target
-      run: cargo build --locked --release --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml" --bin zerynex
+      run: cargo build --locked --release --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml" --bins
     - name: Check the local PCZT using configured policy
       id: report
       shell: bash
       env:
         ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex
+        ZERYNEX_HANDOFF_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex-handoff
+        ZERYNEX_SCENARIO_MANIFEST: ${{ inputs.scenario-manifest }}
         ZERYNEX_PCZT_PATH: ${{ inputs.pczt-path }}
         ZERYNEX_BASELINE_PATH: ${{ inputs.baseline-path }}
         ZERYNEX_POLICY_PATH: ${{ inputs.policy-path }}

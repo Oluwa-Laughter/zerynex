@@ -43,8 +43,8 @@ This should return PCZT-TRANSPARENT-OUTPUTS and exit status 2.
 
 ## MCP
 
-The read-only local server exposes analyze_synthetic_pczt and
-zerynex_policy_schema. See docs/agents.md for its opt-in setup.
+The read-only local server exposes analyze_synthetic_pczt,
+compare_synthetic_pczt_stages, and zerynex_policy_schema. See docs/agents.md for its opt-in setup.
 ZERYNEX_AGENT_ALLOWED_ROOT should designate synthetic fixtures only.
 
 ## Boundaries of expertise

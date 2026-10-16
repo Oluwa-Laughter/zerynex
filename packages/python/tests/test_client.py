@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "packages" / "python" / "src"))
 
 from zerynex_py import Policy, Report, ZerynexClient, ZerynexError
-from zerynex_py.mcp_server import allowed_fixture, scan_fixture
+from zerynex_py.mcp_server import allowed_fixture, compare_synthetic_fixtures, scan_fixture
 
 BIN = ROOT / "target" / "debug" / "zerynex"
 FIXTURES = ROOT / "apps" / "web" / "public" / "examples"
@@ -95,6 +95,18 @@ class IntegrationTests(unittest.TestCase):
         self.assertNotIn("synthetic-only", json.dumps(result))
         self.assertNotIn("pczt_bytes", result)
         self.assertFalse(result["passed"])
+
+    def test_agent_stage_comparison_is_sanitized_and_rejects_escape(self):
+        report = compare_synthetic_fixtures(
+            self.client, FIXTURES, "clean-v6.bin", "flagged-v6.bin",
+        )
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["added_findings"][0]["rule"], "PCZT-GLOBAL-METADATA")
+        self.assertNotIn("synthetic-only", json.dumps(report))
+        with self.assertRaises(ZerynexError):
+            compare_synthetic_fixtures(
+                self.client, FIXTURES, "../clean-v6.bin", "flagged-v6.bin",
+            )
 
     def test_agent_defaults_deny_transparent(self):
         result = scan_fixture(self.client, FIXTURES, "transparent-v6.bin")

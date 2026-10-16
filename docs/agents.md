@@ -40,6 +40,11 @@ the configured synthetic-fixture directory. It rejects traversal, separators,
 symlinks and paths outside the root. It only returns a list of rule identifiers
 and field paths; it does not return PCZT bytes.
 
+compare_synthetic_pczt_stages takes two approved synthetic .bin
+basenames from the configured fixture directory. It returns rule
+identifiers and component-count observations from the local Rust engine.
+No private fields or transaction bytes are returned.
+
 zerynex_policy_schema returns documentation about the currently supported
 rules, with no file access.
 

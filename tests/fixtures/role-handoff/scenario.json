@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "policy": {
+    "profile": "external_signer",
+    "deny_transparent": true,
+    "deny_sapling": false
+  },
+  "transitions": [
+    {
+      "name": "creator-to-updater-introduces-proprietary",
+      "before": "00-created.bin",
+      "after": "01-updated.bin",
+      "expect": {
+        "passed": false,
+        "added_rules": ["PCZT-GLOBAL-METADATA"],
+        "resolved_rules": [],
+        "changed_components": []
+      }
+    },
+    {
+      "name": "updater-to-combiner-retains-findings",
+      "before": "01-updated.bin",
+      "after": "02-combined.bin",
+      "expect": {
+        "passed": false,
+        "added_rules": [],
+        "resolved_rules": [],
+        "changed_components": []
+      }
+    },
+    {
+      "name": "combiner-to-redactor-clears-proprietary",
+      "before": "02-combined.bin",
+      "after": "03-redacted.bin",
+      "expect": {
+        "passed": true,
+        "added_rules": [],
+        "resolved_rules": ["PCZT-GLOBAL-METADATA"],
+        "changed_components": []
+      }
+    },
+    {
+      "name": "creator-to-clean-redacted-handoff",
+      "before": "00-created.bin",
+      "after": "03-redacted.bin",
+      "expect": {
+        "passed": true,
+        "added_rules": [],
+        "resolved_rules": [],
+        "changed_components": []
+      }
+    }
+  ]
+}

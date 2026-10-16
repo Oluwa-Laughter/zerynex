@@ -179,3 +179,19 @@ by the Rust library/CLI, Python adapter and reusable GitHub Action.
 It compares locally held PCZTs to flag newly present sensitive policy
 fields and changed pool component counts. It does NOT prove two
 transactions are cryptographically equivalent.
+
+## Offline PCZT role-handoff scenario tests
+
+Zerynex now includes a separate Rust executable that runs deterministic
+synthetic role-handoff policy scenarios. It exercises official PCZT
+Creator, Updater, Combiner and Redactor operations, without a live Zcash
+node, wallet, prover or signer.
+
+    cargo run --locked --example generate_role_handoff -- --check
+    cargo run --locked --bin zerynex-handoff -- \
+      --manifest tests/fixtures/role-handoff/scenario.json --json
+
+The reusable GitHub Action also accepts scenario-manifest to run several
+synthetic disclosure regression checks in one job. Read the
+[role-handoff guide](docs/handoff-harness.md) for installation, the
+strict manifest format, and limitations.

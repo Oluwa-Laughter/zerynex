@@ -82,3 +82,20 @@ remaining candidate policy violations. Preexisting policy violations
 are not hidden by a clean regression result.
 
 See docs/pczt-stage-regression.md for strong limitations.
+
+## Offline synthetic PCZT role scenarios
+
+Use scenario-manifest instead of pczt-path to evaluate multiple
+expected policy transitions:
+
+    - uses: Oluwa-Laughter/zerynex@main
+      id: handoff
+      with:
+        scenario-manifest: tests/fixtures/synthetic-handoff/scenario.json
+
+The passed, scenario-count and scenario-matched outputs describe whether
+the test expectations matched. A fixture that intentionally introduces
+a policy finding can still pass a regression test if this was expected.
+Do not mix scenario-manifest with pczt-path, baseline-path or policy-path.
+
+See docs/handoff-harness.md for the format and safety boundaries.

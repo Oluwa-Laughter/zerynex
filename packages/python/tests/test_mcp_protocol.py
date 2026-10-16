@@ -35,6 +35,18 @@ class McpProtocolTests(unittest.TestCase):
                 self.assertIn("PCZT-TRANSPARENT-OUTPUTS", visible)
                 self.assertNotIn("pczt_bytes", visible)
                 self.assertNotIn("synthetic-only", visible)
+                comparison = await client.call_tool(
+                    "compare_synthetic_pczt_stages",
+                    {"baseline_name": "clean-v6.bin", "candidate_name": "flagged-v6.bin"},
+                )
+                self.assertIn("PCZT-GLOBAL-METADATA", str(comparison))
+                self.assertNotIn("synthetic-only", str(comparison))
+                self.assertNotIn("pczt_bytes", str(comparison))
+                rejected = await client.call_tool(
+                    "compare_synthetic_pczt_stages",
+                    {"baseline_name": "../clean-v6.bin", "candidate_name": "flagged-v6.bin"},
+                )
+                self.assertIn("rejected", str(rejected))
                 denied = await client.call_tool(
                     "analyze_synthetic_pczt",
                     {"fixture_name": "../transparent-v6.bin"},

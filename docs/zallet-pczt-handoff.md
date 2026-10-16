@@ -20,7 +20,7 @@ Option A: clone the source and build the Rust CLI:
 
 Option B: install CLI into your Cargo home, directly from this repository:
 
-    cargo install --git https://github.com/Oluwa-Laughter/zerynex --locked zerynex
+    cargo install --git https://github.com/Oluwa-Laughter/zerynex --locked --bin zerynex
 
 No Node package manager, browser, paid account, Zcash wallet or API key
 is needed to perform local PCZT policy linting.
@@ -96,3 +96,10 @@ A full Zallet RPC integration suite would require disposable testnet/regtest
 wallet fixtures and live pczt_create/prove/sign/extract compatibility tests.
 It has not been completed. Zerynex does not sign, broadcast, generate
 proofs, authorize spends or validate cryptographic proofs.
+
+## Offline role fixture testing before wallet integration
+
+The separate zerynex-handoff executable provides synthetic Creator,
+Updater, Combiner and Redactor policy scenarios without provisioning
+Zallet. Read docs/handoff-harness.md. This does **not** establish
+compatibility with real Zallet RPC, signing, proving or extraction.

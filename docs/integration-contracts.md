@@ -103,3 +103,14 @@ optional baseline-path. See docs/pczt-stage-regression.md.
 
 It is not a cryptographic transaction equivalence check. Field values,
 signer authorization and ZK proofs are outside its verification scope.
+
+## Native role-handoff acceptance scenarios
+
+The standalone zerynex-handoff Rust runner executes small strict JSON
+manifests of expected disclosure transitions on approved local .bin
+fixtures. The included deterministic scenario uses the upstream
+Creator, Updater, Combiner and Redactor PCZT role APIs. It integrates
+with the existing GitHub Action through scenario-manifest.
+
+This is not a prover/signer implementation or complete Zallet RPC
+lifecycle validation. Details: docs/handoff-harness.md.

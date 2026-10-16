@@ -210,3 +210,13 @@ test('Zerynex stage regression onboarding provides source-backed workflow', asyn
   await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/}))
     .toHaveAttribute('href', /docs\/pczt-stage-regression\.md/)
 })
+
+
+test('upstream PCZT role harness onboarding exposes executable manifest workflow', async ({ page }) => {
+  await page.goto('/tools')
+  await page.getByRole('tab', {name:/Wallet Role Harness/}).click()
+  await expect(page.getByText('zerynex-handoff', {exact:false})).toBeVisible()
+  await expect(page.getByText('scenario-manifest', {exact:false})).toBeVisible()
+  await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/}))
+    .toHaveAttribute('href', /docs\/handoff-harness\.md/)
+})

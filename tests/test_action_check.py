@@ -1,5 +1,7 @@
 """Consumer contract tests for the dependency-free composite action."""
 import base64
+import json
+import shutil
 import os
 from pathlib import Path
 import sys
@@ -21,6 +23,8 @@ class ConsumerActionTests(unittest.TestCase):
         defaults = {
             "GITHUB_WORKSPACE": str(ROOT),
             "ZERYNEX_ACTION_BIN": str(self.binary),
+            "ZERYNEX_HANDOFF_BIN": str(ROOT / "target/debug/zerynex-handoff"),
+            "ZERYNEX_SCENARIO_MANIFEST": "",
             "ZERYNEX_PCZT_PATH": filename,
             "ZERYNEX_POLICY_PATH": "",
             "ZERYNEX_INPUT_FORMAT": "binary",
@@ -88,6 +92,40 @@ class ConsumerActionTests(unittest.TestCase):
         self.assertEqual(report["regression_count"], 1)
         self.assertEqual(report["finding_count"], 0)
         self.assertEqual(report["findings"][0]["rule"], "PCZT-STRUCTURE-DRIFT")
+
+    def test_offline_handoff_manifest_accepted(self):
+        status, report = check(self.env(
+            "", ZERYNEX_SCENARIO_MANIFEST="tests/fixtures/role-handoff/scenario.json"
+        ))
+        self.assertEqual(status, 0)
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["scenario_count"], 4)
+        self.assertEqual(report["scenario_matched"], 4)
+
+    def test_offline_handoff_expectation_mismatch(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            path = Path(tmp)
+            fixture_root = ROOT / "tests/fixtures/role-handoff"
+            shutil.copyfile(fixture_root / "00-created.bin", path / "00-created.bin")
+            shutil.copyfile(fixture_root / "01-updated.bin", path / "01-updated.bin")
+            manifest = json.loads((fixture_root / "scenario.json").read_text())
+            manifest["transitions"] = manifest["transitions"][:1]
+            manifest["transitions"][0]["expect"]["passed"] = True
+            (path / "scenario.json").write_text(json.dumps(manifest))
+            status, report = check(self.env(
+                "", ZERYNEX_SCENARIO_MANIFEST=str(path / "scenario.json"),
+            ))
+            self.assertEqual(status, 2)
+            self.assertFalse(report["passed"])
+            self.assertEqual(report["scenario_matched"], 0)
+            self.assertEqual(report["findings"][0]["rule"], "PCZT-SCENARIO-MISMATCH")
+
+    def test_role_scenarios_cannot_mix_private_pczt_inputs(self):
+        with self.assertRaises(ValueError):
+            check(self.env(
+                "apps/web/public/examples/clean-v6.bin",
+                ZERYNEX_SCENARIO_MANIFEST="tests/fixtures/role-handoff/scenario.json",
+            ))
 
     def test_denies_outside_workspace_and_symlinks(self):
         with self.assertRaises(ValueError):

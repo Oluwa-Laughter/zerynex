@@ -40,8 +40,69 @@ def bool_env(env: dict[str, str], name: str, default: str) -> bool:
     return value == "true"
 
 
+def check_scenario(
+    env: dict[str, str], workspace: Path, manifest_name: str,
+) -> tuple[int, dict[str, object]]:
+    """Run and validate the separate Rust synthetic role-handoff executable."""
+    if (env.get("ZERYNEX_PCZT_PATH") or env.get("ZERYNEX_BASELINE_PATH")
+            or env.get("ZERYNEX_POLICY_PATH")):
+        raise ValueError("Scenario mode cannot be mixed with individual PCZT inputs.")
+    fail_on_findings = bool_env(env, "ZERYNEX_FAIL_ON_FINDINGS", "true")
+    manifest = safe_file(workspace, manifest_name, 32 * 1024)
+    binary = Path(env["ZERYNEX_HANDOFF_BIN"]).resolve(strict=True)
+    if not binary.is_file():
+        raise ValueError("Role-handoff binary unavailable.")
+    try:
+        run = subprocess.run(
+            [str(binary), "--manifest", str(manifest), "--json"],
+            shell=False, stdin=subprocess.DEVNULL, capture_output=True, timeout=40,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        raise ValueError("Synthetic role-handoff test failed or timed out.") from None
+    if run.returncode not in (0, 2) or len(run.stdout) > 128 * 1024:
+        raise ValueError("Synthetic role-handoff runner returned an invalid result.")
+    try:
+        result = json.loads(run.stdout)
+        cases = result["cases"]
+        total = result["scenario_count"]
+        matched = result["matched"]
+        passed = result["passed"]
+    except (ValueError, TypeError, KeyError):
+        raise ValueError("Invalid role-handoff result.") from None
+    if (not isinstance(result, dict) or type(total) is not int or not 1 <= total <= 32
+            or type(matched) is not int or not 0 <= matched <= total
+            or type(passed) is not bool or not isinstance(cases, list)
+            or len(cases) != total or passed != (total == matched)
+            or passed != (run.returncode == 0)):
+        raise ValueError("Inconsistent role-handoff result.")
+    names = []
+    for case in cases:
+        if not isinstance(case, dict) or type(case.get("matched_expectation")) is not bool:
+            raise ValueError("Invalid synthetic scenario result.")
+        name = case.get("name")
+        if (not isinstance(name, str) or not 1 <= len(name) <= 80
+                or not name.isascii()
+                or not all(ch.isalnum() or ch in "._-" for ch in name)):
+            raise ValueError("Unsafe synthetic scenario name.")
+        if not case["matched_expectation"]:
+            names.append({"rule": "PCZT-SCENARIO-MISMATCH", "field": name})
+    if total - len(names) != matched:
+        raise ValueError("Role-handoff match count mismatch.")
+    return (2 if fail_on_findings and not passed else 0), {
+        "passed": passed,
+        "finding_count": len(names),
+        "regression_count": 0,
+        "scenario_count": total,
+        "scenario_matched": matched,
+        "findings": names,
+    }
+
+
 def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
     workspace = Path(env["GITHUB_WORKSPACE"]).resolve(strict=True)
+    scenario = env.get("ZERYNEX_SCENARIO_MANIFEST", "")
+    if scenario:
+        return check_scenario(env, workspace, scenario)
     pczt = safe_file(workspace, env["ZERYNEX_PCZT_PATH"], 12 * 1024 * 1024)
     input_format = env.get("ZERYNEX_INPUT_FORMAT", "binary")
     if input_format not in ("binary", "base64"):
@@ -122,6 +183,8 @@ def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
         "passed": passed,
         "finding_count": current_count,
         "regression_count": len(sanitized) if baseline else 0,
+        "scenario_count": 0,
+        "scenario_matched": 0,
         "findings": sanitized,
     }
 
@@ -134,15 +197,21 @@ def main() -> int:
         return 1
     count = report["finding_count"]
     regressions = report["regression_count"]
+    scenario_count = report["scenario_count"]
+    scenario_matched = report["scenario_matched"]
     passed = str(report["passed"]).lower()
     outputs = os.environ.get("GITHUB_OUTPUT")
     if outputs:
         with open(outputs, "a", encoding="utf-8") as output:
-            output.write(f"finding_count={count}\nregression_count={regressions}\npassed={passed}\n")
+            output.write(
+                f"finding_count={count}\nregression_count={regressions}\n"
+                f"scenario_count={scenario_count}\nscenario_matched={scenario_matched}\n"
+                f"passed={passed}\n"
+            )
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
         with open(summary_path, "a", encoding="utf-8") as summary:
-            summary.write(f"### Zerynex PCZT policy check\n\nCurrent findings: {count}; regression observations: {regressions}; passed: {passed}\n\n")
+            summary.write(f"### Zerynex PCZT policy check\n\nCurrent findings: {count}; regression observations: {regressions}; role scenarios matched: {scenario_matched}/{scenario_count}; passed: {passed}\n\n")
             for item in report["findings"]:
                 summary.write(f"- {item['rule']} at {item['field']}\n")
             summary.write("\nSelected disclosure checks only, not an anonymity proof.\n")

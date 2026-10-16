@@ -27,6 +27,10 @@ jobs:
         run: cargo clippy --locked --all-targets -- -D warnings
       - name: Test all targets
         run: cargo test --locked --all-targets
+      - name: Verify deterministic PCZT role fixtures
+        run: cargo run --locked --example generate_role_handoff -- --check
+      - name: Run node-free PCZT role-handoff scenarios
+        run: cargo run --locked --bin zerynex-handoff -- --manifest tests/fixtures/role-handoff/scenario.json --json
       - name: Check browser compilation
         run: cargo check --locked --target wasm32-unknown-unknown --features browser
 
@@ -192,6 +196,17 @@ jobs:
           PASSED: ${{ steps.stages.outputs.passed }}
           REGRESSIONS: ${{ steps.stages.outputs.regression-count }}
         run: test "$PASSED" = false && test "$REGRESSIONS" = 1
+      - name: Run synthetic role-handoff fixture scenarios as a consumer
+        id: handoff
+        uses: ./
+        with:
+          scenario-manifest: tests/fixtures/role-handoff/scenario.json
+      - name: Assert all role scenarios matched
+        env:
+          PASSED: ${{ steps.handoff.outputs.passed }}
+          COUNT: ${{ steps.handoff.outputs.scenario-count }}
+          MATCHED: ${{ steps.handoff.outputs.scenario-matched }}
+        run: test "$PASSED" = true && test "$COUNT" = 4 && test "$MATCHED" = 4
       - name: Exercise standalone action consumer tests
         env:
           ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex

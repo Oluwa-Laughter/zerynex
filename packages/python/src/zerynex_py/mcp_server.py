@@ -57,6 +57,34 @@ def scan_fixture(
     return report.agent_summary()
 
 
+def compare_synthetic_fixtures(
+    client: ZerynexClient,
+    root: Path,
+    baseline_name: str,
+    candidate_name: str,
+    profile: str = "external_signer",
+    deny_transparent: bool = True,
+    deny_sapling: bool = False,
+) -> dict[str, object]:
+    """Compare only two explicitly approved synthetic PCZT fixture basenames."""
+    if profile not in ("external_signer", "restricted_handoff"):
+        raise ZerynexError("Unsupported privacy profile.")
+    if type(deny_transparent) is not bool or type(deny_sapling) is not bool:
+        raise ZerynexError("Privacy policy flags must be booleans.")
+    baseline = allowed_fixture(root, baseline_name)
+    candidate = allowed_fixture(root, candidate_name)
+    report = client.compare_files(
+        baseline,
+        candidate,
+        Policy(
+            profile=profile,
+            deny_transparent=deny_transparent,
+            deny_sapling=deny_sapling,
+        ),
+    )
+    return report.agent_summary()
+
+
 def create_server(client: ZerynexClient, root: Path):
     """Bind MCP tools only after the operator explicitly supplies a fixture root."""
     try:
@@ -80,6 +108,28 @@ def create_server(client: ZerynexClient, root: Path):
             return {"error": "Fixture was rejected or the local analysis failed. Review root and policy settings."}
 
     @server.tool()
+    def compare_synthetic_pczt_stages(
+        baseline_name: str,
+        candidate_name: str,
+        profile: str = "external_signer",
+        deny_transparent: bool = True,
+        deny_sapling: bool = False,
+    ) -> dict:
+        """Compare two approved synthetic PCZT fixtures locally. Returns sanitized changes, never raw data or cryptographic guarantees."""
+        try:
+            return compare_synthetic_fixtures(
+                client,
+                root,
+                baseline_name,
+                candidate_name,
+                profile,
+                deny_transparent,
+                deny_sapling,
+            )
+        except ZerynexError:
+            return {"error": "Fixture was rejected or the local stage comparison failed."}
+
+    @server.tool()
     def zerynex_policy_schema() -> dict:
         """Describe supported Zcash disclosure checks without accessing private files."""
         return {
@@ -93,7 +143,7 @@ def create_server(client: ZerynexClient, root: Path):
                 "deny_transparent": True,
                 "deny_sapling": False,
             },
-            "restrictions": "Synthetic fixtures only. Read-only. Does not access arbitrary paths or sign transactions.",
+            "restrictions": "Synthetic fixtures only. Read-only. Supports comparing two stages. Does not access arbitrary paths or sign transactions.",
             "limitations": "A pass is not a proof of privacy or Zcash consensus validity.",
         }
 
