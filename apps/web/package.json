@@ -9,7 +9,9 @@
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "predev": "node ../../scripts/sync-docs.mjs",
+    "prebuild": "node ../../scripts/sync-docs.mjs"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.3.0",
@@ -21,7 +23,9 @@
     "next": "16.4.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-icons": "^5.7.0"
+    "react-icons": "^5.7.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

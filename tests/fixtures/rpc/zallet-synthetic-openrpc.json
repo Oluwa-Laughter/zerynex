@@ -1,0 +1,11 @@
+{
+  "openrpc": "1.3.2",
+  "info": {"title": "Synthetic Zallet-style RPC specimen - NOT upstream data", "version": "synthetic"},
+  "methods": [
+    {"name":"rpc.discover", "params":[]},
+    {"name":"pczt_inspect", "params":[{"name":"pczt", "required":true, "schema":{"type":"string"}}]},
+    {"name":"pczt_prove", "params":[{"name":"pczt", "required":true, "schema":{"type":"string"}}]},
+    {"name":"pczt_sign", "params":[{"name":"pczt", "required":true, "schema":{"type":"string"}}, {"name":"privacy_policy", "required":false, "schema":{"type":"string"}}]},
+    {"name":"pczt_extract", "params":[{"name":"pczt", "required":true, "schema":{"type":"string"}}]}
+  ]
+}

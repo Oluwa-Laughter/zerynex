@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useEffect, useRef, useState } from 'react'
@@ -52,7 +53,7 @@ function Header({ current, navigate }: { current: View; navigate: (v: View) => v
       <button className={current === 'ecosystem' ? 'nav-active' : ''} onClick={() => {setMenu(false);navigate('ecosystem')}}>Ecosystem</button>
       <button onClick={() => toHomeSection('protocol')}>Protocol</button>
       <button onClick={() => toHomeSection('principles')}>Principles</button>
-      <a href={repository + '#readme'} target="_blank" rel="noopener noreferrer" onClick={() => setMenu(false)}>Documentation <ArrowUpRight size={12}/></a>
+      <Link href="/docs" onClick={() => setMenu(false)}>Documentation <ArrowUpRight size={12}/></Link>
     </nav>
     <div className="nav-actions">
       <span className="topbar-network"><span className="pulse-dot"/> CORE / TOOLING</span>

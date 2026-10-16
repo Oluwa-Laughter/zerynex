@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
@@ -292,7 +293,7 @@ export default function HomeExperience({ navigate }: { navigate: (page: View) =>
       <nav aria-label="Footer">
         <button onClick={() => navigate('ecosystem')}>Developer ecosystem</button>
         <button onClick={() => navigate('tools')}>Developer Tools</button>
-        <a href={repo + '/blob/main/README.md'} target="_blank" rel="noopener noreferrer">Documentation <LuBookOpen size={13}/></a>
+        <Link href="/docs">Documentation <LuBookOpen size={13}/></Link>
         <a href={repo} target="_blank" rel="noopener noreferrer">Source code <LuExternalLink size={13}/></a>
       </nav>
       <div className="cinema-footer-bottom"><span>ZERYNEX / ZCASH CORE & TOOLING</span><span>OPEN SOURCE · RESEARCH SOFTWARE · {new Date().getFullYear()}</span></div>

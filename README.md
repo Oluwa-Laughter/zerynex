@@ -195,3 +195,23 @@ The reusable GitHub Action also accepts scenario-manifest to run several
 synthetic disclosure regression checks in one job. Read the
 [role-handoff guide](docs/handoff-harness.md) for installation, the
 strict manifest format, and limitations.
+
+## Developer documentation on the frontend
+
+The Next.js website now includes a built-in documentation center at /docs,
+with searchable guides, status labels, language/role onboarding and
+individually prerendered Markdown articles. Canonical source files live
+only in docs/ and are mirrored into apps/web/content/docs by
+scripts/sync-docs.mjs during web development and production builds.
+
+Each documented integration in Developer Tools links to its own in-site
+guide. New adapters must include source documentation, catalog registration,
+fixture tests and CI verification. See docs/installation.md, docs/go-sdk.md,
+docs/rpc-contracts.md and docs/zk-prover-handoffs.md.
+
+The offline RPC compatibility tool checks approved OpenRPC method and
+parameter declarations only. It does NOT connect to Zallet, test method
+semantics, sign transactions or validate consensus.
+
+The Go source SDK delegates to the existing canonical Rust CLI; there
+is no independently implemented Zcash cryptography or hosted API.

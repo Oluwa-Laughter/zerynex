@@ -211,3 +211,49 @@ jobs:
         env:
           ZERYNEX_ACTION_BIN: ${{ runner.temp }}/zerynex-target/release/zerynex
         run: python3 -m unittest discover -s tests -p 'test_action_check.py' -v
+
+  go-sdk:
+    name: Go SDK against real Rust CLI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: Build canonical Rust analyzer
+        run: cargo build --locked --bin zerynex
+      - name: Verify Go source formatting
+        run: |
+          cd packages/go
+          test -z "$(gofmt -l .)"
+      - name: Test Go SDK against real synthetic Rust PCZT fixtures
+        working-directory: packages/go
+        env:
+          ZERYNEX_TEST_CLI: ${{ github.workspace }}/target/debug/zerynex
+          ZERYNEX_TEST_FIXTURES: ${{ github.workspace }}/apps/web/public/examples
+        run: go test -race -v ./...
+
+  rpc-contracts:
+    name: Offline Zallet RPC contracts and documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify docs catalog is synchronized with source
+        run: |
+          node scripts/sync-docs.mjs
+          git diff --exit-code -- apps/web/content/docs
+      - name: Validate canonical documentation and local links
+        run: node scripts/validate-docs.mjs
+      - name: Check synthetic OpenRPC method contract
+        run: python3 scripts/check_rpc_contract.py --schema tests/fixtures/rpc/zallet-synthetic-openrpc.json --contract tests/fixtures/rpc/zallet-minimum-contract.json --json
+      - name: Offline RPC compatibility tests
+        run: python3 -m unittest discover -s tests -p test_rpc_contract.py -v

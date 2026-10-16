@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import Link from 'next/link'
 import {
   LuArrowRight, LuArrowUpRight, LuCheck,
   LuCode, LuCopy, LuLayers3, LuNetwork, LuShieldCheck,
@@ -9,7 +10,7 @@ import {
   LuCpu, LuBlocks, LuCircleHelp,
 } from 'react-icons/lu'
 
-type LaneKey = 'rust' | 'typescript' | 'python' | 'agent' | 'node'
+type LaneKey = 'rust' | 'typescript' | 'python' | 'agent' | 'node' | 'go' | 'zk'
 interface Lane {
   key: LaneKey
   ordinal: string
@@ -68,15 +69,33 @@ const lanes: Lane[] = [
     note: 'Diagnostic only: checks local /healthy and /ready. It does not query wallets, collect credentials, verify consensus or inspect Zaino gRPC.',
     steps: ['Start your own Z3 stack using upstream docs', 'Locate its local Zebra health port', 'Distinguish liveness from readiness'],
   },
+  {
+    key: 'go', ordinal: '06', eyebrow: 'GO INFRASTRUCTURE', title: 'Go engineer',
+    subtitle: 'Use the Rust engine inside a Go application.',
+    icon: LuBlocks, language: 'Go',
+    command: "import (\n  \"context\"\n  zerynex \"github.com/Oluwa-Laughter/zerynex/packages/go\"\n)\n\nclient := zerynex.Client{Binary: \"/path/to/zerynex\"}\nreport, err := client.AnalyzeFile(\n  context.Background(), fixturePath,\n  zerynex.Policy{DenyTransparent: true},\n)",
+    note: 'Source Go adapter, tested against the actual Rust CLI. No reimplementation of Zcash protocol cryptography. Build and install a trusted local Rust binary.',
+    steps: ['Build the Rust CLI and add the local Go module', 'Run tests against nonspendable PCZT fixtures', 'Integrate sanitized findings into your service'],
+  },
+  {
+    key: 'zk', ordinal: '07', eyebrow: 'ZK / CRYPTOGRAPHY', title: 'ZK engineer',
+    subtitle: 'Test disclosure boundaries across prover handoffs.',
+    icon: LuShieldCheck, language: 'Bash',
+    command: "cargo run --locked -- \\\n  apps/web/public/examples/clean-v6.bin \\\n  --compare-with apps/web/public/examples/flagged-v6.bin \\\n  --json\n\n# Structural privacy-policy regression only.\n# ZK proof generation and verification are NOT implemented.",
+    note: 'Partial support: this checks selected privacy field presence and component counts, not proof validity, soundness, signing or transaction equivalence.',
+    steps: ['Choose synthetic PCZT handoff fixtures', 'Compare stage disclosure findings', 'Validate proofs separately with upstream cryptographic libraries'],
+  },
 ]
 
 const repo = 'https://github.com/Oluwa-Laughter/zerynex'
 const docs = {
   z3: 'https://github.com/ZcashFoundation/z3',
   pczt: 'https://zips.z.cash/zip-0374',
-  sdk: repo + '/tree/main/packages/sdk',
-  python: repo + '/tree/main/packages/python',
-  agent: repo + '/blob/main/docs/agents.md',
+  sdk: '/docs/installation',
+  python: '/docs/installation',
+  go: '/docs/go-sdk',
+  zk: '/docs/zk-prover-handoffs',
+  agent: '/docs/agents',
 }
 export default function Ecosystem() {
   const [selected, setSelected] = useState<LaneKey>('rust')
@@ -126,7 +145,7 @@ export default function Ecosystem() {
             <a href={repo} target="_blank" rel="noopener noreferrer" className="atlas-secondary">VIEW SOURCE <LuArrowUpRight size={15}/></a>
           </div>
         </div>
-        <div className="atlas-art" aria-label="Architectural diagram of five developer paths connected to a shared privacy engine" role="img">
+        <div className="atlas-art" aria-label="Architectural diagram of seven developer paths connected to a shared privacy engine" role="img">
           <div className="atlas-art-grid"/>
           <div className="atlas-orbit atlas-orbit-outer"/>
           <div className="atlas-orbit atlas-orbit-middle"/>
@@ -137,10 +156,12 @@ export default function Ecosystem() {
           <div className="atlas-satellite sat-three">03 / PYTHON</div>
           <div className="atlas-satellite sat-four">04 / MCP</div>
           <div className="atlas-satellite sat-five">05 / Z3</div>
+          <div className="atlas-satellite sat-six">06 / GO</div>
+          <div className="atlas-satellite sat-seven">07 / ZK</div>
           <span className="atlas-art-caption">A COMMON CRYPTOGRAPHIC FOUNDATION</span>
         </div>
       </div>
-      <div className="atlas-footline atlas-entrance"><span>05 DEVELOPER PATHS</span><span>NO SECRET UPLOADS</span><span>LOCAL-FIRST BY DESIGN</span></div>
+      <div className="atlas-footline atlas-entrance"><span>07 DEVELOPER PATHS</span><span>NO SECRET UPLOADS</span><span>LOCAL-FIRST BY DESIGN</span></div>
     </section>
 
     <section className="atlas-workspace" id="atlas-lanes">
@@ -187,7 +208,7 @@ export default function Ecosystem() {
         <div className="atlas-diagnostics">
           <div><span className="atlas-diagnostics-eyebrow">LOCAL NODE DIAGNOSTICS</span><h3>Is your node<br/><em>actually ready?</em></h3><p>Zerynex can make two local read-only HTTP requests to Zebra’s documented health endpoints. No wallet RPC credentials or exposed network ports required.</p></div>
           <div className="atlas-diagnostics-code"><div>$ zerynex-z3-check</div><div><span>GET</span> 127.0.0.1:8080/healthy</div><div><span>GET</span> 127.0.0.1:8080/ready</div></div>
-          <a href={repo + '/blob/main/docs/z3-local.md'} target="_blank" rel="noopener noreferrer">OPEN DIAGNOSTIC GUIDE <LuArrowUpRight size={16}/></a>
+          <Link href="/docs/z3-local">OPEN DIAGNOSTIC GUIDE <LuArrowUpRight size={16}/></Link>
         </div>
       </div>
     </section>
@@ -196,7 +217,7 @@ export default function Ecosystem() {
       <div className="atlas-bottom-meta"><LuBookOpen size={22}/><span>OUR POSITION</span></div>
       <h2>More entry points.<br/><em>Fewer trust assumptions.</em></h2>
       <p>Every new SDK, node check and agent tool should make Zcash easier to build on without quietly weakening the privacy boundary.</p>
-      <div className="atlas-bottom-links"><a href={docs.pczt} target="_blank" rel="noopener noreferrer">ZIP-374 <LuArrowUpRight size={16}/></a><a href={docs.python} target="_blank" rel="noopener noreferrer">PYTHON SDK <LuArrowUpRight size={16}/></a><a href={docs.agent} target="_blank" rel="noopener noreferrer">AGENT SKILL + MCP <LuArrowUpRight size={16}/></a><a href={docs.sdk} target="_blank" rel="noopener noreferrer">TYPESCRIPT SDK <LuArrowUpRight size={16}/></a></div>
+      <div className="atlas-bottom-links"><a href={docs.pczt} target="_blank" rel="noopener noreferrer">ZIP-374 <LuArrowUpRight size={16}/></a><Link href={docs.python}>PYTHON SDK <LuArrowUpRight size={16}/></Link><Link href={docs.go}>GO SDK <LuArrowUpRight size={16}/></Link><Link href={docs.zk}>ZK / PROVER <LuArrowUpRight size={16}/></Link><Link href={docs.agent}>AGENT SKILL + MCP <LuArrowUpRight size={16}/></Link><Link href={docs.sdk}>TYPESCRIPT SDK <LuArrowUpRight size={16}/></Link></div>
     </section>
   </main>
 }

@@ -220,3 +220,63 @@ test('upstream PCZT role harness onboarding exposes executable manifest workflow
   await expect(page.getByRole('link',{name:/READ INTEGRATION DOCUMENTATION/}))
     .toHaveAttribute('href', /docs\/handoff-harness\.md/)
 })
+
+
+test('documentation navigation and guide discovery work from homepage', async ({ page, isMobile }) => {
+  await page.goto('/')
+  if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: /Documentation/ }).click()
+  await expect(page).toHaveURL(/\/docs$/)
+  await expect(page.getByRole('heading', { name: /Build with confidence/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Go SDK/ }).first()).toBeVisible()
+})
+
+test('documentation search filters guide cards and handles empty searches', async ({ page }) => {
+  await page.goto('/docs')
+  await page.getByRole('textbox', { name: 'Search documentation' }).fill('OpenRPC')
+  await expect(page.locator('.docs-guide-card')).toHaveCount(1)
+  await page.locator('.docs-guide-card').first().click()
+  await expect(page).toHaveURL(/\/docs\/rpc-contracts/)
+  await expect(page.getByText('This tool does not test parameter types', { exact:false })).toBeVisible()
+  await page.getByRole('link', { name: 'Documentation index' }).click()
+  await page.getByRole('textbox', { name: 'Search documentation' }).fill('no_such_fake_feature_xyz')
+  await expect(page.getByText('No matching guides')).toBeVisible()
+})
+
+test('canonical documentation links and markdown render on mobile', async ({ page }) => {
+  await page.goto('/docs/installation')
+  await expect(page.getByRole('heading', { name: 'Install and integrate Zerynex' }).first()).toBeVisible()
+  await expect(page.getByText('cargo install --git', { exact:false })).toBeVisible()
+  await page.locator('.docs-markdown').getByRole('link', { name: /Privacy model/ }).first().click()
+  await expect(page).toHaveURL(/\/docs\/privacy-model/)
+  const widths = await page.evaluate(() => ({
+    body: document.documentElement.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+  }))
+  expect(widths.body).toBeLessThanOrEqual(widths.viewport + 1)
+})
+
+test('developer tools show Go and RPC guidance with internal docs', async ({ page }) => {
+  await page.goto('/tools')
+  await page.getByRole('tab', { name: /Go SDK/ }).click()
+  await expect(page.getByText('zerynex.Client', { exact:false })).toBeVisible()
+  await page.getByRole('link', { name: /READ INTEGRATION DOCUMENTATION/ }).click()
+  await expect(page).toHaveURL(/\/docs\/go-sdk/)
+  await page.goto('/tools')
+  await page.getByRole('tab', { name: /RPC Contracts/ }).click()
+  await expect(page.getByText('scripts/check_rpc_contract.py', { exact:false })).toBeVisible()
+  await page.getByRole('link', { name: /READ INTEGRATION DOCUMENTATION/ }).click()
+  await expect(page).toHaveURL(/\/docs\/rpc-contracts/)
+})
+
+
+test('ecosystem onboarding supports Go and ZK engineering with correct limitations', async ({ page }) => {
+  await page.goto('/ecosystem')
+  await page.getByRole('button', { name: /Go engineer/ }).click()
+  await expect(page.getByText('zerynex.Client', { exact:false })).toBeVisible()
+  await expect(page.getByText('No reimplementation of Zcash protocol cryptography', { exact:false })).toBeVisible()
+  await page.getByRole('button', { name: /ZK engineer/ }).click()
+  await expect(page.getByText('ZK proof generation and verification are NOT implemented', { exact:false })).toBeVisible()
+  await page.getByRole('link',{ name: /ZK \/ PROVER/ }).click()
+  await expect(page).toHaveURL(/\/docs\/zk-prover-handoffs/)
+})

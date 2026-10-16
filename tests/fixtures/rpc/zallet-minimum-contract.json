@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "methods": [
+    {"name": "rpc.discover", "params": []},
+    {"name": "pczt_inspect", "params": [{"name": "pczt", "required": true}]},
+    {"name": "pczt_sign", "params": [{"name": "pczt", "required": true}, {"name": "privacy_policy", "required": false}]},
+    {"name": "pczt_extract", "params": [{"name": "pczt", "required": true}]}
+  ]
+}

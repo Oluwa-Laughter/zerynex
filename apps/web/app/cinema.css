@@ -246,3 +246,8 @@ body{background:#000}
   .cinema-statement-text{opacity:1!important;filter:none!important}
   .cinema-word,.cinema-reveal{opacity:1!important;filter:none!important;transform:none!important}
 }
+
+/* Two more orbit labels for Go and ZK developer pathways. */
+.atlas-satellite.sat-six{top:38%;left:0}
+.atlas-satellite.sat-seven{bottom:7%;left:30%}
+@media(max-width:600px){.atlas-satellite.sat-six{left:0;top:41%}.atlas-satellite.sat-seven{left:35%;bottom:4%}}

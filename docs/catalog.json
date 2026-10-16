@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "slug": "installation",
+      "title": "Install and integrate",
+      "group": "Getting started",
+      "status": "supported",
+      "audience": "All developers",
+      "summary": "Pick a standalone CLI, SDK, CI Action or agent integration."
+    },
+    {
+      "slug": "privacy-model",
+      "title": "Privacy and trust model",
+      "group": "Getting started",
+      "status": "supported",
+      "audience": "Cryptographers and security engineers",
+      "summary": "Understand disclosure rules, private PCZT handling and limitations."
+    },
+    {
+      "slug": "integration-contracts",
+      "title": "Integration contracts",
+      "group": "Getting started",
+      "status": "supported",
+      "audience": "Protocol and ecosystem teams",
+      "summary": "Supported interfaces and acceptance gates for future integrations."
+    },
+    {
+      "slug": "policy-format",
+      "title": "Privacy policy format",
+      "group": "PCZT and wallet workflows",
+      "status": "supported",
+      "audience": "Wallet engineers",
+      "summary": "JSON configuration, signer profiles, shielded-only constraints and reporting."
+    },
+    {
+      "slug": "zallet-pczt-handoff",
+      "title": "Zallet PCZT handoffs",
+      "group": "PCZT and wallet workflows",
+      "status": "partial",
+      "audience": "Wallet and RPC engineers",
+      "summary": "Locally handle Zallet-style base64 PCZTs; live Zallet RPC still needs validation."
+    },
+    {
+      "slug": "pczt-stage-regression",
+      "title": "Stage regression testing",
+      "group": "PCZT and wallet workflows",
+      "status": "supported",
+      "audience": "Privacy and wallet engineers",
+      "summary": "Compare disclosure findings and component counts between two PCZT stages."
+    },
+    {
+      "slug": "handoff-harness",
+      "title": "Offline role scenario harness",
+      "group": "PCZT and wallet workflows",
+      "status": "supported",
+      "audience": "Rust and wallet SDK developers",
+      "summary": "Run synthetic Creator, Updater, Combiner and Redactor acceptance scenarios."
+    },
+    {
+      "slug": "go-sdk",
+      "title": "Go SDK",
+      "group": "Developer automation",
+      "status": "supported",
+      "audience": "Go and infrastructure engineers",
+      "summary": "Invoke the canonical Rust engine from Go applications without a remote API."
+    },
+    {
+      "slug": "zk-prover-handoffs",
+      "title": "ZK and prover handoffs",
+      "group": "PCZT and wallet workflows",
+      "status": "partial",
+      "audience": "ZK developers and cryptographers",
+      "summary": "Use structural PCZT privacy tests around prover roles; proof verification is not implemented."
+    },
+    {
+      "slug": "github-action",
+      "title": "GitHub Actions integration",
+      "group": "Developer automation",
+      "status": "supported",
+      "audience": "Application and CI engineers",
+      "summary": "Run PCZT policy and synthetic lifecycle regression checks in another repository."
+    },
+    {
+      "slug": "agents",
+      "title": "MCP and agent skills",
+      "group": "Developer automation",
+      "status": "supported",
+      "audience": "AI-assisted engineering teams",
+      "summary": "Read-only local agent tools for approved synthetic fixtures."
+    },
+    {
+      "slug": "package-managers",
+      "title": "Package managers",
+      "group": "Developer automation",
+      "status": "supported",
+      "audience": "JavaScript and TypeScript developers",
+      "summary": "Install and develop with pnpm, npm or Yarn."
+    },
+    {
+      "slug": "z3-local",
+      "title": "Zebra and Z3 diagnostics",
+      "group": "Node and infrastructure",
+      "status": "partial",
+      "audience": "Node operators and SREs",
+      "summary": "Loopback Zebra health checks, not consensus or indexer validation."
+    },
+    {
+      "slug": "rpc-contracts",
+      "title": "Zcash RPC compatibility checks",
+      "group": "Node and infrastructure",
+      "status": "preview",
+      "audience": "Zallet/Zebra integrators",
+      "summary": "Offline OpenRPC method and parameter contract drift detection."
+    },
+    {
+      "slug": "ecosystem-research-2026-10",
+      "title": "Research and integration roadmap",
+      "group": "Research",
+      "status": "research",
+      "audience": "Ecosystem maintainers",
+      "summary": "Evidence-backed infrastructure opportunities and build priorities."
+    },
+    {
+      "slug": "documentation-workflow",
+      "title": "Contributing documentation",
+      "group": "Research",
+      "status": "supported",
+      "audience": "Zcash contributors and maintainers",
+      "summary": "Keep guides, integration tests and the frontend documentation catalog synchronized."
+    }
+  ]
+}

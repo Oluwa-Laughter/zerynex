@@ -1,0 +1,126 @@
+# Zerynex PCZT role-handoff testing (node-free)
+
+Zerynex provides a **scenario-driven, offline PCZT privacy-policy harness**
+for developers of Zcash wallet SDKs, signing workflows, and developer tools.
+The synthetic fixtures use genuine role operations from the official
+pczt Rust crate; they are not mocked transaction field objects.
+
+## Supported in this first milestone
+
+The deterministic v6 fixture generator exercises:
+
+1. Creator: initializes a structurally valid, nonspendable PCZT.
+2. Updater: adds illustrative proprietary global metadata.
+3. Combiner: merges contributions to the same PCZT.
+4. Redactor: clears the synthetic proprietary field.
+
+There are no wallet keys, funds, proofs, signatures, Zallet RPC calls,
+or network dependencies. The scenarios validate **the expected result
+of each privacy policy handoff**, not entire wallet operation.
+
+## Run the included synthetic scenario
+
+From the repository root:
+
+    cargo run --locked --example generate_role_handoff -- --check
+
+    cargo run --locked --bin zerynex-handoff -- \
+      --manifest tests/fixtures/role-handoff/scenario.json --json
+
+Exit codes: 0 means expectations matched; 2 means a scenario expectation
+mismatch; 1 means invalid input or configuration.
+
+Developers may regenerate the same synthetic files locally with:
+
+    cargo run --locked --example generate_role_handoff
+
+Do not replace these fixtures with actual spendable or private wallet data.
+
+## Install without integrating an SDK
+
+The separate Rust executable can be installed into an external Zcash
+repository directly from source:
+
+    cargo install --git https://github.com/Oluwa-Laughter/zerynex \
+      --locked --bin zerynex-handoff
+
+    zerynex-handoff --manifest tests/fixtures/synthetic-handoff/scenario.json --json
+
+For serious production use, pin Cargo installation to a reviewed commit
+using the --rev option. No crates.io release is available yet.
+
+## Scenario manifest format
+
+The manifest and its synthetic .bin fixtures must be in the **same folder**.
+The format is strict JSON. Example:
+
+    {
+      "version": 1,
+      "policy": {
+        "profile": "external_signer",
+        "deny_transparent": true,
+        "deny_sapling": false
+      },
+      "transitions": [
+        {
+          "name": "creator-to-updater",
+          "before": "00-created.bin",
+          "after": "01-updated.bin",
+          "expect": {
+            "passed": false,
+            "added_rules": ["PCZT-GLOBAL-METADATA"],
+            "resolved_rules": [],
+            "changed_components": []
+          }
+        }
+      ]
+    }
+
+A scenario passes when actual behavior matches its expected result.
+Some transitions deliberately introduce a disclosure to verify that
+the Rust policy engine detects it. Merely encountering such a test
+finding is not a failed scenario if the fixture expectation says so.
+
+Each fixture must use a simple local basename, not an arbitrary path.
+The runner rejects traversal, symlinks, empty and oversized files,
+unknown fields and manifests with more than 32 transitions.
+
+## Reusable GitHub Action
+
+Developers can run all scenarios inside their own CI using:
+
+    - uses: actions/checkout@v4
+
+    - uses: Oluwa-Laughter/zerynex@main
+      id: handoff
+      with:
+        scenario-manifest: tests/fixtures/synthetic-handoff/scenario.json
+
+Use a reviewed immutable commit SHA instead of main in production.
+Outputs include passed, scenario-count and scenario-matched.
+
+The scenario-manifest option is mutually exclusive with the usual
+pczt-path, baseline-path and policy-path inputs.
+Only commit synthetic, nonspendable fixtures to CI.
+
+## Limits and security boundaries
+
+ZIP-374 allows **v6 proving and signing in either order or in parallel**.
+This initial suite does not invent a mandatory ordering.
+
+The current fixtures exercise Creator, Updater, Combiner and Redactor only.
+It does **not** execute Prover or Signer, verify ZK proofs, validate
+transaction equivalence, inspect a live Zallet wallet, connect to RPC
+services, authorize spends, or broadcast Zcash transactions.
+
+The engine observes policy findings and component counts; a change to
+an amount, recipient, commitment or signing key may be undetected.
+Passing these tests is not a security audit.
+
+Official references:
+- https://zips.z.cash/zip-0374
+- https://zcash.github.io/zallet/rpc/index.html
+- https://github.com/zcash/librustzcash/issues/2623
+
+Zallet already supports PCZT inspection. This tool complements existing
+Zcash interoperability efforts with reproducible privacy expectations.
