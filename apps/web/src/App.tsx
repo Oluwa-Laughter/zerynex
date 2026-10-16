@@ -7,6 +7,7 @@ import { LuArrowDown as ArrowDown, LuAsterisk as Asterisk, LuArrowLeft as ArrowL
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inspectPczt, loadEngine } from './analyzer'
+import { exportPolicyJson, type Policy as SdkPolicy } from '@zerynex/sdk'
 import type { Profile, Report } from './analyzer'
 
 const repository = 'https://github.com/Oluwa-Laughter/zerynex'
@@ -244,12 +245,12 @@ function Studio({ navigate }: { navigate: (v: View) => void }) {
     }
   }
   const downloadPolicy = () => {
-    const policy = {
-      profile: profile.replace('-', '_'),
+    const policy: SdkPolicy = {
+      profile: profile === 'restricted-handoff' ? 'restricted_handoff' : 'external_signer',
       deny_transparent: denyTransparent,
       deny_sapling: denySapling,
     }
-    const url = URL.createObjectURL(new Blob([JSON.stringify(policy,null,2)], { type:'application/json' }))
+    const url = URL.createObjectURL(new Blob([exportPolicyJson(policy)], { type:'application/json' }))
     const a = document.createElement('a')
     a.href = url
     a.download = 'zerynex-policy.json'

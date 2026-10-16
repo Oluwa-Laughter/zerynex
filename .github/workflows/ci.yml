@@ -48,7 +48,9 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          cache-dependency-path: apps/web/pnpm-lock.yaml
+          cache-dependency-path: |
+            apps/web/pnpm-lock.yaml
+            packages/sdk/pnpm-lock.yaml
       - name: Compile local WASM analysis engine
         run: bash scripts/build-wasm.sh
       - name: Privacy policy smoke tests (synthetic only)
@@ -60,6 +62,14 @@ jobs:
           status=$?
           set -e
           test "$status" -eq 2
+      - name: Install SDK dependencies
+        working-directory: packages/sdk
+        run: pnpm install --frozen-lockfile
+      - name: Build and unit-test reusable SDK
+        working-directory: packages/sdk
+        run: |
+          pnpm build
+          pnpm test
       - name: Install frontend dependencies
         working-directory: apps/web
         run: pnpm install --frozen-lockfile
@@ -80,3 +90,32 @@ jobs:
       - name: End-to-end tests
         working-directory: apps/web
         run: pnpm test:e2e
+
+  sdk-installers:
+    name: SDK package manager compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        manager: [npm, yarn]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Yarn classic
+        if: matrix.manager == 'yarn'
+        run: npm install --global yarn@1.22.22
+      - name: Install with npm
+        if: matrix.manager == 'npm'
+        working-directory: packages/sdk
+        run: npm install --no-package-lock --ignore-scripts
+      - name: Install with Yarn
+        if: matrix.manager == 'yarn'
+        working-directory: packages/sdk
+        run: yarn install --no-lockfile --ignore-scripts
+      - name: Build SDK and run unit tests
+        working-directory: packages/sdk
+        run: |
+          npm run build
+          npm test

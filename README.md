@@ -16,14 +16,17 @@ A Rust-first privacy-policy toolkit for Zcash Partially Created Zcash Transactio
 
 ## Development
 
-Requires Rust stable, Node.js >=22 and pnpm 10.
+Requires Rust stable, Node.js >=22 and any of npm, Yarn, or pnpm. The commands below use pnpm because CI uses frozen pnpm lockfiles.
 
 ```bash
 cargo test --locked --all-targets
 cargo run -- path/to/transaction.pczt --profile external-signer --json
 cargo install wasm-bindgen-cli --version 0.2.129 --locked
 bash scripts/build-wasm.sh
-cd apps/web
+cd packages/sdk
+pnpm install --frozen-lockfile
+pnpm build
+cd ../../apps/web
 pnpm install --frozen-lockfile
 pnpm dev
 ```
@@ -90,3 +93,16 @@ privacy, signing safety, or consensus validity.
 Zerynex ships three non-spendable synthetic PCZT v6 examples:
 clean, global-metadata-flagged, and transparent-output. The last one demonstrates
 why a shielded-only policy is meaningful, with no spendable funds or private keys.
+
+## Reusable TypeScript SDK
+
+The independent @zerynex/sdk package in packages/sdk provides a typed API,
+strict policy normalization, lazy local WASM loading, Blob and Uint8Array
+analysis, and sanitized error messages. The Next.js Studio now consumes
+this SDK rather than calling WebAssembly directly.
+
+The SDK is not yet published to the npm registry. The web app links it
+locally through a standard file dependency. We test npm and Yarn installation
+separately from our pnpm-based reference CI build.
+
+See docs/package-managers.md for installation and development instructions.
