@@ -58,7 +58,7 @@ MIT licensed. Open source.
 
 ## Next.js frontend
 
-The web application uses Next.js 16 App Router and React 19. The home route is / and the local PCZT analyzer is /studio. Typography is bundled locally, with GSAP transitions and Lucide React SVG icons (no emoji graphics).
+The web application uses Next.js 16 App Router and React 19. The home route is / and the local PCZT analyzer is /studio. Typography is bundled locally, with GSAP transitions and React Icons (Lucide collection) SVG components (no emoji graphics).
 
 The browser loads a Rust/WebAssembly engine from local static assets. The wasm-bindgen JavaScript wrapper lives under apps/web/src/wasm, and its binary is served from apps/web/public/wasm. The engine runs entirely in the browser: private PCZT bytes are not sent to the Next.js server.
 

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
-import { ArrowDown, Asterisk, ArrowLeft, ArrowRight, ArrowUpRight, Check, CheckCheck, ChevronDown, CircleAlert, CircleCheck, Copy, Download, FileCode2, Fingerprint, Layers3, LockKeyhole, Menu, MoveUpRight, ScanLine, Terminal, X, } from 'lucide-react'
+import { LuArrowDown as ArrowDown, LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuChevronDown as ChevronDown, LuCircleAlert as CircleAlert, LuCircleCheck as CircleCheck, LuCopy as Copy, LuDownload as Download, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLayers3 as Layers3, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuMoveUpRight as MoveUpRight, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inspectPczt, loadEngine } from './analyzer'
