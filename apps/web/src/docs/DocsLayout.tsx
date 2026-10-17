@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { LuArrowLeft, LuBookOpen, LuShieldCheck } from 'react-icons/lu'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { LuMenu, LuX } from 'react-icons/lu'
 import { guideGroups, guides, type Guide } from './catalog'
@@ -22,14 +22,36 @@ export default function DocsLayout({
   const pathname = usePathname()
   const [mobileContentsPath, setMobileContentsPath] = useState<string | null>(null)
   const mobileContents = mobileContentsPath === pathname
+  const toggle = useRef<HTMLButtonElement>(null)
+  const sidebar = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!mobileContents) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileContentsPath(null)
+        toggle.current?.focus()
+      }
+    }
+    const onPointer = (event: PointerEvent) => {
+      const target = event.target as Node
+      if (!toggle.current?.contains(target) && !sidebar.current?.contains(target))
+        setMobileContentsPath(null)
+    }
+    window.addEventListener('keydown', onKey)
+    document.addEventListener('pointerdown', onPointer)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onPointer)
+    }
+  }, [mobileContents])
   return <div className="docs-site">
     <div className="docs-frame">
-      <button type="button" className="docs-mobile-contents" aria-expanded={mobileContents}
+      <button ref={toggle} type="button" className="docs-mobile-contents" aria-expanded={mobileContents}
         aria-controls="docs-contents-sidebar" onClick={() => setMobileContentsPath(value=>value === pathname ? null : pathname)}>
         {mobileContents ? <LuX size={18}/> : <LuMenu size={18}/>}
         {mobileContents ? 'Close documentation menu' : 'Browse documentation sections'}
       </button>
-      <aside id="docs-contents-sidebar" className={'docs-sidebar' + (mobileContents ? ' docs-sidebar-open' : '')} aria-label="Documentation sections">
+      <aside ref={sidebar} id="docs-contents-sidebar" className={'docs-sidebar' + (mobileContents ? ' docs-sidebar-open' : '')} aria-label="Documentation sections">
         <Link href="/docs" onClick={()=>setMobileContentsPath(null)} className={'docs-sidebar-top' + (!selected ? ' docs-selected' : '')}><LuBookOpen size={16}/> Documentation index</Link>
         {guideGroups.map(group => <section className="docs-sidebar-group" key={group}>
           <h2>{group}</h2>

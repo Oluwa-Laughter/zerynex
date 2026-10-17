@@ -544,3 +544,79 @@ test('large-screen Zcash headline and workflow overview use the available conten
   expect(widths.hero).toBeGreaterThan(650)
   expect(widths.workflow).toBeGreaterThan(650)
 })
+
+test('all product routes remain usable at 320px with complete max-width and no horizontal overflow', async ({page})=>{
+  test.slow()
+  await page.setViewportSize({width:320,height:720})
+  for(const route of ['/', '/ecosystem', '/agents', '/docs', '/docs/installation', '/docs/agents',
+    '/tools', '/tools/stages', '/tools/handoff']){
+    await page.goto(route)
+    const layout=await page.evaluate(()=>({
+      viewport:document.documentElement.clientWidth,
+      document:document.documentElement.scrollWidth,
+      body:document.body.scrollWidth,
+      header:document.querySelector('.zn-site-header')?.getBoundingClientRect().width??0,
+    }))
+    expect(layout.document,route+' horizontal overflow').toBeLessThanOrEqual(layout.viewport+2)
+    expect(layout.body,route+' body overflow').toBeLessThanOrEqual(layout.viewport+2)
+    expect(layout.header).toBeLessThanOrEqual(layout.viewport)
+    await expect(page.getByRole('button',{name:'Open menu'})).toBeVisible()
+  }
+})
+
+test('mobile integration tabs are all discoverable without sideways scrolling',async ({page})=>{
+  await page.setViewportSize({width:320,height:740})
+  await page.goto('/tools')
+  const tabs=page.getByRole('tablist',{name:'Choose integration'})
+  await expect(tabs.getByRole('tab')).toHaveCount(11)
+  const dimensions=await tabs.evaluate(element=>{
+    const rect=element.getBoundingClientRect()
+    const buttons=[...element.querySelectorAll('button')].map(button=>button.getBoundingClientRect())
+    return {
+      display:getComputedStyle(element).display,
+      totalWidth:element.scrollWidth,
+      viewportWidth:rect.width,
+      allWithin:buttons.every(button=>button.left>=rect.left-1&&button.right<=rect.right+1),
+    }
+  })
+  expect(dimensions.display).toBe('grid')
+  expect(dimensions.totalWidth).toBeLessThanOrEqual(dimensions.viewportWidth+2)
+  expect(dimensions.allWithin).toBe(true)
+  await tabs.getByRole('tab',{name:/AI agents \/ MCP/}).click()
+  await expect(page.getByRole('tabpanel').getByText('Agent-assisted privacy regressions')).toBeVisible()
+})
+
+test('mobile hamburger traps keyboard focus and dismisses on outside click',async ({page})=>{
+  await page.setViewportSize({width:390,height:844})
+  await page.goto('/agents')
+  await page.getByRole('button',{name:'Open menu'}).click()
+  await expect(page.getByRole('navigation',{name:'Primary'})).toBeVisible()
+  expect(await page.evaluate(()=>document.body.style.overflow)).toBe('hidden')
+  const focused=await page.evaluate(()=>document.activeElement?.textContent?.trim())
+  expect(focused).toBe('Overview')
+  await page.keyboard.press('Shift+Tab')
+  await expect(page.getByRole('button',{name:'Close menu'})).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('navigation',{name:'Primary'}).getByRole('button',{name:'Overview'})).toBeFocused()
+  await page.mouse.click(9,260)
+  await expect(page.getByRole('navigation',{name:'Primary'})).toBeHidden()
+  expect(await page.evaluate(()=>document.body.style.overflow)).toBe('')
+  await page.getByRole('button',{name:'Open menu'}).click()
+  await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Open workbench'}).click()
+  await expect(page).toHaveURL(/\/tools$/)
+  await expect(page.getByRole('button',{name:'Open menu'})).toBeVisible()
+})
+
+test('docs mobile contents menu can be dismissed with Escape and outside click',async ({page})=>{
+  await page.setViewportSize({width:360,height:760})
+  await page.goto('/docs/installation')
+  const browse=page.getByRole('button',{name:'Browse documentation sections'})
+  await browse.click()
+  await expect(page.getByLabel('Documentation sections')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByLabel('Documentation sections')).toBeHidden()
+  await expect(browse).toBeFocused()
+  await browse.click()
+  await page.mouse.click(4,5)
+  await expect(page.getByLabel('Documentation sections')).toBeHidden()
+})

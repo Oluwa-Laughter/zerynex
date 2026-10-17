@@ -160,6 +160,14 @@
       "status": "partial",
       "audience": "Application developers and maintainers",
       "summary": "Standalone CLI distributions, bundled Rust/WASM SDK and Python wheel."
+    },
+    {
+      "slug": "responsive-design",
+      "title": "Responsive product design",
+      "group": "Research",
+      "status": "supported",
+      "audience": "UI contributors and maintainers",
+      "summary": "Shared max-width, mobile navigation, accessible tool layouts and regression tests."
     }
   ]
 }

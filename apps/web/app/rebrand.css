@@ -466,3 +466,199 @@ a:focus-visible,button:focus-visible,input:focus-visible,[role=button]:focus-vis
 @media(prefers-reduced-motion:reduce){
  .zn-workflow-row{transition:none}
 }
+
+/* Phase IV — width-first page system.
+   The same maximum width applies to marketing, tools, SDKs, agents, docs and
+   workbenches. Headlines can use the available canvas instead of wrapping
+   prematurely inside arbitrary narrow copy columns. */
+:root {
+  --zn-container: 1600px;
+  --zn-gutter: clamp(18px, 4.25vw, 76px);
+}
+.zn-home > .zn-hero,
+.zn-home > .zn-proof-strip,
+.zn-home > .zn-ecosystem-workflows,
+.zn-home > .zn-demonstration,
+.zn-home > .zn-capabilities,
+.zn-home > .zn-adoption,
+.zn-home > .zn-agent-feature,
+.zn-home > .zn-footer,
+.zn-ecos,
+.zn-agents,
+.studio-page,
+.docs-frame,
+.docs-footer,
+.wb-page .wb-top,
+.wb-page .wb-hero,
+.wb-page .wb-body,
+.wb-page .wb-bottom {
+  width: 100%;
+  max-width: var(--zn-container);
+  margin-inline: auto;
+}
+.zn-site-header {
+  width: min(calc(100% - 28px), 1500px);
+}
+.zn-home .zn-hero h1 {
+  max-width: 1320px;
+  font-size: clamp(62px, 5.8vw, 100px);
+  line-height: 1.06;
+  text-wrap: pretty;
+  overflow-wrap: normal;
+}
+.zn-home .zn-hero-content { max-width: 1300px; }
+.zn-home .zn-hero-text { max-width: 830px; }
+.zn-hero-visual { opacity: .15; }
+.zn-workflows-heading,
+.zn-workflows-heading h2 {
+  width: 100%;
+  max-width: 1280px;
+}
+.zn-workflows-heading h2 {
+  font-size: clamp(58px, 6vw, 96px);
+  text-wrap: pretty;
+}
+.zn-section-header {
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, .5fr);
+  column-gap: 5%;
+}
+.zn-section-header h2 { max-width: 100%; }
+.zn-section-copy h2,
+.zn-section-header h2,
+.zn-adoption h2,
+.zn-agent-feature h2 {
+  font-size: clamp(50px, 5vw, 82px);
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+.zn-ecos-header,
+.zn-agents-hero {
+  width: 100%;
+  max-width: 1380px;
+}
+.zn-ecos-header h1,
+.zn-agents-hero h1 {
+  max-width: 1350px;
+  text-wrap: pretty;
+  font-size: clamp(64px, 7vw, 110px);
+}
+.zn-agent-connect-heading { max-width: 1180px; }
+.zn-agent-connect-heading h2 { max-width: 1180px; text-wrap: pretty; }
+.zn-stack-paths > div:first-child { min-width: 0; }
+.studio-page .studio-heading { min-width: 0; }
+.studio-page .studio-heading > div:first-child { max-width: 1290px; }
+.studio-page .studio-heading h1 {
+  max-width: 1270px;
+  text-wrap: pretty;
+  line-height: 1.09;
+  font-size: clamp(56px, 5.7vw, 96px);
+}
+.wb-page .wb-hero h1 {
+  max-width: 1360px;
+  text-wrap: pretty;
+  line-height: 1.07;
+}
+.docs-intro, .docs-article { max-width: 1180px; }
+.docs-intro h1, .docs-article-heading h1 {
+  max-width: 100%;
+  text-wrap: pretty;
+  line-height: 1.09;
+}
+.docs-markdown { max-width: 1090px; }
+.docs-markdown pre, .zn-code-surface, .zn-language-panel,
+.zn-agent-grid, .zn-agent-config, .zn-agent-demo,
+.studio-grid, .dev-integrations-shell, .wb-body, .wb-panel {
+  min-width: 0;
+}
+/* Full-width reading and interaction surfaces, without expanding inline
+   text beyond comfortable lengths on very large monitors. */
+.docs-main, .docs-card-list, .zn-agent-grid { width: 100%; }
+.zn-footer { padding-inline: var(--zn-gutter); }
+
+/* Tablet: keep two-column tools only if there is enough room for inputs. */
+@media (max-width: 1180px) {
+  .zn-section-header { grid-template-columns: minmax(0, 1fr); }
+  .zn-section-header > p { max-width: 850px; margin-top: 25px; }
+  .zn-hero-visual { opacity: .1; }
+}
+@media (max-width: 980px) {
+  .zn-site-header .desktop-nav {
+    overscroll-behavior: contain;
+    scrollbar-color: var(--zn-border) var(--zn-bg);
+  }
+  .zn-site-header .desktop-nav button,
+  .zn-site-header .desktop-nav a { min-height: 46px; }
+  .zn-home .zn-hero h1 { font-size: clamp(55px, 8.4vw, 84px); }
+  .zn-section-copy h2, .zn-section-header h2,
+  .zn-adoption h2, .zn-agent-feature h2 { font-size: clamp(46px, 7vw, 74px); }
+  .zn-workflows-heading h2 { font-size: clamp(52px, 7.3vw, 80px); }
+  .zn-ecos-header h1, .zn-agents-hero h1 {
+    font-size: clamp(54px, 8vw, 88px);
+  }
+}
+/* Tooling tabs are a complete two-column picker on phones, not an
+   undiscoverable 11-option horizontal strip that extends offscreen. */
+@media (max-width: 780px) {
+  .dev-integrations-shell { grid-template-columns: minmax(0, 1fr); }
+  .dev-integration-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    border-right: 0;
+    gap: 0;
+    min-width: 0;
+  }
+  .dev-integration-tabs button {
+    width: 100%;
+    min-width: 0;
+    min-height: 55px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--zn-border);
+    gap: 9px;
+  }
+  .dev-integration-tabs button:nth-child(odd) {
+    border-right: 1px solid var(--zn-border);
+  }
+  .dev-integration-tabs button[aria-selected=true] {
+    box-shadow: inset 3px 0 0 var(--zn-acid);
+  }
+  .dev-integration-content { min-width: 0; }
+  .zn-ecos-header, .zn-agents-hero { max-width: 100%; }
+  .docs-intro, .docs-article { max-width: 100%; }
+  .docs-markdown pre { max-width: 100%; }
+}
+@media (max-width: 620px) {
+  :root { --zn-gutter: clamp(18px, 5vw, 26px); }
+  .zn-site-header { width: calc(100% - 20px); }
+  .zn-home .zn-hero h1 {
+    font-size: clamp(43px, 10.5vw, 64px);
+    line-height: 1.09;
+  }
+  .zn-workflows-heading h2 { font-size: clamp(43px, 9vw, 62px); }
+  .zn-section-copy h2, .zn-section-header h2,
+  .zn-adoption h2, .zn-agent-feature h2 {
+    font-size: clamp(41px, 8.9vw, 60px);
+    line-height: 1.1;
+  }
+  .zn-ecos-header h1, .zn-agents-hero h1 {
+    font-size: clamp(43px, 9.4vw, 62px);
+  }
+  .zn-agent-connect-heading h2 { font-size: clamp(44px, 9.2vw, 60px); }
+  .studio-page .studio-heading h1 { font-size: clamp(42px, 9.3vw, 61px); }
+  .wb-page .wb-hero h1 { font-size: clamp(45px, 9.9vw, 72px); }
+  .docs-intro h1 { font-size: clamp(46px, 9.1vw, 68px); }
+  .docs-article-heading h1 { font-size: clamp(40px, 8.4vw, 63px); }
+  .zn-hero-visual { display: none; }
+  .zn-proof-strip > div { row-gap: 13px; }
+  .zn-hero-actions, .zn-adoption-actions { align-items: flex-start; }
+  .zn-hero-actions > a, .zn-adoption-actions > a {
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    justify-content: space-between;
+  }
+}
