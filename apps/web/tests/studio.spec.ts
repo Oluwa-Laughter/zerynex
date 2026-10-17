@@ -8,7 +8,7 @@ test('homepage navigates to Zerynex developer tooling', async ({ page, isMobile 
     await page.getByRole('button',{name:'Open menu'}).click()
     await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Open workbench'}).click()
   } else {
-    await page.locator('.topbar').getByRole('button', { name: 'Open workbench' }).click()
+    await page.locator('.topbar').getByRole('link', { name: 'Open workbench' }).click()
   }
   await expect(page).toHaveURL(/\/tools/)
   await expect(page.getByRole('heading', { name: /Inspect Zcash transaction privacy/i })).toBeVisible()
@@ -106,7 +106,7 @@ test('rejects malformed policy imports without weakening the current policy', as
 test('SDK navigation shows language-only labels and a working Python quickstart', async ({ page, isMobile }) => {
   await page.goto('/')
   if (isMobile) await page.getByRole('button',{name:'Open menu'}).click()
-  await page.getByRole('navigation',{name:'Primary'}).getByRole('button',{name:'SDKs'}).click()
+  await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'SDKs'}).click()
   await expect(page).toHaveURL(/\/ecosystem/)
   await expect(page.getByRole('heading',{name:/Bring Zcash privacy checks/i})).toBeVisible()
   await page.getByRole('button',{name:/^Python/}).click()
@@ -597,7 +597,7 @@ test('mobile hamburger traps keyboard focus and dismisses on outside click',asyn
   await page.keyboard.press('Shift+Tab')
   await expect(page.getByRole('button',{name:'Close menu'})).toBeFocused()
   await page.keyboard.press('Tab')
-  await expect(page.getByRole('navigation',{name:'Primary'}).getByRole('button',{name:'Overview'})).toBeFocused()
+  await expect(page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Overview'})).toBeFocused()
   await page.mouse.click(9,260)
   await expect(page.getByRole('navigation',{name:'Primary'})).toBeHidden()
   expect(await page.evaluate(()=>document.body.style.overflow)).toBe('')
