@@ -53,12 +53,9 @@ enum Policy {
 }
 fn load_policy(args: &Args) -> Result<PolicyConfig, &'static str> {
     let mut policy = if let Some(path) = &args.policy_file {
-        let metadata = fs::metadata(path).map_err(|_| "Cannot read policy file")?;
-        if !metadata.is_file() || metadata.len() > 4096 {
-            return Err("Expected a JSON policy file of at most 4 KiB");
-        }
-        let contents = fs::read_to_string(path).map_err(|_| "Cannot read policy file")?;
-        parse_policy_json(&contents)?
+        let contents = read_limited_file(path, 4096, "Cannot read policy file")?;
+        let contents = std::str::from_utf8(&contents).map_err(|_| "Invalid UTF-8 policy")?;
+        parse_policy_json(contents)?
     } else {
         PolicyConfig {
             profile: match args.profile.unwrap_or(Policy::ExternalSigner) {
@@ -72,6 +69,29 @@ fn load_policy(args: &Args) -> Result<PolicyConfig, &'static str> {
     policy.deny_sapling |= args.deny_sapling;
     Ok(policy)
 }
+// Use bounded reads for disk files too: metadata checks followed by fs::read
+// can otherwise allocate an arbitrarily large file after a concurrent change.
+fn read_limited_file(
+    path: &PathBuf,
+    limit: usize,
+    error: &'static str,
+) -> Result<Vec<u8>, &'static str> {
+    let handle = fs::File::open(path).map_err(|_| error)?;
+    let metadata = handle.metadata().map_err(|_| error)?;
+    if !metadata.is_file() || metadata.len() > limit as u64 {
+        return Err(error);
+    }
+    let mut bytes = Vec::new();
+    handle
+        .take((limit + 1) as u64)
+        .read_to_end(&mut bytes)
+        .map_err(|_| error)?;
+    if bytes.len() > limit {
+        return Err(error);
+    }
+    Ok(bytes)
+}
+
 fn read_pczt(file: &PathBuf, input_format: InputFormat) -> Result<Vec<u8>, &'static str> {
     const MAX_PCZT_BYTES: usize = 8 * 1024 * 1024;
     // Read at most one byte beyond the hard input limit, including stdin.
@@ -87,11 +107,11 @@ fn read_pczt(file: &PathBuf, input_format: InputFormat) -> Result<Vec<u8>, &'sta
             .read_to_end(&mut encoded_or_raw)
             .map_err(|_| "Cannot read PCZT from standard input")?;
     } else {
-        let info = fs::metadata(file).map_err(|_| "Cannot read PCZT file")?;
-        if !info.is_file() || info.len() > max_input as u64 {
-            return Err("PCZT input is not a regular file or exceeds size limit");
-        }
-        encoded_or_raw = fs::read(file).map_err(|_| "Cannot read PCZT file")?;
+        encoded_or_raw = read_limited_file(
+            file,
+            max_input,
+            "PCZT input is not a regular file or exceeds size limit",
+        )?;
     }
     if encoded_or_raw.is_empty() || encoded_or_raw.len() > max_input {
         return Err("PCZT input is empty or exceeds size limit");

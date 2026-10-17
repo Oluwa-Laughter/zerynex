@@ -211,3 +211,38 @@ fn stage_comparison_does_not_mask_existing_violations() {
     assert_eq!(report["no_new_findings"], true);
     assert_eq!(report["passed"], false);
 }
+
+#[test]
+fn oversized_file_is_rejected_without_emitting_input() {
+    let location = std::env::temp_dir().join(format!(
+        "zerynex-oversize-{}-{}.pczt",
+        std::process::id(),
+        "contract"
+    ));
+    let file = std::fs::File::create(&location).unwrap();
+    file.set_len(8 * 1024 * 1024 + 1).unwrap();
+    let output = execute(&[location.to_str().unwrap(), "--json"]);
+    std::fs::remove_file(location).unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stdout.is_empty());
+    assert!(!String::from_utf8_lossy(&output.stderr).contains("zerynex-oversize-"));
+}
+
+#[test]
+fn oversized_policy_is_rejected_without_echoing_contents() {
+    let location = std::env::temp_dir().join(format!(
+        "zerynex-policy-{}-{}.json",
+        std::process::id(),
+        "contract"
+    ));
+    std::fs::write(&location, vec![b'X'; 4097]).unwrap();
+    let output = execute(&[
+        "apps/web/public/examples/clean-v6.bin",
+        "--policy-file",
+        location.to_str().unwrap(),
+        "--json",
+    ]);
+    std::fs::remove_file(location).unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stdout.is_empty());
+}
