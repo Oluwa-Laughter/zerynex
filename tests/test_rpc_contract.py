@@ -8,7 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from check_rpc_contract import compare, ContractInputError, parse_methods, read_json, MAX_SCHEMA
+from check_rpc_contract import compare, ContractInputError, parse_methods, read_json, unwrap_openrpc_schema, MAX_SCHEMA
 
 class RpcContractTests(unittest.TestCase):
     @classmethod
@@ -74,6 +74,47 @@ class RpcContractTests(unittest.TestCase):
             path.write_bytes(b'{' + b' ' * MAX_SCHEMA + b'}')
             with self.assertRaises(ContractInputError):
                 read_json(str(path), MAX_SCHEMA)
+
+    def test_saved_rpc_discover_response_passes_without_wallet(self):
+        envelope = {"jsonrpc": "2.0", "id": 17, "result": copy.deepcopy(self.schema)}
+        self.assertTrue(compare(unwrap_openrpc_schema(envelope), self.contract)["passed"])
+        with tempfile.TemporaryDirectory() as temp:
+            saved = Path(temp) / "rpc-discover.json"
+            saved.write_text(json.dumps(envelope))
+            result = subprocess.run([
+                sys.executable, str(ROOT / "scripts/check_rpc_contract.py"),
+                "--schema", str(saved),
+                "--contract", str(ROOT / "tests/fixtures/rpc/zallet-minimum-contract.json"),
+                "--json",
+            ], capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0)
+            self.assertTrue(json.loads(result.stdout)["passed"])
+
+    def test_rpc_discover_rejects_errors_and_untrusted_response_shapes(self):
+        valid = {"jsonrpc": "2.0", "id": 17, "result": copy.deepcopy(self.schema)}
+        for patch in (
+            {"jsonrpc": "1.0"}, {"id": True}, {"result": "not-openrpc"},
+            {"error": {"message": "FAKE_PRIVATE_MARKER"}},
+            {"result": {"secret": "FAKE_PRIVATE_MARKER"}},
+        ):
+            with self.subTest(patch=list(patch)), self.assertRaises(ContractInputError):
+                unwrap_openrpc_schema({**valid, **patch})
+
+    def test_duplicate_json_keys_fail_closed_without_source_echo(self):
+        with tempfile.TemporaryDirectory() as temp:
+            schema = Path(temp) / "duplicate.json"
+            schema.write_text('{"openrpc":"1.3.0","openrpc":"1.2.0","methods":[]}')
+            with self.assertRaises(ContractInputError):
+                read_json(str(schema), MAX_SCHEMA)
+            schema.write_text('{"jsonrpc":"2.0","id":1,"result":{"openrpc":"1.3.0","openrpc":"FAKE_PRIVATE_MARKER","methods":[]}}')
+            result = subprocess.run([
+                sys.executable, str(ROOT / "scripts/check_rpc_contract.py"),
+                "--schema", str(schema),
+                "--contract", str(ROOT / "tests/fixtures/rpc/zallet-minimum-contract.json"),
+                "--json",
+            ], capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 1)
+            self.assertNotIn("FAKE_PRIVATE_MARKER", result.stdout + result.stderr)
 
     def test_cli_machine_readable_codes(self):
         command = [sys.executable, str(ROOT / "scripts/check_rpc_contract.py"),
