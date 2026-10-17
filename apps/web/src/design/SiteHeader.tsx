@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LuArrowUpRight, LuMenu, LuX } from 'react-icons/lu'
 
@@ -9,11 +9,10 @@ export default function SiteHeader() {
   const pathname = usePathname()
   const [openOnPath, setOpenOnPath] = useState<string | null>(null)
   const open = pathname === openOnPath
-  const router = useRouter()
   const header = useRef<HTMLElement>(null)
   const navigation = useRef<HTMLElement>(null)
   const toggle = useRef<HTMLButtonElement>(null)
-  const first = useRef<HTMLButtonElement>(null)
+  const first = useRef<HTMLAnchorElement>(null)
 
   // An open menu belongs to the current route, so navigating closes it.
   // Keep focus inside the header while the mobile menu is open.
@@ -71,11 +70,6 @@ export default function SiteHeader() {
     }
   }, [open])
 
-  const navigate = (destination: string) => {
-    setOpenOnPath(null)
-    router.push(destination)
-  }
-
   return <header ref={header} className="topbar zn-site-header">
     <Link href="/" className="brand" aria-label="Zerynex home" onClick={() => setOpenOnPath(null)}>
       <span className="brand-mark" aria-hidden="true">
@@ -89,21 +83,21 @@ export default function SiteHeader() {
     </Link>
     <nav ref={navigation} className={'desktop-nav' + (open ? ' nav-open' : '')}
       id="zn-primary-navigation" aria-label="Primary">
-      <button ref={first} type="button" className={pathname === '/' ? 'nav-active' : ''}
-        onClick={() => navigate('/')}>Overview</button>
-      <button type="button" className={pathname === '/ecosystem' ? 'nav-active' : ''}
-        onClick={() => navigate('/ecosystem')}>SDKs</button>
+      <Link ref={first} href="/" className={pathname === '/' ? 'nav-active' : ''}
+        onClick={() => setOpenOnPath(null)}>Overview</Link>
+      <Link href="/ecosystem" className={pathname === '/ecosystem' ? 'nav-active' : ''}
+        onClick={() => setOpenOnPath(null)}>SDKs</Link>
       <Link href="/agents" className={pathname === '/agents' ? 'nav-active' : ''}
         onClick={() => setOpenOnPath(null)}>Agents</Link>
       <Link href="/docs" className={pathname?.startsWith('/docs') ? 'nav-active' : ''}
         onClick={() => setOpenOnPath(null)}>Docs</Link>
-      <Link href="/tools" className="zn-mobile-tool-link"
+      <Link href="/tools" className={'zn-mobile-tool-link' + (pathname?.startsWith('/tools') ? ' nav-active' : '')}
         onClick={() => setOpenOnPath(null)}>Open workbench <LuArrowUpRight size={16}/></Link>
     </nav>
     <div className="nav-actions">
-      <button type="button" className="nav-console" onClick={() => navigate('/tools')}>
+      <Link href="/tools" className="nav-console" onClick={() => setOpenOnPath(null)}>
         Open workbench <LuArrowUpRight size={15}/>
-      </button>
+      </Link>
       <button ref={toggle} type="button" className="mobile-toggle"
         aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}
         aria-controls="zn-primary-navigation"

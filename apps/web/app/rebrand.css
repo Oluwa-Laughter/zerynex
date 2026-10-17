@@ -662,3 +662,25 @@ a:focus-visible,button:focus-visible,input:focus-visible,[role=button]:focus-vis
     justify-content: space-between;
   }
 }
+
+/* Responsive foundation: all routes share the same bounded usable canvas. */
+#main-content { width: 100%; min-width: 0; }
+#main-content main, #main-content section, #main-content article,
+#main-content .docs-main, #main-content .wb-panel { min-width: 0; }
+#main-content img, #main-content video, #main-content canvas { max-width: 100%; }
+#main-content pre, #main-content table { max-width: 100%; }
+#main-content :is(h1,h2,h3,p) { overflow-wrap: break-word; }
+.zn-site-header .desktop-nav .nav-active { color: var(--zn-ink); }
+@media (max-width: 980px) {
+  .zn-site-header .desktop-nav { max-height: min(75svh, 650px); }
+  .zn-site-header .desktop-nav a:focus-visible,
+  .zn-site-header .desktop-nav button:focus-visible { outline-offset: -3px; }
+}
+@media (max-width: 620px) {
+  .zn-site-header .nav-actions { margin-left: auto; }
+  .zn-site-header .mobile-toggle { min-width: 44px; min-height: 44px; }
+  .zn-site-header .desktop-nav { padding: 10px; }
+  .zn-site-header .desktop-nav .zn-mobile-tool-link { min-height: 48px; }
+  #main-content :is(input,textarea,select) { max-width: 100%; }
+  #main-content :is(.docs-markdown,.wb-panel,.studio-box,.dev-integration-content) { overflow-wrap: anywhere; }
+}
