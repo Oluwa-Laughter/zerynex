@@ -34,6 +34,12 @@ Or clone and build both Rust executables:
     cd zerynex
     cargo build --locked --release --bins
 
+Discover the installed CLI version, supported input formats, size limits and operations without providing a transaction:
+
+    ./target/release/zerynex --capabilities
+
+See the [CLI capabilities contract](cli-capabilities.md) for integration details.
+
 Check a synthetic fixture:
 
     ./target/release/zerynex apps/web/public/examples/clean-v6.bin --policy-file policies/shielded-only.json --json

@@ -82,6 +82,14 @@
       "summary": "Use structural PCZT privacy tests around prover roles; proof verification is not implemented."
     },
     {
+      "slug": "cli-capabilities",
+      "title": "CLI capabilities and integration contract",
+      "group": "Developer automation",
+      "status": "supported",
+      "audience": "CLI, CI, wallet and agent developers",
+      "summary": "Discover local CLI operations, limits, versions, and exit codes from validated JSON."
+    },
+    {
       "slug": "github-action",
       "title": "GitHub Actions integration",
       "group": "Developer automation",

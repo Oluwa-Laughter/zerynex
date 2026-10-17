@@ -12,7 +12,7 @@ Zerynex is a **policy and regression-testing layer**, not a replacement for Zcas
 | Maintainer | Composite GitHub Action and regression manifests | CI with synthetic, nonspendable fixtures only |
 | Agent developer | Restricted read-only MCP tools | Explicitly approved synthetic fixtures, never private wallets |
 
-Start with the copyable [consumer CI starter](../examples/consumer-integration/README.md), then the [SDK distribution notes](sdk-distribution.md) and [integration contracts](integration-contracts.md).
+Start with the copyable [consumer CI starter](https://github.com/Oluwa-Laughter/zerynex/tree/main/examples/consumer-integration), then the [SDK distribution notes](sdk-distribution.md) and [integration contracts](integration-contracts.md).
 
 ## Upstream compatibility targets (not yet verified end-to-end)
 

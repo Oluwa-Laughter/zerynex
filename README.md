@@ -9,6 +9,8 @@ Zerynex is a local-first, Rust-powered toolkit for developers building on Zcash:
 
 **Problem:** ZIP-374 intermediary PCZT files may carry sensitive metadata that never appears in a final shielded transaction. Zerynex helps developers establish explicit policies at those handoff boundaries.
 
+**CLI capabilities:** `zerynex --capabilities` prints a versioned, offline JSON contract for SDK and CI consumers; see [capability discovery](docs/cli-capabilities.md).
+
 ## Developer workflows
 
 - **PCZT policy inspection**: local browser/Rust checks for supported disclosure rules and selected pool-component policies.

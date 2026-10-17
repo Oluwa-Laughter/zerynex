@@ -246,3 +246,39 @@ fn oversized_policy_is_rejected_without_echoing_contents() {
     assert_eq!(output.status.code(), Some(1));
     assert!(output.stdout.is_empty());
 }
+
+#[test]
+fn capabilities_are_machine_readable_without_pczt_or_network() {
+    let output = execute(&["--capabilities"]);
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stderr.is_empty());
+    let contract = json(&output);
+    assert_eq!(contract["schema_version"], 1);
+    assert_eq!(contract["tool"], "zerynex");
+    assert_eq!(contract["cli_version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(contract["max_decoded_pczt_bytes"], 8 * 1024 * 1024);
+    assert_eq!(contract["max_policy_file_bytes"], 4096);
+    assert_eq!(contract["network_access"], false);
+    assert_eq!(contract["signing"], false);
+    assert!(contract["operations"]
+        .as_array()
+        .unwrap()
+        .contains(&serde_json::json!("compare_pczt_stages")));
+    assert_eq!(contract["exit_codes"]["findings_or_regressions"], 2);
+}
+
+#[test]
+fn capabilities_refuse_conflicting_flags_or_file_inputs() {
+    for args in [
+        vec!["--capabilities", "--deny-transparent"],
+        vec!["--capabilities", "apps/web/public/examples/clean-v6.bin"],
+        vec!["--capabilities", "--json"],
+    ] {
+        let output = execute(&args);
+        assert_ne!(output.status.code(), Some(0));
+        assert!(output.stdout.is_empty());
+    }
+    let output = execute(&["--json"]);
+    assert_ne!(output.status.code(), Some(0));
+    assert!(output.stdout.is_empty());
+}

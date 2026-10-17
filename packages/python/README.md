@@ -117,3 +117,17 @@ transparent output, explain the corresponding privacy rule, and compare
 clean and flagged fixture stages. The smoke suite checks four fixed
 expected outcomes through real Rust CLI calls, not mocked reports.
 For instructions and security boundaries see docs/agents.md.
+
+## Discover CLI support before integrating
+
+The trusted local CLI exposes versioned JSON without reading PCZT contents:
+
+```python
+from zerynex_py import ZerynexClient
+
+client = ZerynexClient(cli="/absolute/path/to/zerynex")
+caps = client.capabilities()
+print(caps.version, caps.operations, caps.max_decoded_pczt_bytes)
+```
+
+The wrapper rejects unsupported capability versions and unsafe output. This does not imply any live Zallet wallet or network compatibility. See `docs/cli-capabilities.md`.

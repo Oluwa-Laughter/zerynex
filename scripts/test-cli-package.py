@@ -2,6 +2,7 @@
 """Test downloaded-style compiled CLI artifacts outside the monorepo."""
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -42,6 +43,20 @@ def verify(archive: Path) -> None:
         destination = root / executable
         destination.write_bytes(binary)
         destination.chmod(0o755)
+        result = subprocess.run(
+            [str(destination), "--capabilities"], stdin=subprocess.DEVNULL,
+            capture_output=True, text=True, timeout=20,
+        )
+        if result.returncode != 0:
+            raise AssertionError("Packaged CLI capabilities check failed")
+        capabilities = json.loads(result.stdout)
+        if capabilities.get("tool") != "zerynex" or capabilities.get("schema_version") != 1:
+            raise AssertionError("Packaged CLI capabilities contract differs from source")
+        if capabilities.get("max_decoded_pczt_bytes") != 8 * 1024 * 1024:
+            raise AssertionError("Packaged CLI reports incorrect input limit")
+        archive_version = archive.name.split("-")[1].removeprefix("v")
+        if capabilities.get("cli_version") != archive_version:
+            raise AssertionError("Packaged CLI version differs from release archive")
         for name in ("clean-v6.bin", "transparent-v6.bin"):
             shutil.copyfile(ROOT / "apps/web/public/examples" / name, root / name)
         checks = [("clean-v6.bin", 0), ("transparent-v6.bin", 2)]

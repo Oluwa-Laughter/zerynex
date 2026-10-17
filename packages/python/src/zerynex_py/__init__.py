@@ -5,6 +5,7 @@ Zcash parser, remote upload service, signing functionality or LLM dependency.
 """
 from .z3 import ZebraHealthReport, check_zebra_local
 from .client import (
+    CliCapabilities,
     Finding,
     Policy,
     Report,
@@ -13,5 +14,5 @@ from .client import (
     ZerynexError,
 )
 
-__all__ = ["Finding", "Policy", "Report", "StageComparison", "ZerynexClient", "ZerynexError", "ZebraHealthReport", "check_zebra_local"]
+__all__ = ["CliCapabilities", "Finding", "Policy", "Report", "StageComparison", "ZerynexClient", "ZerynexError", "ZebraHealthReport", "check_zebra_local"]
 __version__ = "0.1.0"

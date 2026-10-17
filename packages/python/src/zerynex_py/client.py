@@ -36,6 +36,49 @@ class Policy:
         }
 
 @dataclass(frozen=True)
+class CliCapabilities:
+    """Validated CLI feature metadata; does not imply upstream wallet compatibility."""
+    version: str
+    operations: tuple[str, ...]
+    input_formats: tuple[str, ...]
+    max_decoded_pczt_bytes: int
+    max_policy_file_bytes: int
+
+
+def _parse_cli_capabilities(raw: str) -> CliCapabilities:
+    if len(raw) > 16 * 1024:
+        raise ZerynexError("Local CLI capabilities report is too large.")
+    try:
+        data = json.loads(raw)
+        if not isinstance(data, dict) or type(data.get("schema_version")) is not int or data["schema_version"] != 1:
+            raise ValueError("schema")
+        if data.get("tool") != "zerynex" or data.get("network_access") is not False or data.get("signing") is not False:
+            raise ValueError("tool")
+        version = data["cli_version"]
+        operations = data["operations"]
+        formats = data["input_formats"]
+        if not isinstance(version, str) or not 0 < len(version) <= 64:
+            raise ValueError("version")
+        if (not isinstance(operations, list) or len(operations) > 10 or
+                any(not isinstance(item, str) or item not in ("analyze_pczt", "compare_pczt_stages") for item in operations) or
+                len(set(operations)) != len(operations) or "analyze_pczt" not in operations):
+            raise ValueError("operations")
+        if (not isinstance(formats, list) or len(formats) > 2 or
+                any(item not in ("binary", "base64") for item in formats) or
+                len(set(formats)) != len(formats) or "binary" not in formats):
+            raise ValueError("formats")
+        size = data["max_decoded_pczt_bytes"]
+        policy_size = data["max_policy_file_bytes"]
+        if type(size) is not int or not 0 < size <= MAX_PCZT_BYTES:
+            raise ValueError("input limit")
+        if type(policy_size) is not int or not 0 < policy_size <= 4096:
+            raise ValueError("policy limit")
+        return CliCapabilities(version, tuple(operations), tuple(formats), size, policy_size)
+    except (KeyError, ValueError, TypeError):
+        raise ZerynexError("Invalid capabilities from local Rust CLI.") from None
+
+
+@dataclass(frozen=True)
 class Finding:
     rule: str
     field: str
@@ -213,6 +256,20 @@ class ZerynexClient:
             raise ZerynexError("Configured Rust CLI does not exist.")
         self._cli = executable
         self._timeout = timeout
+
+    def capabilities(self) -> CliCapabilities:
+        """Inspect supported local Rust CLI operations without passing PCZT data."""
+        try:
+            result = subprocess.run(
+                [str(self._cli), "--capabilities"], shell=False,
+                stdin=subprocess.DEVNULL, capture_output=True, text=True,
+                timeout=self._timeout, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            raise ZerynexError("Local Rust CLI capabilities check failed or timed out.") from None
+        if result.returncode != 0:
+            raise ZerynexError("Local CLI does not support capabilities negotiation.")
+        return _parse_cli_capabilities(result.stdout)
 
     def analyze_file(self, path: str | Path, policy: Policy | None = None) -> Report:
         config = policy if policy is not None else Policy()

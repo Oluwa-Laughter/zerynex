@@ -26,6 +26,14 @@
       "summary": "Supported interfaces and acceptance gates for future integrations."
     },
     {
+      "slug": "ecosystem-integration-roadmap",
+      "title": "Zcash ecosystem integration roadmap",
+      "group": "Getting started",
+      "status": "partial",
+      "audience": "Wallet, node, infrastructure and SDK engineers",
+      "summary": "Practical adoption paths, upstream targets and verification gates."
+    },
+    {
       "slug": "policy-format",
       "title": "Privacy policy format",
       "group": "PCZT and wallet workflows",
@@ -72,6 +80,14 @@
       "status": "partial",
       "audience": "ZK developers and cryptographers",
       "summary": "Use structural PCZT privacy tests around prover roles; proof verification is not implemented."
+    },
+    {
+      "slug": "cli-capabilities",
+      "title": "CLI capabilities and integration contract",
+      "group": "Developer automation",
+      "status": "supported",
+      "audience": "CLI, CI, wallet and agent developers",
+      "summary": "Discover local CLI operations, limits, versions, and exit codes from validated JSON."
     },
     {
       "slug": "github-action",

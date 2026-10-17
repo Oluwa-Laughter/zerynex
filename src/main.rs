@@ -18,7 +18,11 @@ use zerynex::{
 )]
 struct Args {
     /// PCZT file path. Use "-" to read from standard input, never from an argument.
-    file: PathBuf,
+    #[arg(required_unless_present = "capabilities")]
+    file: Option<PathBuf>,
+    /// Print versioned JSON CLI capabilities without reading any files.
+    #[arg(long, exclusive = true)]
+    capabilities: bool,
     /// Input encoding: raw binary PCZT or Zallet-compatible base64 transport.
     #[arg(long, value_enum, default_value = "binary")]
     input_format: InputFormat,
@@ -92,8 +96,9 @@ fn read_limited_file(
     Ok(bytes)
 }
 
+const MAX_PCZT_BYTES: usize = 8 * 1024 * 1024;
+
 fn read_pczt(file: &PathBuf, input_format: InputFormat) -> Result<Vec<u8>, &'static str> {
-    const MAX_PCZT_BYTES: usize = 8 * 1024 * 1024;
     // Read at most one byte beyond the hard input limit, including stdin.
     let max_encoded = MAX_PCZT_BYTES.div_ceil(3) * 4 + 256;
     let max_input = match input_format {
@@ -139,8 +144,30 @@ fn read_pczt(file: &PathBuf, input_format: InputFormat) -> Result<Vec<u8>, &'sta
 
 fn run() -> Result<ExitCode, &'static str> {
     let args = Args::parse();
+    if args.capabilities {
+        // Public, static metadata only: safe for SDKs to query without
+        // providing a wallet file or passing private data on the command line.
+        let capabilities = serde_json::json!({
+            "schema_version": 1,
+            "cli_version": env!("CARGO_PKG_VERSION"),
+            "tool": "zerynex",
+            "operations": ["analyze_pczt", "compare_pczt_stages"],
+            "input_formats": ["binary", "base64"],
+            "input_sources": ["file", "stdin"],
+            "policy_profiles": ["external_signer", "restricted_handoff"],
+            "max_decoded_pczt_bytes": MAX_PCZT_BYTES,
+            "max_policy_file_bytes": 4096,
+            "exit_codes": {"pass": 0, "error": 1, "findings_or_regressions": 2},
+            "network_access": false,
+            "signing": false,
+            "disclaimer": "Selected local PCZT disclosure-policy checks only; not wallet compatibility, proof validity, signing safety, or anonymity verification."
+        });
+        println!("{}", capabilities);
+        return Ok(ExitCode::SUCCESS);
+    }
+    let file = args.file.as_ref().ok_or("PCZT input path required")?;
     let policy = load_policy(&args)?;
-    let bytes = read_pczt(&args.file, args.input_format)?;
+    let bytes = read_pczt(file, args.input_format)?;
     if let Some(candidate_path) = &args.compare_with {
         if candidate_path.as_os_str() == "-" {
             return Err("Cannot compare two standard-input streams; supply a candidate file");

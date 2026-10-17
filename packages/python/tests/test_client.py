@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from unittest.mock import patch
 
@@ -12,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "packages" / "python" / "src"))
 
 from zerynex_py import Policy, Report, ZerynexClient, ZerynexError
+from zerynex_py.client import _parse_cli_capabilities
 from zerynex_py.mcp_server import allowed_fixture, compare_synthetic_fixtures, scan_fixture
 
 BIN = ROOT / "target" / "debug" / "zerynex"
@@ -24,6 +26,23 @@ class IntegrationTests(unittest.TestCase):
         if not BIN.is_file():
             raise unittest.SkipTest("Build the real Rust binary with cargo build first.")
         cls.client = ZerynexClient(cli=BIN)
+
+    def test_cli_capabilities_contract(self):
+        capabilities = self.client.capabilities()
+        self.assertEqual(capabilities.version, tomllib.loads(
+            (ROOT / "packages/python/pyproject.toml").read_text())["project"]["version"])
+        self.assertIn("analyze_pczt", capabilities.operations)
+        self.assertIn("base64", capabilities.input_formats)
+        self.assertEqual(capabilities.max_decoded_pczt_bytes, 8 * 1024 * 1024)
+
+    def test_capability_parser_rejects_untrusted_metadata(self):
+        valid = json.loads(subprocess.run(
+            [str(BIN), "--capabilities"], capture_output=True, text=True, check=True,
+        ).stdout)
+        for field, value in (("network_access", True), ("schema_version", 2),
+                             ("max_decoded_pczt_bytes", 999999999), ("tool", "another")):
+            with self.subTest(field=field), self.assertRaises(ZerynexError):
+                _parse_cli_capabilities(json.dumps({**valid, field: value}))
 
     def test_real_clean_fixture(self):
         report = self.client.analyze_file(FIXTURES / "clean-v6.bin", Policy(deny_transparent=True))

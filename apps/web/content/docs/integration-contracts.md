@@ -18,6 +18,8 @@ inside the Rust library built on the official pczt crate.
 | Z3 / Zebra | Local /healthy and /ready checks | Node operator preflight |
 | Next.js | /tools PCZT inspection plus integration examples; /ecosystem onboarding | Optional developer frontend |
 
+The CLI exposes offline, versioned JSON capability discovery with `zerynex --capabilities` for SDK, wallet and CI consumers. See [CLI capabilities](cli-capabilities.md).
+
 The CLI report JSON fields are profile, deny_transparent, deny_sapling,
 checked_pools, findings (rule, field, explanation), and disclaimer.
 
