@@ -2,7 +2,21 @@ name: Zerynex Distribution Artifacts
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     tags: ['v*']
+    paths:
+      - '.github/workflows/distributions.yml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'src/**'
+      - 'packages/sdk/**'
+      - 'packages/python/**'
+      - 'scripts/package-cli.py'
+      - 'scripts/test-cli-package.py'
+      - 'scripts/test-sdk-packed.mjs'
+      - 'scripts/test-python-wheel.py'
+      - 'scripts/check-release-version.py'
+      - 'apps/web/src/wasm/**'
 
 permissions:
   contents: read

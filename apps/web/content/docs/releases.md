@@ -19,8 +19,9 @@ npm, PyPI or crates.io publication is finished.
 ## GitHub distribution workflow
 
 The [distribution workflow](https://github.com/Oluwa-Laughter/zerynex/actions/workflows/distributions.yml)
-can be run manually by maintainers to produce download artifacts retained
-by GitHub Actions for a limited time. It builds Linux, macOS and Windows
+runs automatically when release-related source files change on main, or
+manually by maintainers, to produce download artifacts retained by GitHub
+Actions for a limited time. It builds Linux, macOS and Windows
 CLI executables as well as TypeScript and Python packages.
 
 A reviewed version tag deliberately pushed by a maintainer triggers the
