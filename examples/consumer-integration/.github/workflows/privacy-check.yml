@@ -1,0 +1,30 @@
+# Copy to .github/workflows/ in a Zcash application repository.
+# Only use explicitly synthetic, nonspendable transaction fixtures.
+name: Zcash PCZT privacy gate
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  pczt-privacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Replace main with a reviewed immutable commit SHA before production use.
+      - name: Check synthetic PCZT
+        id: privacy
+        uses: Oluwa-Laughter/zerynex@main
+        with:
+          pczt-path: tests/fixtures/clean-v6.bin
+          policy-path: policies/zerynex.json
+          fail-on-findings: 'true'
+      - name: Summarize result
+        if: always()
+        env:
+          RESULT: ${{ steps.privacy.outputs.passed }}
+          COUNT: ${{ steps.privacy.outputs.finding-count }}
+        run: |
+          echo "Zerynex passed: ${RESULT:-unavailable}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Policy findings: ${COUNT:-unavailable}" >> "$GITHUB_STEP_SUMMARY"

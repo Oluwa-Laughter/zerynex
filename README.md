@@ -60,6 +60,10 @@ Reports contain rule IDs and field paths, **not private field values**.
 
 Full threat-model summary: [docs/privacy-model.md](docs/privacy-model.md).
 
+## Integrate into your own Zcash app
+
+Start with the [copyable consumer CI workflow](examples/consumer-integration/README.md) and [ecosystem integration roadmap](docs/ecosystem-integration-roadmap.md). Zerynex currently checks selected PCZT disclosure policies; upstream wallet, node and indexer compatibility requires version-pinned integration tests. Package registries are not yet published.
+
 ## Next milestones
 
 Expanded role-specific policies, real signer/prover compatibility fixtures, comprehensive pool checks, CI regression examples, upstream integration, privacy review.

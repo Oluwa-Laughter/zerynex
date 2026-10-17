@@ -26,6 +26,14 @@
       "summary": "Supported interfaces and acceptance gates for future integrations."
     },
     {
+      "slug": "ecosystem-integration-roadmap",
+      "title": "Zcash ecosystem integration roadmap",
+      "group": "Getting started",
+      "status": "partial",
+      "audience": "Wallet, node, infrastructure and SDK engineers",
+      "summary": "Practical adoption paths, upstream targets and verification gates."
+    },
+    {
       "slug": "policy-format",
       "title": "Privacy policy format",
       "group": "PCZT and wallet workflows",
