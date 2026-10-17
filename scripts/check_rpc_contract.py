@@ -17,6 +17,31 @@ class ContractInputError(Exception):
     """Sanitized error, never copies JSON source values or private paths."""
 
 
+def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
+    """Reject ambiguous JSON input with repeated keys at any depth."""
+    decoded = {}
+    for key, value in pairs:
+        if key in decoded:
+            raise ContractInputError("Duplicate JSON key.")
+        decoded[key] = value
+    return decoded
+
+
+def unwrap_openrpc_schema(data: dict) -> dict:
+    """Accept only a bare OpenRPC document or saved rpc.discover JSON-RPC reply."""
+    if "jsonrpc" not in data:
+        return data
+    if (set(data) != {"jsonrpc", "id", "result"} or
+            data["jsonrpc"] != "2.0" or
+            (data["id"] is not None and type(data["id"]) not in (str, int)) or
+            not isinstance(data["result"], dict)):
+        raise ContractInputError("Invalid rpc.discover response.")
+    schema = data["result"]
+    if not isinstance(schema.get("openrpc"), str) or "jsonrpc" in schema:
+        raise ContractInputError("Expected OpenRPC schema result.")
+    return schema
+
+
 def read_json(path: str, limit: int) -> dict:
     try:
         selected = Path(path)
@@ -30,16 +55,17 @@ def read_json(path: str, limit: int) -> dict:
             raw = handle.read(limit + 1)
         if len(raw) > limit:
             raise ContractInputError
-        decoded = json.loads(raw)
+        decoded = json.loads(raw, object_pairs_hook=reject_duplicate_keys)
         if not isinstance(decoded, dict):
             raise ContractInputError
         return decoded
-    except (OSError, ValueError, UnicodeError, ContractInputError):
+    except (OSError, ValueError, UnicodeError, RecursionError, ContractInputError):
         raise ContractInputError("Invalid or oversized local OpenRPC input.") from None
 
 
 def parse_methods(data: dict, *, contract: bool) -> dict[str, list[tuple[str, bool]]]:
-    if contract and (data.get("version") != 1 or set(data) != {"version", "methods"}):
+    if contract and (type(data.get("version")) is not int or data["version"] != 1 or
+                     set(data) != {"version", "methods"}):
         raise ContractInputError("Unsupported RPC contract version.")
     if not contract and not isinstance(data.get("openrpc"), str):
         raise ContractInputError("OpenRPC version is required.")
@@ -114,7 +140,8 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     try:
-        report = compare(read_json(args.schema, MAX_SCHEMA), read_json(args.contract, MAX_CONTRACT))
+        schema = unwrap_openrpc_schema(read_json(args.schema, MAX_SCHEMA))
+        report = compare(schema, read_json(args.contract, MAX_CONTRACT))
     except ContractInputError:
         print("Zerynex RPC: cannot evaluate input. Verify local schema and contract structure.", file=sys.stderr)
         return 1
