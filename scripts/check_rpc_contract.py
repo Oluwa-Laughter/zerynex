@@ -22,7 +22,14 @@ def read_json(path: str, limit: int) -> dict:
         selected = Path(path)
         if selected.is_symlink() or not selected.is_file() or not 0 < selected.stat().st_size <= limit:
             raise ContractInputError
-        raw = selected.read_bytes()
+        # Read from the checked handle with an enforced byte limit: a file can
+        # grow after stat(), and read_bytes() would otherwise read it in full.
+        with selected.open('rb') as handle:
+            if not handle.seekable():
+                raise ContractInputError
+            raw = handle.read(limit + 1)
+        if len(raw) > limit:
+            raise ContractInputError
         decoded = json.loads(raw)
         if not isinstance(decoded, dict):
             raise ContractInputError

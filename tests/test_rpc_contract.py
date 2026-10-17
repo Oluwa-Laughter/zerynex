@@ -8,7 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from check_rpc_contract import compare, ContractInputError, parse_methods
+from check_rpc_contract import compare, ContractInputError, parse_methods, read_json, MAX_SCHEMA
 
 class RpcContractTests(unittest.TestCase):
     @classmethod
@@ -67,6 +67,13 @@ class RpcContractTests(unittest.TestCase):
         contract["methods"][0]["params"].append({"name": "secret", "required": "yes"})
         with self.assertRaises(ContractInputError):
             parse_methods(contract, contract=True)
+
+    def test_oversized_schema_is_rejected_before_decoding(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'oversized.json'
+            path.write_bytes(b'{' + b' ' * MAX_SCHEMA + b'}')
+            with self.assertRaises(ContractInputError):
+                read_json(str(path), MAX_SCHEMA)
 
     def test_cli_machine_readable_codes(self):
         command = [sys.executable, str(ROOT / "scripts/check_rpc_contract.py"),
