@@ -145,6 +145,8 @@ jobs:
           pattern: '*'
           path: dist
           merge-multiple: true
+      - name: Test release asset validation rules
+        run: python3 -m unittest discover -s tests -p 'test_release_assets.py'
       - name: Verify and flatten downloadable assets
         run: python3 scripts/prepare-release-assets.py dist release-assets
       - name: Create versioned assets (no automatic npm/PyPI publish)
