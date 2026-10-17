@@ -16,6 +16,8 @@ on:
       - 'scripts/test-sdk-packed.mjs'
       - 'scripts/test-python-wheel.py'
       - 'scripts/check-release-version.py'
+      - 'scripts/prepare-release-assets.py'
+      - 'tests/test_release_assets.py'
       - 'apps/web/src/wasm/**'
 
 permissions:

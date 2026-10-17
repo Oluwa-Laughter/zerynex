@@ -34,17 +34,30 @@ def prepare(source: Path, destination: Path) -> list[str]:
             checksums[path.name] = path.read_text()
         else:
             payload[path.name] = path
-    # Native archives ship platform-specific checksums; validate every such manifest.
-    for contents in checksums.values():
-        for line in contents.splitlines():
-            parts = line.split('  ', 1)
-            if len(parts) != 2 or parts[1] not in payload:
-                raise ValueError('Unmatched release checksum')
-            actual = hashlib.sha256(payload[parts[1]].read_bytes()).hexdigest()
-            if actual != parts[0]:
-                raise ValueError('Release checksum mismatch')
-    if not any(name.endswith(('.zip', '.tar.gz')) for name in payload):
-        raise ValueError('Native CLI release archive missing')
+    # Every native archive must have exactly one matching platform checksum.
+    covered = set()
+    for manifest, contents in checksums.items():
+        expected_archive = manifest.removeprefix('SHA256SUMS-').removesuffix('.txt')
+        entries = [line for line in contents.splitlines() if line]
+        if len(entries) != 1:
+            raise ValueError('Each platform checksum must contain exactly one archive')
+        parts = entries[0].split('  ', 1)
+        if len(parts) != 2 or parts[1] not in payload:
+            raise ValueError('Unmatched release checksum')
+        filename = parts[1]
+        if not filename.startswith('zerynex-v') or not filename.endswith(('.zip', '.tar.gz')):
+            raise ValueError('Checksum must reference a native Zerynex archive')
+        if not filename.removesuffix('.zip').removesuffix('.tar.gz').endswith(expected_archive):
+            raise ValueError('Checksum archive platform mismatch')
+        if filename in covered:
+            raise ValueError('Duplicate checksum for native archive')
+        actual = hashlib.sha256(payload[filename].read_bytes()).hexdigest()
+        if actual != parts[0]:
+            raise ValueError('Release checksum mismatch')
+        covered.add(filename)
+    native = {name for name in payload if name.endswith(('.zip', '.tar.gz'))}
+    if native != covered:
+        raise ValueError('Native archive missing checksum')
     if not any(name.endswith('.tgz') for name in payload):
         raise ValueError('npm SDK archive missing')
     if not any(name.endswith('.whl') for name in payload):

@@ -21,6 +21,8 @@ jobs:
         with:
           components: rustfmt, clippy
           targets: wasm32-unknown-unknown
+      - name: Verify release artifact safety gate
+        run: python3 -m unittest discover -s tests -p test_release_assets.py
       - name: Format
         run: cargo fmt --all -- --check
       - name: Lint
