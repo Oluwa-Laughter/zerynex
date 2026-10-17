@@ -4,7 +4,7 @@ import { LuArrowLeft, LuBookOpen, LuShieldCheck } from 'react-icons/lu'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { LuMenu, LuX } from 'react-icons/lu'
-import { guideGroups, guides, type Guide } from './catalog'
+import { getGuide, guideGroups, guides, type Guide } from './catalog'
 
 
 
@@ -64,7 +64,7 @@ export default function DocsLayout({
         <div className="docs-sidebar-footer"><LuShieldCheck size={15}/> Source-first. No wallet uploads.</div>
       </aside>
       <div className="docs-main">
-        <div className="docs-breadcrumb"><Link href="/docs">Documentation</Link><span>/</span>{selected ? <span>{getSelectedTitle(selected)}</span> : <span>All guides</span>}</div>
+        <div className="docs-breadcrumb"><Link href="/docs">Documentation</Link><span>/</span>{selected ? <><span>{getGuide(selected)?.group}</span><span>/</span><span>{getSelectedTitle(selected)}</span></> : <span>Developer guides</span>}</div>
         {children}
       </div>
     </div>

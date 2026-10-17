@@ -276,6 +276,8 @@ jobs:
           git diff --exit-code -- apps/web/content/docs
       - name: Validate canonical documentation and local links
         run: node scripts/validate-docs.mjs
+      - name: Verify public documentation excludes internal repository notes
+        run: node scripts/test-public-docs.mjs
       - name: Check synthetic OpenRPC method contract
         run: python3 scripts/check_rpc_contract.py --schema tests/fixtures/rpc/zallet-synthetic-openrpc.json --contract tests/fixtures/rpc/zallet-minimum-contract.json --json
       - name: Verify synthetic full PCZT lifecycle contract (strict additive requirements)

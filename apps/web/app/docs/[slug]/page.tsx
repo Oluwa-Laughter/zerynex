@@ -23,6 +23,9 @@ export default async function DocumentationArticle({params}: {params: Promise<{ 
   const guide = getGuide(slug)
   if (!guide) notFound()
   const content = await readFile(path.join(process.cwd(), 'content/docs', slug + '.md'), 'utf8')
+  const position = guides.findIndex(entry => entry.slug === slug)
+  const previous = position > 0 ? guides[position - 1] : undefined
+  const next = position < guides.length - 1 ? guides[position + 1] : undefined
   return <DocsLayout selected={slug}>
     <article className="docs-article">
       <div className="docs-article-heading">
@@ -53,9 +56,13 @@ export default async function DocumentationArticle({params}: {params: Promise<{ 
           h1: ({ children }) => <h2>{children}</h2>,
         }}>{content}</Markdown>
       </div>
+      <nav className="docs-article-pagination" aria-label="Adjacent documentation">
+        {previous ? <Link href={'/docs/' + previous.slug} className="docs-adjacent docs-adjacent-prev"><span><LuArrowLeft size={15}/> PREVIOUS</span><strong>{previous.title}</strong></Link> : <span/>}
+        {next ? <Link href={'/docs/' + next.slug} className="docs-adjacent docs-adjacent-next"><span>NEXT <LuArrowUpRight size={15}/></span><strong>{next.title}</strong></Link> : <span/>}
+      </nav>
       <div className="docs-article-end">
-        <span>This guide is maintained in the repository docs/ folder. Supported features have tested integrations; previews and research are labeled.</span>
-        <Link href="/docs"><LuArrowLeft size={16}/> All documentation</Link>
+        <span>Public guides document shipped APIs and clearly identify partial integrations. Internal design, deployment and research notes remain in the source repository.</span>
+        <Link href="/docs"><LuArrowLeft size={16}/> Documentation index</Link>
       </div>
     </article>
   </DocsLayout>

@@ -2,9 +2,17 @@
   "version": 1,
   "entries": [
     {
+      "slug": "quickstart",
+      "title": "Quickstart: first privacy check",
+      "group": "Start here",
+      "status": "supported",
+      "audience": "All developers",
+      "summary": "Run your first analysis and inspect an expected disclosure finding using synthetic fixtures."
+    },
+    {
       "slug": "installation",
       "title": "Install and integrate",
-      "group": "Getting started",
+      "group": "Start here",
       "status": "supported",
       "audience": "All developers",
       "summary": "Pick a standalone CLI, SDK, CI Action or agent integration."
@@ -12,87 +20,103 @@
     {
       "slug": "privacy-model",
       "title": "Privacy and trust model",
-      "group": "Getting started",
+      "group": "Start here",
       "status": "supported",
       "audience": "Cryptographers and security engineers",
       "summary": "Understand disclosure rules, private PCZT handling and limitations."
     },
     {
-      "slug": "integration-contracts",
-      "title": "Integration contracts",
-      "group": "Getting started",
-      "status": "supported",
-      "audience": "Protocol and ecosystem teams",
-      "summary": "Supported interfaces and acceptance gates for future integrations."
-    },
-    {
-      "slug": "ecosystem-integration-roadmap",
-      "title": "Zcash ecosystem integration roadmap",
-      "group": "Getting started",
+      "slug": "releases",
+      "title": "Download and release artifacts",
+      "group": "Start here",
       "status": "partial",
-      "audience": "Wallet, node, infrastructure and SDK engineers",
-      "summary": "Practical adoption paths, upstream targets and verification gates."
+      "audience": "Application developers and maintainers",
+      "summary": "Standalone CLI distributions, bundled Rust/WASM SDK and Python wheel."
     },
     {
       "slug": "policy-format",
       "title": "Privacy policy format",
-      "group": "PCZT and wallet workflows",
+      "group": "Core concepts",
       "status": "supported",
       "audience": "Wallet engineers",
       "summary": "JSON configuration, signer profiles, shielded-only constraints and reporting."
     },
     {
-      "slug": "zallet-pczt-handoff",
-      "title": "Zallet PCZT handoffs",
-      "group": "PCZT and wallet workflows",
-      "status": "partial",
-      "audience": "Wallet and RPC engineers",
-      "summary": "Locally handle Zallet-style base64 PCZTs; live Zallet RPC still needs validation."
-    },
-    {
       "slug": "pczt-stage-regression",
       "title": "Stage regression testing",
-      "group": "PCZT and wallet workflows",
+      "group": "Core concepts",
       "status": "supported",
       "audience": "Privacy and wallet engineers",
       "summary": "Compare disclosure findings and component counts between two PCZT stages."
     },
     {
+      "slug": "zallet-pczt-handoff",
+      "title": "Zallet PCZT handoffs",
+      "group": "Core concepts",
+      "status": "partial",
+      "audience": "Wallet and RPC engineers",
+      "summary": "Locally handle Zallet-style base64 PCZTs; live Zallet RPC still needs validation."
+    },
+    {
       "slug": "handoff-harness",
       "title": "Offline role scenario harness",
-      "group": "PCZT and wallet workflows",
+      "group": "Core concepts",
       "status": "supported",
       "audience": "Rust and wallet SDK developers",
       "summary": "Run synthetic Creator, Updater, Combiner and Redactor acceptance scenarios."
     },
     {
-      "slug": "go-sdk",
-      "title": "Go SDK",
-      "group": "Developer automation",
-      "status": "supported",
-      "audience": "Go and infrastructure engineers",
-      "summary": "Invoke the canonical Rust engine from Go applications without a remote API."
-    },
-    {
       "slug": "zk-prover-handoffs",
       "title": "ZK and prover handoffs",
-      "group": "PCZT and wallet workflows",
+      "group": "Core concepts",
       "status": "partial",
       "audience": "ZK developers and cryptographers",
       "summary": "Use structural PCZT privacy tests around prover roles; proof verification is not implemented."
     },
     {
-      "slug": "cli-capabilities",
-      "title": "CLI capabilities and integration contract",
-      "group": "Developer automation",
+      "slug": "cli-reference",
+      "title": "CLI reference",
+      "group": "SDKs & APIs",
       "status": "supported",
-      "audience": "CLI, CI, wallet and agent developers",
-      "summary": "Discover local CLI operations, limits, versions, and exit codes from validated JSON."
+      "audience": "CLI and CI developers",
+      "summary": "Commands, flags, stdin formats, output shape, limits and exit codes."
+    },
+    {
+      "slug": "rust-api",
+      "title": "Rust library API",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Rust and wallet developers",
+      "summary": "Analyze local PCZT bytes and compare stages directly with the canonical Rust library."
+    },
+    {
+      "slug": "typescript-api",
+      "title": "TypeScript and browser API",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Frontend and wallet UI developers",
+      "summary": "Initialize trusted Rust/WASM, analyze local files and handle typed failures."
+    },
+    {
+      "slug": "python-api",
+      "title": "Python SDK API",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Python application developers",
+      "summary": "Configure the CLI-backed client, inspect local PCZTs and compare stages."
+    },
+    {
+      "slug": "go-sdk",
+      "title": "Go SDK",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Go and infrastructure engineers",
+      "summary": "Invoke the canonical Rust engine from Go applications without a remote API."
     },
     {
       "slug": "github-action",
       "title": "GitHub Actions integration",
-      "group": "Developer automation",
+      "group": "Automation",
       "status": "supported",
       "audience": "Application and CI engineers",
       "summary": "Run PCZT policy and synthetic lifecycle regression checks in another repository."
@@ -100,90 +124,42 @@
     {
       "slug": "agents",
       "title": "MCP and agent skills",
-      "group": "Developer automation",
+      "group": "Automation",
       "status": "supported",
       "audience": "AI-assisted engineering teams",
       "summary": "Read-only local agent tools for approved synthetic fixtures."
     },
     {
-      "slug": "package-managers",
-      "title": "Package managers",
-      "group": "Developer automation",
+      "slug": "report-reference",
+      "title": "Reports and error codes",
+      "group": "Reference",
       "status": "supported",
-      "audience": "JavaScript and TypeScript developers",
-      "summary": "Install and develop with pnpm, npm or Yarn."
+      "audience": "SDK and CI integrators",
+      "summary": "Stable report fields, stage deltas, failure meanings and interpretation boundaries."
     },
     {
-      "slug": "z3-local",
-      "title": "Zebra and Z3 diagnostics",
-      "group": "Node and infrastructure",
-      "status": "partial",
-      "audience": "Node operators and SREs",
-      "summary": "Loopback Zebra health checks, not consensus or indexer validation."
+      "slug": "cli-capabilities",
+      "title": "CLI capabilities and integration contract",
+      "group": "Reference",
+      "status": "supported",
+      "audience": "CLI, CI, wallet and agent developers",
+      "summary": "Discover local CLI operations, limits, versions, and exit codes from validated JSON."
     },
     {
       "slug": "rpc-contracts",
       "title": "Zcash RPC compatibility checks",
-      "group": "Node and infrastructure",
+      "group": "Reference",
       "status": "preview",
       "audience": "Zallet/Zebra integrators",
       "summary": "Offline OpenRPC method and parameter contract drift detection."
     },
     {
-      "slug": "ecosystem-research-2026-10",
-      "title": "Research and integration roadmap",
-      "group": "Research",
-      "status": "research",
-      "audience": "Ecosystem maintainers",
-      "summary": "Evidence-backed infrastructure opportunities and build priorities."
-    },
-    {
-      "slug": "documentation-workflow",
-      "title": "Contributing documentation",
-      "group": "Research",
-      "status": "supported",
-      "audience": "Zcash contributors and maintainers",
-      "summary": "Keep guides, integration tests and the frontend documentation catalog synchronized."
-    },
-    {
-      "slug": "deployment",
-      "title": "Deploy the developer frontend",
-      "group": "Getting started",
-      "status": "supported",
-      "audience": "Maintainers and deployment engineers",
-      "summary": "Vercel monorepo configuration, browser workbench routes, and privacy-safe release checks."
-    },
-    {
-      "slug": "sdk-distribution",
-      "title": "SDKs and lightweight installation",
-      "group": "Getting started",
+      "slug": "z3-local",
+      "title": "Zebra and Z3 diagnostics",
+      "group": "Reference",
       "status": "partial",
-      "audience": "Application developers",
-      "summary": "Zero-install browser tooling, source SDKs and versioned release roadmap."
-    },
-    {
-      "slug": "product-experience",
-      "title": "Product design and release policy",
-      "group": "Research",
-      "status": "supported",
-      "audience": "Product engineers",
-      "summary": "Visual system, motion, routes and deployment acceptance standards."
-    },
-    {
-      "slug": "releases",
-      "title": "Download and release artifacts",
-      "group": "Getting started",
-      "status": "partial",
-      "audience": "Application developers and maintainers",
-      "summary": "Standalone CLI distributions, bundled Rust/WASM SDK and Python wheel."
-    },
-    {
-      "slug": "responsive-design",
-      "title": "Responsive product design",
-      "group": "Research",
-      "status": "supported",
-      "audience": "UI contributors and maintainers",
-      "summary": "Shared max-width, mobile navigation, accessible tool layouts and regression tests."
+      "audience": "Node operators and SREs",
+      "summary": "Loopback Zebra health checks, not consensus or indexer validation."
     }
   ]
 }

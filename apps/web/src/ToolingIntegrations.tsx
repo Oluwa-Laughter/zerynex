@@ -11,19 +11,19 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
     description:'Run policy-as-code checks on a locally held PCZT. Exit status 0 is no findings, 2 means findings, and 1 indicates an input or runtime problem.',
     code:'cargo build --locked --release\n./target/release/zerynex apps/web/public/examples/transparent-v6.bin \\\n  --policy-file policies/shielded-only.json --json',
-    documentation: '/docs/policy-format',icon:LuTerminal,
+    documentation: '/docs/cli-reference',icon:LuTerminal,
   },
   {
     key:'typescript',label:'TypeScript SDK',title:'Integrate with a browser application',kind:'REACT + NEXT.JS',
     description:'Use the local TypeScript SDK with an initialized and trusted WASM module. This is a repository-local package; it has not been published on npm.',
     code:"import { createZerynexClient } from '@zerynex/sdk'\nimport init, { analyze_pczt_policy } from './wasm/zerynex.js'\n\nconst client = createZerynexClient({\n  loadEngine: async () => {\n    await init({ module_or_path: '/wasm/zerynex_bg.wasm' })\n    return { analyze_pczt_policy }\n  },\n})\nconst report = await client.analyzeBlob(file, {\n  deny_transparent: true,\n})",
-    documentation: '/docs/installation',icon:LuCode,
+    documentation: '/docs/typescript-api',icon:LuCode,
   },
   {
     key:'python',label:'Python SDK',title:'Automate local privacy tests',kind:'PYTHON 3.11+',
     description:'The current Python SDK invokes the same Rust CLI without duplicating PCZT parsing or sending files to a remote service.',
     code:"from zerynex_py import ZerynexClient, Policy\n\nclient = ZerynexClient(cli='./target/release/zerynex')\nreport = client.analyze_file(\n    'apps/web/public/examples/transparent-v6.bin',\n    Policy(deny_transparent=True),\n)\nprint(report.agent_summary())",
-    documentation: '/docs/installation',icon:LuCode,
+    documentation: '/docs/python-api',icon:LuCode,
   },
   {
     key:'go',label:'Go SDK',title:'Local policy checks for Go services',kind:'GO / RUST CLI',
@@ -101,7 +101,7 @@ export default function ToolingIntegrations() {
   return <section className="dev-integrations console-reveal" id="integrations" aria-label="Developer integrations">
     <div className="dev-integrations-heading">
       <div><span className="dev-integrations-index">04 / CONNECT YOUR TOOLCHAIN</span><h2>Integrate Zerynex <em>your way.</em></h2><p>Use the same Rust policy rules through the ecosystem your team already knows. No new hosted trust boundary.</p></div>
-      <Link href="/docs/package-managers">PACKAGE MANAGER GUIDE <LuArrowUpRight size={14}/></Link>
+      <Link href="/docs/quickstart">GET STARTED <LuArrowUpRight size={14}/></Link>
     </div>
     <div className="dev-integrations-shell">
       <div className="dev-integration-tabs" role="tablist" aria-label="Choose integration">
