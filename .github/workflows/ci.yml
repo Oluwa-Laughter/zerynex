@@ -152,6 +152,11 @@ jobs:
       - name: Verify real MCP stdio process with official client
         run: |
           zerynex-mcp-doctor             --server "$(command -v zerynex-mcp)"             --cli "$(pwd)/target/debug/zerynex"             --fixtures "$(pwd)/apps/web/public/examples"
+      - name: Run unified CLI + PCZT + RPC developer preflight
+        run: |
+          zerynex-agent-preflight \
+            --cli "$(pwd)/target/debug/zerynex" \
+            --fixtures "$(pwd)/apps/web/public/examples" --json
       - name: Verify Python wheel from a clean consumer virtualenv
         run: |
           python -m pip install build

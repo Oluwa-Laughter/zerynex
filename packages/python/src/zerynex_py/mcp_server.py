@@ -281,6 +281,33 @@ def create_server(client: ZerynexClient, root: Path):
         return evaluate_synthetic_smoke_suite(client, root)
 
     @server.tool()
+    def zerynex_core_capabilities() -> dict:
+        """Discover validated local Rust CLI operations and limits; no transaction file access."""
+        from .agent_workflows import core_capabilities
+        try:
+            return core_capabilities(client)
+        except ZerynexError:
+            return {"error": "Local Rust CLI capabilities are unavailable."}
+
+    @server.tool()
+    def check_synthetic_zallet_rpc_contract(scenario: str = "baseline") -> dict:
+        """Check a bundled synthetic Zallet PCZT method schema. Scenarios: baseline, missing_method, new_required_parameter. Never connects to an RPC server."""
+        from .agent_workflows import synthetic_zallet_rpc_contract
+        try:
+            return synthetic_zallet_rpc_contract(scenario)
+        except ZerynexError:
+            return {"error": "Synthetic RPC regression scenario was rejected."}
+
+    @server.tool()
+    def run_zerynex_developer_preflight() -> dict:
+        """Verify local CLI capabilities, four Rust synthetic PCZT checks and bundled synthetic RPC contract. No wallet access."""
+        from .agent_workflows import developer_preflight
+        try:
+            return developer_preflight(client, root)
+        except ZerynexError:
+            return {"error": "Local developer preflight failed or is misconfigured."}
+
+    @server.tool()
     def zerynex_policy_schema() -> dict:
         """Describe supported Zcash disclosure checks without accessing private files."""
         return {

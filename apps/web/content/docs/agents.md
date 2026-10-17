@@ -3,7 +3,7 @@
 Zerynex supplies a portable Agent Skill and an optional local MCP server
 for Zcash privacy engineering. Agents work with sanitized policy findings,
 never raw intermediate transactions. The current implementation uses a real
-MCP 2.x stdio server with the canonical Rust CLI and **six verified tools**.
+MCP 2.x stdio server with the canonical Rust CLI and **nine verified tools**.
 
 You can start at [the Agent Tools page](/agents): choose Cursor, Claude
 Desktop or VS Code, enter three local absolute paths, and copy the
@@ -42,7 +42,7 @@ diagnostic:
 
     /absolute/path/to/zerynex/.venv/bin/zerynex-mcp-doctor       --server /absolute/path/to/zerynex/.venv/bin/zerynex-mcp       --cli /absolute/path/to/zerynex/target/release/zerynex       --fixtures /absolute/path/to/zerynex/apps/web/public/examples
 
-It launches an independent stdio MCP server process, discovers all six
+It launches an independent stdio MCP server process, discovers all nine
 tools, executes three real Rust scans plus a stage comparison against
 approved synthetic fixtures, and reports how many of four expectations
 matched. Exit 0 = connected and all expectations matched; 1 = connection/
@@ -80,6 +80,47 @@ is missing, its case fails closed.
 
 zerynex_policy_schema returns documentation about the currently supported
 rules, with no file access.
+
+## Unified developer preflight and offline RPC regressions
+
+The installed Python wheel also ships `zerynex-agent-preflight`, which joins
+**Rust CLI capability discovery**, four real Rust-backed synthetic PCZT checks,
+and a bundled **seven-method synthetic Zallet OpenRPC contract** into one
+sanitized result. This is usable from CI without an MCP host or network
+service:
+
+```bash
+zerynex-agent-preflight \
+  --cli /absolute/path/to/zerynex \
+  --fixtures /absolute/path/to/approved-synthetic-fixtures \
+  --json
+```
+
+Exit status: `0` all checks matched; `2` a synthetic check failed; `1`
+configuration or execution error. The check does **not** prove compatibility
+with any Zallet release or confirm real wallet transaction safety.
+
+Three additional read-only MCP tools expose the same verified components:
+
+- `zerynex_core_capabilities`: validated Rust CLI operations and limits,
+  without reading a transaction file
+- `check_synthetic_zallet_rpc_contract`: takes only `baseline`,
+  `missing_method` or `new_required_parameter` as a fixed scenario; tests
+  bundled, nonspendable synthetic RPC schemas; an intentionally failing
+  contract is an **expected successful regression detection**
+- `run_zerynex_developer_preflight`: checks CLI, synthetic PCZT suite and
+  synthetic RPC contract together, with explicit per-component statuses
+
+No agent can submit arbitrary filesystem paths, credentials, RPC URLs, raw
+PCZTs or untrusted OpenRPC JSON to these tools. The two synthetic JSON files
+are included in the Python wheel and compared against the repository's
+canonical fixtures in tests. Developers working with actual wallet
+schemas should run the standalone `zerynex-rpc-check` **themselves** on
+protected local files, rather than sending the schema to an agent.
+
+The MCP doctor verifies these tools against a genuine stdio subprocess,
+including one negative RPC regression. See the [RPC contract guide](rpc-contracts.md)
+and [CLI capability contract](cli-capabilities.md).
 
 Use a dedicated synthetic-fixture directory and keep actual wallet files,
 secrets and production data elsewhere. The file root is explicitly trusted
@@ -138,7 +179,7 @@ After connecting a supported MCP host, ask your assistant:
 The expected tool calls are list_synthetic_fixtures,
 run_synthetic_smoke_suite, and explain_zerynex_rule. With the checked-in
 fixtures and compiled trusted Rust CLI, the smoke suite should report
-4/4 matched; the final output is only rule and path metadata.
+4/4 matched, with the developer preflight and synthetic RPC negative test also passing; the final output is only status, rule and path metadata.
 A host may require you to approve tool execution first.
 
 For a developer pull-request workflow, compare

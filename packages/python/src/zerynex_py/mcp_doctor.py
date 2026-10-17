@@ -39,6 +39,9 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
             "explain_zerynex_rule",
             "run_synthetic_smoke_suite",
             "zerynex_policy_schema",
+            "zerynex_core_capabilities",
+            "check_synthetic_zallet_rpc_contract",
+            "run_zerynex_developer_preflight",
         }
         if not needed.issubset(names):
             raise RuntimeError("Local server does not expose all expected MCP capabilities.")
@@ -54,6 +57,25 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
         if not isinstance(result, dict):
             raise RuntimeError("Invalid synthetic suite response.")
         ok = result.get("passed") is True and result.get("total") == 4 and result.get("matched") == 4
+        readiness = await agent.call_tool("run_zerynex_developer_preflight", {})
+        preflight = readiness.structured_content
+        if not isinstance(preflight, dict):
+            from mcp.types import TextContent
+            blocks = [item for item in readiness.content if isinstance(item, TextContent)]
+            preflight = json.loads(blocks[0].text) if len(blocks) == 1 else None
+        if not isinstance(preflight, dict):
+            raise RuntimeError("Invalid developer preflight response.")
+        regression = await agent.call_tool("check_synthetic_zallet_rpc_contract", {"scenario": "new_required_parameter"})
+        drift = regression.structured_content
+        if not isinstance(drift, dict):
+            from mcp.types import TextContent
+            blocks = [item for item in regression.content if isinstance(item, TextContent)]
+            drift = json.loads(blocks[0].text) if len(blocks) == 1 else None
+        if not isinstance(drift, dict):
+            raise RuntimeError("Invalid regression response.")
+        ready = preflight.get("passed") is True and preflight.get("synthetic_only") is True
+        negative = (drift.get("contract_passed") is False and drift.get("matched_expectation") is True
+                    and drift.get("finding_count") == 1)
         return {
             "connected": True,
             "tool_count": len(names),
@@ -61,6 +83,8 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
             "suite_passed": ok,
             "suite_matched": result.get("matched", 0),
             "suite_total": result.get("total", 4),
+            "preflight_passed": ready,
+            "rpc_regression_detected": negative,
             "note": "MCP stdio subprocess and real Rust CLI. Synthetic inputs only.",
         }
 
@@ -90,8 +114,10 @@ def main() -> None:
         print("MCP stdio: connected")
         print("Discovered tools:", report["tool_count"])
         print("Synthetic Rust checks:", str(report["suite_matched"]) + "/" + str(report["suite_total"]))
-        print("Result:", "PASS" if report["suite_passed"] else "FAIL")
-    raise SystemExit(0 if report["suite_passed"] else 2)
+        print("Developer preflight:", "PASS" if report["preflight_passed"] else "FAIL")
+        print("Synthetic RPC drift detected:", "YES" if report["rpc_regression_detected"] else "NO")
+        print("Result:", "PASS" if report["suite_passed"] and report["preflight_passed"] and report["rpc_regression_detected"] else "FAIL")
+    raise SystemExit(0 if report["suite_passed"] and report["preflight_passed"] and report["rpc_regression_detected"] else 2)
 
 
 if __name__ == "__main__":

@@ -53,6 +53,19 @@ def check_wheel(folder: Path, cli: Path) -> None:
         if report.get("passed") is not True or report.get("checked_methods") != 7 or report.get("deny_new_required") is not True:
             raise AssertionError("Installed RPC CLI returned an unexpected capability contract")
         print("PACKED RPC CONSUMER PASS: installed wheel CLI validates seven synthetic methods")
+        preflight = venv_dir / ("Scripts/zerynex-agent-preflight.exe" if sys.platform == "win32" else "bin/zerynex-agent-preflight")
+        if not preflight.is_file():
+            raise AssertionError("Developer preflight was not installed from the wheel")
+        completed = subprocess.run([
+            str(preflight), "--cli", str(cli.resolve()),
+            "--fixtures", str((ROOT / "apps/web/public/examples").resolve()), "--json",
+        ], capture_output=True, text=True, timeout=30, check=True)
+        result = json.loads(completed.stdout)
+        if (result.get("passed") is not True or result.get("synthetic_only") is not True or
+                result.get("checks", {}).get("synthetic_pczt_suite", {}).get("matched") != 4):
+            raise AssertionError("Installed developer preflight did not validate Rust-backed synthetic fixtures")
+        print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT and RPC components")
+
 
 
 if __name__ == "__main__":

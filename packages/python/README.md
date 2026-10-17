@@ -69,7 +69,7 @@ Run a real local stdio MCP diagnostic before connecting an AI assistant:
 
     zerynex-mcp-doctor --server /abs/path/to/zerynex-mcp --cli /abs/path/to/zerynex --fixtures /abs/path/to/synthetic-fixtures
 
-It discovers six tools and checks four Rust-backed synthetic expectations.
+It discovers nine tools, checks four Rust-backed synthetic expectations, and verifies the unified developer preflight and an expected RPC regression.
 Exit 0 means all matched, 1 means setup failed, 2 means a test mismatched.
 The public /agents frontend also generates client-specific configuration
 for common MCP hosts; it does not execute the MCP process in-browser.
@@ -126,10 +126,12 @@ See docs/pczt-stage-regression.md.
 
 ## Real MCP developer workflows
 
-Six read-only tools are available through the official MCP protocol:
+Nine read-only tools are available through the official MCP protocol:
 analyze_synthetic_pczt, compare_synthetic_pczt_stages,
 list_synthetic_fixtures, explain_zerynex_rule,
-run_synthetic_smoke_suite, and zerynex_policy_schema.
+run_synthetic_smoke_suite, zerynex_policy_schema,
+zerynex_core_capabilities, check_synthetic_zallet_rpc_contract,
+and run_zerynex_developer_preflight.
 
 A tested host workflow can list allowed .bin fixtures, analyze a synthetic
 transparent output, explain the corresponding privacy rule, and compare
@@ -150,3 +152,17 @@ print(caps.version, caps.operations, caps.max_decoded_pczt_bytes)
 ```
 
 The wrapper rejects unsupported capability versions and unsafe output. This does not imply any live Zallet wallet or network compatibility. See `docs/cli-capabilities.md`.
+
+## Unified CLI + MCP + agent preflight
+
+```bash
+zerynex-agent-preflight --cli /absolute/path/to/zerynex \
+  --fixtures /absolute/path/to/approved-synthetic-fixtures --json
+```
+
+The command works without MCP or network dependencies. It checks the installed
+Rust CLI's capabilities, four real synthetic PCZT invariants and a bundled
+Zallet-style synthetic RPC contract. Exit codes: pass `0`, input/error `1`,
+regression mismatch `2`. The agent MCP tools use the same implementation,
+including a fixed RPC regression scenario menu with **no arbitrary files**.
+See `docs/agents.md` for the trust boundaries.

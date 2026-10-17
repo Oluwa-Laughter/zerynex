@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires a trusted local Zerynex Rust CLI and synthetic PCZT test fixtures. Python 3.11+ is needed for optional MCP tools. No remote analysis or wallet secrets required.
 metadata:
   author: zerynex
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Zcash privacy engineering skill
@@ -46,12 +46,14 @@ This should return PCZT-TRANSPARENT-OUTPUTS and exit status 2.
 
 The read-only local server exposes analyze_synthetic_pczt,
 compare_synthetic_pczt_stages, list_synthetic_fixtures,
-explain_zerynex_rule, run_synthetic_smoke_suite and
-zerynex_policy_schema. The tools use the canonical Rust CLI.
+explain_zerynex_rule, run_synthetic_smoke_suite,
+zerynex_policy_schema, zerynex_core_capabilities,
+check_synthetic_zallet_rpc_contract and run_zerynex_developer_preflight. The tools use the canonical Rust CLI.
 
 Before enabling a host, run zerynex-mcp-doctor with explicit --server,
 --cli and --fixtures paths to verify a genuine stdio connection and
-4/4 expected synthetic regressions. No hosted MCP connection exists.
+4/4 expected synthetic PCZT results, CLI capabilities, and a deliberate
+RPC contract regression. No hosted MCP connection exists.
 See docs/agents.md for opt-in setup.
 ZERYNEX_AGENT_ALLOWED_ROOT should designate synthetic fixtures only.
 
@@ -71,3 +73,19 @@ Separate policy findings from proven vulnerabilities and untested hypotheses.
    clean-v6.bin and flagged-v6.bin and explain the introduced finding.
 5. Report the exact implemented limitations and never claim a
    cryptographic privacy guarantee or perform signing.
+
+## Unified preflight workflow
+
+1. Invoke zerynex_core_capabilities; report supported local operations and
+   input limits. This metadata is not permission to open wallet files.
+2. Invoke run_zerynex_developer_preflight; report which of the three
+   synthetic-only checks passed, without confusing fixture expectations
+   with actual transaction safety.
+3. Invoke check_synthetic_zallet_rpc_contract with scenario
+   new_required_parameter and explain the RPC-NEW-REQUIRED-PARAMETER finding
+   as an intentionally introduced breaking change.
+4. Only use the fixed scenario names; never request an RPC URL, wallet
+   credentials or real PCZT contents through MCP. Tell developers to run
+   standalone zerynex-rpc-check themselves for pinned upstream schemas.
+5. If any check fails, report the failure instead of fabricating successful
+   compatibility or security certification.

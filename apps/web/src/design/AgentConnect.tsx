@@ -128,6 +128,7 @@ export default function AgentConnect() {
       <span><LuBookOpen size={16}/> Working tool names</span>
       <code>list_synthetic_fixtures</code><code>analyze_synthetic_pczt</code><code>compare_synthetic_pczt_stages</code>
       <code>run_synthetic_smoke_suite</code><code>explain_zerynex_rule</code><code>zerynex_policy_schema</code>
+      <code>zerynex_core_capabilities</code><code>check_synthetic_zallet_rpc_contract</code><code>run_zerynex_developer_preflight</code>
     </div>
   </section>
 }
