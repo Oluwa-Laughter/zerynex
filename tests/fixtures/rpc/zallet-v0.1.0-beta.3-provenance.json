@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "upstream": "zcash/zallet",
+  "release": "v0.1.0-beta.3",
+  "commit": "987382f67e622915228686e9f956c6a9c9a7514c",
+  "path": "book/src/rpc/methods.md",
+  "sha256": "28291ce511208e1dd1deb96683d701d0684e8da2c58df79037ef1a745a018d4a",
+  "contract": "tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json",
+  "evidence_type": "Generated upstream RPC method documentation; not a live rpc.discover response or PCZT handoff fixture"
+}

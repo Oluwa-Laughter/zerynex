@@ -16,7 +16,7 @@ Start with the copyable [consumer CI starter](https://github.com/Oluwa-Laughter/
 
 ## Upstream compatibility targets (not yet verified end-to-end)
 
-1. **Zallet + PCZT RPC:** test local base64 PCZT handoffs against actual version-pinned Zallet producer output and expected field disclosures. Base64 transport alone is not RPC interoperability.
+1. **Zallet + PCZT RPC:** Zallet beta.3's generated RPC book is now SHA-256-pinned and checked for the seven method/parameter signatures in CI. Still test local base64 PCZT handoffs against actual version-pinned Zallet producer output and expected field disclosures. Neither documentation verification nor base64 transport alone proves runtime RPC interoperability.
 2. **Zebra / Z3:** strengthen local readiness diagnostics against versioned node responses, with explicit auth and loopback restrictions. Liveness is not consensus correctness.
 3. **lightwalletd:** add **opt-in** endpoint diagnostics based on `GetLightdInfo`; avoid interpreting a successful health response as a guarantee of syncing, privacy, or wallet correctness.
 4. **Zaino / indexer:** add a read-only adapter for trusted local fixtures and version-pinned protocol definitions; surface chain mismatch and indexing lag distinctly.

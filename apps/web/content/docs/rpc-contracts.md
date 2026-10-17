@@ -69,6 +69,40 @@ An integration can only claim tested support after validating a specific
 upstream release binary and matching real, non-sensitive schema output.
 The checker never calls the wallet, signs, proves or extracts transactions.
 
+## Release-pinned upstream evidence: Zallet v0.1.0-beta.3
+
+On October 17, 2026, Zerynex checked the seven covered method signatures
+against **Zallet `v0.1.0-beta.3`**, at source commit
+`987382f67e622915228686e9f956c6a9c9a7514c`.
+The source is Zallet's **generated RPC reference**, not Zerynex's
+handwritten synthetic fixture. Zallet ships tests tying that book reference
+to its RPC method declarations. The source SHA-256 is pinned in
+`tests/fixtures/rpc/zallet-v0.1.0-beta.3-provenance.json`.
+
+Retrieve only that public, immutable upstream reference and verify it:
+
+```bash
+curl -fsSL \
+  https://raw.githubusercontent.com/zcash/zallet/987382f67e622915228686e9f956c6a9c9a7514c/book/src/rpc/methods.md \
+  -o /tmp/zallet-v0.1.0-beta.3-methods.md
+python3 scripts/verify_zallet_upstream_contract.py \
+  --source /tmp/zallet-v0.1.0-beta.3-methods.md --json
+```
+
+The verifier rejects incorrect bytes, repeated/missing methods, unexpected
+required flags, changed parameter order, nested recipient field confusion,
+and a narrowed local contract. Its tests include positive and negative
+cases; CI runs the real pinned comparison on every push. It makes **no
+RPC or wallet call** and never echoes upstream document contents.
+
+**Verified:** Release-pinned documentation-level method names, parameter
+order and required/optional flags, including `rpc.discover` and six PCZT
+methods. **Not verified:** A running release binary's generated
+`rpc.discover`, exact runtime behavior, base64 PCZTs created/proven/signed
+by Zallet, wallet permissions, proofs, or transaction extraction. These
+are separate compatibility milestones; do not call this a live Zallet
+integration.
+
 ## Installable CLI for external Python projects
 
 The `zerynex-python` wheel includes `zerynex-rpc-check` as a command-line

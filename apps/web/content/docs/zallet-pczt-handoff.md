@@ -85,6 +85,11 @@ Use cases to test in your own trusted environment:
 These are integration patterns, **not** a claim that Zerynex calls Zallet
 RPC or verifies a full live wallet lifecycle.
 
+The [release-pinned Zallet RPC evidence](rpc-contracts.md) verifies the
+published beta.3 method/parameter signatures independently of the
+synthetic fixtures. It does not yet validate an actual Zallet-generated
+PCZT or wallet signer handoff.
+
 ## Tests and next interoperability gate
 
 Our tests generate harmless v6 PCZT fixtures with the upstream Rust pczt

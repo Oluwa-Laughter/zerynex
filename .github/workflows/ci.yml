@@ -282,3 +282,15 @@ jobs:
         run: python3 scripts/check_rpc_contract.py --schema tests/fixtures/rpc/zallet-pczt-lifecycle-synthetic-openrpc.json --contract tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json --deny-new-required --json
       - name: Offline RPC compatibility tests
         run: python3 -m unittest discover -s tests -p test_rpc_contract.py -v
+      - name: Verify PCZT method contract from pinned Zallet beta.3 generated reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file="$(mktemp)"
+          trap 'rm -f "$source_file"' EXIT
+          curl --fail --silent --show-error --location --retry 3 --max-time 40 \
+            'https://raw.githubusercontent.com/zcash/zallet/987382f67e622915228686e9f956c6a9c9a7514c/book/src/rpc/methods.md' \
+            --output "$source_file"
+          python3 scripts/verify_zallet_upstream_contract.py --source "$source_file" --json
+          ZALLET_PINNED_RPC_SOURCE="$source_file" python3 -m unittest discover \
+            -s tests -p test_zallet_pinned_contract.py -v
