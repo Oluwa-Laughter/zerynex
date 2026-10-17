@@ -80,6 +80,8 @@ jobs:
         run: |
           pnpm build
           pnpm test
+      - name: Verify distributable SDK from a clean offline consumer
+        run: node scripts/test-sdk-packed.mjs
       - name: Install frontend dependencies
         working-directory: apps/web
         run: pnpm install --frozen-lockfile
@@ -148,6 +150,11 @@ jobs:
       - name: Verify real MCP stdio process with official client
         run: |
           zerynex-mcp-doctor             --server "$(command -v zerynex-mcp)"             --cli "$(pwd)/target/debug/zerynex"             --fixtures "$(pwd)/apps/web/public/examples"
+      - name: Verify Python wheel from a clean consumer virtualenv
+        run: |
+          python -m pip install build
+          python -m build packages/python --sdist --wheel --outdir dist/python
+          python scripts/test-python-wheel.py dist/python
       - name: Validate portable Agent Skill structure
         run: python scripts/validate-agent-skill.py
       - name: Verify CLI never writes a wallet secret to findings

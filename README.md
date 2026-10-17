@@ -243,3 +243,12 @@ and System themes. See docs/product-experience.md.
 
 For no-install browser use and lightweight adapter distribution, see
 docs/sdk-distribution.md. Unpublished SDKs are identified explicitly.
+
+## Distribution and installation
+
+Zerynex now builds independently validated OS-native Rust CLI archives,
+a Python wheel with local MCP tools, and a TypeScript npm tarball that
+contains its **matching Rust/WASM runtime**. See
+[release artifacts](docs/releases.md). The distribution workflow
+supports manual artifact builds and releases from explicit version tags.
+These artifacts are not yet published on the npm/PyPI/crates.io registries.

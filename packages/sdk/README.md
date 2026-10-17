@@ -12,8 +12,35 @@ When published, users will be able to install it with any standard package manag
     yarn add @zerynex/sdk
     pnpm add @zerynex/sdk
 
-The SDK is currently only used as a local dependency from this repository
-and is **not yet published on the npm registry**.
+The SDK is **not yet published on npm**, but we now build a
+self-contained tarball containing the actual Rust/WebAssembly runtime.
+A consuming application does not need to compile Rust or clone the
+monorepo. Install a downloaded archive with your package manager:
+
+    npm install ./zerynex-sdk-0.1.0.tgz
+
+The new browser entry point initializes the engine shipped inside the archive:
+
+~~~ts
+import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
+
+// Provide trusted wasm bytes if your bundler needs explicit asset handling.
+const client = createBrowserZerynexClient({ wasm: trustedWasmBytes })
+const report = await client.analyzeBlob(file, { deny_transparent: true })
+console.log(report.findings)
+~~~
+
+The asset export is `@zerynex/sdk/wasm/zerynex_bg.wasm`.
+With compatible wasm-bindgen asset hosting, the factory can auto-load
+the adjacent WASM binary. Verify this in your chosen browser bundler.
+No transaction contents are uploaded by this library.
+
+Our test packs the SDK, installs it into an unrelated offline npm
+consumer and executes real Rust/WASM PCZT checks:
+
+    npm run build
+    cd ../..
+    node scripts/test-sdk-packed.mjs
 
 ## API
 

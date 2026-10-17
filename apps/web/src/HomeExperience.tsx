@@ -16,7 +16,7 @@ const capabilities = [
   {n:'03', title:'Role handoffs',desc:'Replay reproducible PCZT role snapshots against expected privacy invariants.',icon:LuLayers,href:'/tools/handoff',state:'SYNTHETIC TESTS'},
   {n:'04', title:'SDK and CI',desc:'Add checks to app pipelines with one canonical Rust engine and reusable adapters.',icon:LuTerminal,href:'/docs/installation',state:'SOURCE INTEGRATIONS'},
 ]
-const code = "const zerynex = createZerynexClient({\n  loadEngine: loadTrustedWasm\n})\n\nconst report = await zerynex.analyzeBlob(\n  file,\n  { deny_transparent: true }\n)\n\nconsole.log(report.findings)"
+const code = "import { createBrowserZerynexClient } from '@zerynex/sdk/browser'\n\nconst client = createBrowserZerynexClient({ wasm: trustedWasmBytes })\n\nconst report = await client.analyzeBlob(file, { deny_transparent: true })\nconsole.log(report.findings)"
 
 function MotionTitle({children,className=''}:{children:React.ReactNode,className?:string}) {
   return <motion.div className={className} initial={false}>{children}</motion.div>
@@ -129,9 +129,9 @@ export default function HomeExperience() {
         <div className="zn-adoption-actions"><Link className="zn-primary" href="/ecosystem">Choose a language <LuArrowUpRight size={17}/></Link><Link href="/docs/installation" className="zn-secondary">Integration guide <LuBookOpen size={17}/></Link></div>
       </div>
       <div className="zn-code-surface zn-scroll-reveal">
-        <div><span>TypeScript / source SDK example</span><LuTerminal size={17}/></div>
+        <div><span>TypeScript / packaged Rust WASM SDK</span><LuTerminal size={17}/></div>
         <pre><code>{code}</code></pre>
-        <div><span>Local Rust/WASM · package publication in progress</span><LuCheckCheck size={17}/></div>
+        <div><span>Local Rust/WASM · npm tarball tested, registry pending</span><LuCheckCheck size={17}/></div>
       </div>
     </section>
     <section className="zn-agent-feature zn-scroll-reveal">

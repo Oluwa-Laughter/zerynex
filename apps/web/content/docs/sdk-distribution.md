@@ -8,9 +8,9 @@ For applications, use the smallest compatible interface:
 
 | Language | Integration | Current availability |
 | --- | --- | --- |
-| TypeScript | SDK backed by Rust/WASM | Repository-local, not yet npm-published |
-| Rust | Canonical library and CLI | Source/Cargo Git install |
-| Python | Adapter invoking the trusted Rust CLI | Source package, not PyPI-published |
+| TypeScript | SDK bundled with Rust/WASM | Tested npm tarball, registry release pending |
+| Rust | Canonical library and CLI | Tested OS-native archive and Cargo Git source install |
+| Python | Adapter invoking the trusted Rust CLI | Tested wheel; PyPI release pending |
 | Go | Source module invoking the trusted Rust CLI | Not independently tagged yet |
 | Agents | Restricted stdio MCP and Agent Skill | Explicit opt-in source integration |
 | CI | Composite GitHub Action | Commit-SHA pinning and synthetic fixtures |
@@ -18,6 +18,16 @@ For applications, use the smallest compatible interface:
 One Rust parser and policy engine avoids duplicated security-critical
 cryptographic code and keeps findings consistent. TypeScript runs it as
 WASM. Python and Go currently invoke the local executable.
+
+## Distributable artifacts
+
+Zerynex builds standalone Rust CLI archives, a compiled Python wheel and
+a TypeScript SDK tarball containing its matching Rust/WASM engine.
+Each format is independently tested outside the monorepo against real
+synthetic PCZT fixtures. See [download and release artifacts](releases.md).
+
+npm, PyPI and crates.io registry publication is **not** complete. GitHub
+Actions build artifacts and explicitly tagged GitHub releases are separate.
 
 ## Rust CLI without cloning the Next.js app
 

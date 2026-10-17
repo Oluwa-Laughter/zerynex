@@ -438,3 +438,20 @@ test('manual PCZT upload wins over delayed synthetic preset requests',async ({pa
   await expect(page.getByText('clean-synthetic-v6.pczt')).toHaveCount(0)
   await expect(page.getByText('flagged-synthetic-v6.pczt')).toHaveCount(0)
 })
+
+
+test('download documentation describes independently tested packages',async ({page})=>{
+  await page.goto('/docs/releases')
+  await expect(page.getByRole('heading',{name:/Download Zerynex without cloning/})).toBeVisible()
+  await expect(page.getByText('npm install ./zerynex-sdk-0.1.0.tgz',{exact:false})).toBeVisible()
+  await expect(page.getByText('not automatically publish',{exact:false})).toBeVisible()
+})
+
+test('TypeScript onboarding uses bundled WebAssembly SDK and flags unpublished registry',async ({page})=>{
+  await page.goto('/ecosystem')
+  await page.getByRole('button',{name:/^TypeScript/}).click()
+  await expect(page.getByText('createBrowserZerynexClient',{exact:false}).first()).toBeVisible()
+  await expect(page.getByText('Public npm registry publication',{exact:false})).toBeVisible()
+  await page.getByRole('link',{name:'Read integration guide'}).click()
+  await expect(page).toHaveURL(/\/docs\/releases/)
+})

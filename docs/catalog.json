@@ -152,6 +152,14 @@
       "status": "supported",
       "audience": "Product engineers",
       "summary": "Visual system, motion, routes and deployment acceptance standards."
+    },
+    {
+      "slug": "releases",
+      "title": "Download and release artifacts",
+      "group": "Getting started",
+      "status": "partial",
+      "audience": "Application developers and maintainers",
+      "summary": "Standalone CLI distributions, bundled Rust/WASM SDK and Python wheel."
     }
   ]
 }

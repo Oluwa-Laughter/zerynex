@@ -1,6 +1,7 @@
 # Install and integrate Zerynex
 
-**Try Zerynex without installing anything:** [Open the browser workbench](/tools). For application integration, see [SDK and lightweight installation](sdk-distribution.md) and confirm publication status before copying registry commands.
+**Try Zerynex without installing anything:** [Open the browser workbench](/tools).
+For release archives and the SDK tarball/wheel, see [Downloads](releases.md). For application integration, see [SDK and lightweight installation](sdk-distribution.md) and confirm publication status before copying registry commands.
 
 Zerynex is a **local-first Rust privacy policy engine** for Zcash PCZT workflows.
 A node, wallet, hosted account or API token is not needed for synthetic PCZT
@@ -12,7 +13,7 @@ linting or role-handoff regression tests.
 | --- | --- | --- |
 | Rust CLI and library | Wallets, CI, Rust programs | Supported from source |
 | PCZT role scenario runner | Offline wallet developer acceptance tests | Supported from source |
-| TypeScript/WASM SDK | React/Next.js and browser wallet UIs | Repository-local; not published |
+| TypeScript/WASM SDK | React/Next.js and browser wallet UIs | Packaged WASM tarball tested; npm registry not published |
 | Python SDK | Automation and Python test suites | Calls trusted Rust CLI |
 | GitHub Action | Repository pull-request checks | Supported with synthetic fixtures |
 | MCP and Agent Skill | Read-only agent workflows | Optional and local |
