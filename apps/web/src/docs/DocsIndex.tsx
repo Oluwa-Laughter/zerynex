@@ -31,8 +31,8 @@ export default function DocsIndex() {
   return <div ref={root}>
     <div className="docs-intro">
       <span className="docs-kicker">DEVELOPER KNOWLEDGE BASE / ZERYNEX 0.1</span>
-      <h1>Build with <em>confidence.</em></h1>
-      <p>Actual installation guides, tested workflows, SDK integration examples and explicit support boundaries. Every guide is sourced from the repository docs folder.</p>
+      <h1>Build on Zcash with <em>clear documentation.</em></h1>
+      <p>Follow real Zcash privacy-policy checks, PCZT handoff scenarios, RPC compatibility research, SDK setup and agent workflows. Guides distinguish runnable capabilities from preview integrations and future work.</p>
       <div className="docs-intro-stats">
         <span><LuBookOpen size={18}/> {guides.length} guides</span>
         <span><LuTerminal size={18}/> Code-first tutorials</span>

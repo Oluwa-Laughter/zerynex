@@ -1,10 +1,22 @@
 # Zerynex
 
-**Privacy is a property. Not a promise.**
+**Privacy-policy analysis and regression testing for Zcash transaction infrastructure.**
 
-A Rust-first privacy-policy toolkit for Zcash Partially Created Zcash Transactions (PCZTs). Created for Zecathon 2026's **Core & Tooling** track.
+Zerynex is a local-first, Rust-powered toolkit for developers building on Zcash: inspect Partially Created Zcash Transaction (PCZT) disclosures, compare privacy policies across transaction stages, validate synthetic wallet role handoffs, and integrate reproducible checks into application CI. Rust, TypeScript, Python, Go and MCP are interfaces into that foundation—not the limits of the product. Originally created for Zecathon 2026's **Core & Tooling** track.
+
+**Try it without installing anything:** https://zerynex.vercel.app/tools
+
 
 **Problem:** ZIP-374 intermediary PCZT files may carry sensitive metadata that never appears in a final shielded transaction. Zerynex helps developers establish explicit policies at those handoff boundaries.
+
+## Developer workflows
+
+- **PCZT policy inspection**: local browser/Rust checks for supported disclosure rules and selected pool-component policies.
+- **Transaction-stage regression tests**: compare two local PCZT snapshots and report newly introduced findings.
+- **Wallet signer/handoff scenarios**: verify deterministic synthetic Creator, Updater, Combiner and Redactor checkpoints.
+- **CI and SDK integration**: reuse the canonical Rust engine with CLI, WebAssembly and language adapters.
+- **Infrastructure diagnostics**: offline RPC contract drift and limited local node-readiness checks; live RPC, consensus and indexer integration are not complete.
+- **Agent tooling**: explicitly authorized, read-only MCP operations for approved synthetic fixtures, not private wallet contents.
 
 ## Architecture
 

@@ -16,6 +16,39 @@ const capabilities = [
   {n:'03', title:'Role handoffs',desc:'Replay reproducible PCZT role snapshots against expected privacy invariants.',icon:LuLayers,href:'/tools/handoff',state:'SYNTHETIC TESTS'},
   {n:'04', title:'SDK and CI',desc:'Add checks to app pipelines with one canonical Rust engine and reusable adapters.',icon:LuTerminal,href:'/docs/installation',state:'SOURCE INTEGRATIONS'},
 ]
+const ecosystemWorkflows = [
+  {
+    code: '01', type: 'SUPPORTED / LOCAL WASM',
+    title: 'Transaction privacy policies',
+    description: 'Inspect PCZT fields, detect transparent components and review disclosure rules before a transaction is handed off.',
+    href: '/tools', cta: 'Run policy inspector',
+  },
+  {
+    code: '02', type: 'SUPPORTED / SYNTHETIC REGRESSION',
+    title: 'Wallets and signing handoffs',
+    description: 'Compare PCZT stages and test upstream Creator, Updater, Combiner and Redactor fixtures without exposing wallet data.',
+    href: '/tools/handoff', cta: 'Run handoff checks',
+  },
+  {
+    code: '03', type: 'SUPPORTED / CI + SDK',
+    title: 'Protocol and application CI',
+    description: 'Catch new findings across transaction stages through the Rust CLI, SDKs and reproducible pull-request checks.',
+    href: '/tools/stages', cta: 'Compare transaction stages',
+  },
+  {
+    code: '04', type: 'PREVIEW / OFFLINE CONTRACTS',
+    title: 'Node and RPC integrations',
+    description: 'Check offline RPC schema compatibility and explore loopback Zebra diagnostics. Live consensus and indexer validation are not supported yet.',
+    href: '/docs/rpc-contracts', cta: 'Explore RPC compatibility',
+  },
+  {
+    code: '05', type: 'SUPPORTED / APPROVED FIXTURES',
+    title: 'Agent-assisted privacy reviews',
+    description: 'Connect restricted local MCP tools, inspect synthetic fixtures and explain known privacy-policy findings.',
+    href: '/agents', cta: 'Explore agent workflows',
+  },
+] as const
+
 const code = "import { createBrowserZerynexClient } from '@zerynex/sdk/browser'\n\nconst client = createBrowserZerynexClient({ wasm: trustedWasmBytes })\n\nconst report = await client.analyzeBlob(file, { deny_transparent: true })\nconsole.log(report.findings)"
 
 function MotionTitle({children,className=''}:{children:React.ReactNode,className?:string}) {
@@ -81,11 +114,11 @@ export default function HomeExperience() {
   return <main className="zn-home" ref={scope}>
     <section className="zn-hero">
       <div className="zn-hero-content">
-        <MotionTitle className="zn-overline"><span className="zn-overline-dot"/> ZCASH CORE INFRASTRUCTURE / LOCAL-FIRST BY DESIGN</MotionTitle>
-        <MotionTitle><h1>Privacy tooling,<br/><em>without friction.</em></h1></MotionTitle>
-        <MotionTitle><p className="zn-hero-text">Inspect transaction boundaries, catch regressions, and integrate privacy checks without building another wallet or uploading sensitive PCZTs.</p></MotionTitle>
-        <MotionTitle className="zn-hero-actions"><Link href="/tools" className="zn-primary">Launch workbench <LuArrowUpRight size={19}/></Link><Link href="/docs/installation" className="zn-secondary">Explore SDKs <LuArrowRight size={19}/></Link></MotionTitle>
-        <MotionTitle className="zn-hero-foot"><span><LuShieldCheck size={15}/> OPEN SOURCE ENGINE</span><span><LuLockKeyhole size={15}/> BROWSER-LOCAL ANALYSIS</span><span><LuNetwork size={15}/> ZCASH PCZT V6</span></MotionTitle>
+        <MotionTitle className="zn-overline"><span className="zn-overline-dot"/> ZERYNEX / ZCASH PRIVACY INFRASTRUCTURE</MotionTitle>
+        <MotionTitle><h1>Privacy testing for <em>the Zcash ecosystem.</em></h1></MotionTitle>
+        <MotionTitle><p className="zn-hero-text">Zerynex is a privacy-policy and regression-testing toolkit for Zcash transaction infrastructure. Inspect PCZT disclosures, test wallet handoffs and catch policy changes with local tools that developers can actually integrate.</p></MotionTitle>
+        <MotionTitle className="zn-hero-actions"><Link href="/tools" className="zn-primary">Run Zcash privacy checks <LuArrowUpRight size={19}/></Link><Link href="/docs/installation" className="zn-secondary">Explore the toolkit <LuArrowRight size={19}/></Link></MotionTitle>
+        <MotionTitle className="zn-hero-foot"><span><LuShieldCheck size={15}/> OPEN SOURCE ENGINE</span><span><LuLockKeyhole size={15}/> BROWSER-LOCAL ANALYSIS</span><span><LuNetwork size={15}/> BUILT FOR ZCASH</span></MotionTitle>
       </div>
       <div className="zn-hero-visual" aria-hidden="true">
         <div className="zn-hero-glow"/>
@@ -102,11 +135,25 @@ export default function HomeExperience() {
         <span className="zn-geometry-label zn-label-bottom">VERIFIABLE WORKFLOWS / 001</span>
       </div>
     </section>
-    <section className="zn-proof-strip"><span>ONE ENGINE / MANY WAYS TO BUILD</span><div><strong>Rust</strong><i/><strong>TypeScript</strong><i/><strong>Python</strong><i/><strong>Go</strong><i/><strong>MCP</strong></div><Link href="/ecosystem">See integrations <LuArrowUpRight size={17}/></Link></section>
+    <section className="zn-proof-strip" aria-label="Zcash development workflows"><span>DEVELOPMENT SURFACES</span><div><strong>PCZT</strong><i/><strong>Wallet handoffs</strong><i/><strong>Regression CI</strong><i/><strong>RPC tooling</strong><i/><strong>Local MCP</strong></div><Link href="/ecosystem">SDK interfaces <LuArrowUpRight size={17}/></Link></section>
+    <section className="zn-ecosystem-workflows" aria-labelledby="zn-ecosystem-title">
+      <div className="zn-workflows-heading zn-scroll-reveal">
+        <span className="zn-section-tag">01 / BUILT FOR ZCASH DEVELOPMENT</span>
+        <h2 id="zn-ecosystem-title">One toolkit. <em>Across the ecosystem.</em></h2>
+        <p>Start with Zcash transaction privacy. Bring the same tested checks into application builds, wallet handoffs, protocol CI and approved local agent workflows. Each integration tells you exactly what is supported.</p>
+      </div>
+      <div className="zn-workflow-table">
+        {ecosystemWorkflows.map(workflow=><Link className="zn-workflow-row zn-scroll-reveal" href={workflow.href} key={workflow.code}>
+          <span className="zn-workflow-num">{workflow.code}</span>
+          <div className="zn-workflow-info"><span>{workflow.type}</span><h3>{workflow.title}</h3><p>{workflow.description}</p></div>
+          <span className="zn-workflow-action">{workflow.cta} <LuArrowUpRight size={19}/></span>
+        </Link>)}
+      </div>
+    </section>
     <section className="zn-demonstration">
       <div className="zn-section-copy zn-scroll-reveal">
-        <span className="zn-section-tag">01 / THE PRODUCT, NOT A PROMISE</span>
-        <h2>Go from question<br/>to <em>finding.</em></h2>
+        <span className="zn-section-tag">02 / TEST A REAL PCZT</span>
+        <h2>From a question <em>to a finding.</em></h2>
         <p>Run an actual PCZT policy check here. We ship reproducible, harmless fixtures so you can test Zerynex before adding it to any application.</p>
         <div className="zn-signal-list">
           <div><LuCheck size={16}/> Parsed by the Rust PCZT engine</div>
@@ -118,14 +165,14 @@ export default function HomeExperience() {
       <div className="zn-scroll-reveal"><LivePreview/></div>
     </section>
     <section className="zn-capabilities">
-      <div className="zn-section-header zn-scroll-reveal"><span className="zn-section-tag">02 / THE TOOLBOX</span><h2>Less setup.<br/><em>More shipping.</em></h2><p>Real utilities, not showcase screens. Each one opens to a working capability or a tested integration guide.</p></div>
+      <div className="zn-section-header zn-scroll-reveal"><span className="zn-section-tag">03 / PRIVACY TESTING WORKBENCHES</span><h2>Test locally. <em>Build confidently.</em></h2><p>Real Rust-backed utilities—not showcase screens. Start with approved PCZT fixtures, examine findings and move directly into a working integration.</p></div>
       <div className="zn-capability-grid">{capabilities.map(cap=><motion.div key={cap.n} whileHover={reduced?{}:{y:-7}} transition={{type:'spring',stiffness:270,damping:23}} className="zn-scroll-reveal"><Link href={cap.href} className="zn-cap-card"><div><span>{cap.n} / {cap.state}</span><cap.icon size={25}/></div><h3>{cap.title}</h3><p>{cap.desc}</p><LuArrowUpRight size={21} className="zn-cap-arrow"/></Link></motion.div>)}</div>
     </section>
     <section className="zn-adoption">
       <div className="zn-scroll-reveal">
-        <span className="zn-section-tag">03 / BUILD WHERE YOU ALREADY WORK</span>
-        <h2>Your stack.<br/><em>One source of truth.</em></h2>
-        <p>Use the hosted workbench with zero installation. For your codebase, bring in the SDK or run the standalone CLI. You don&apos;t have to clone the monorepo to inspect a PCZT.</p>
+        <span className="zn-section-tag">04 / SDKs AND DEVELOPER AUTOMATION</span>
+        <h2>Integrate checks <em>where you build.</em></h2>
+        <p>The hosted workbench needs no installation. For Zcash applications, wallet software and CI, choose a language adapter, a bundled WebAssembly SDK or the standalone Rust CLI. Cloning the entire product repository is optional.</p>
         <div className="zn-adoption-actions"><Link className="zn-primary" href="/ecosystem">Choose a language <LuArrowUpRight size={17}/></Link><Link href="/docs/installation" className="zn-secondary">Integration guide <LuBookOpen size={17}/></Link></div>
       </div>
       <div className="zn-code-surface zn-scroll-reveal">
@@ -135,12 +182,12 @@ export default function HomeExperience() {
       </div>
     </section>
     <section className="zn-agent-feature zn-scroll-reveal">
-      <div><span className="zn-section-tag">04 / ASSISTED ENGINEERING</span><h2>Agents with<br/><em>boundaries.</em></h2><p>A local MCP server, reusable agent skill, and CI gates. Agent workflows analyze approved synthetic fixtures and return sanitized findings—not unrestricted wallet access.</p><Link className="zn-inline-link" href="/agents">Explore agent tooling <LuArrowUpRight size={17}/></Link></div>
+      <div><span className="zn-section-tag">05 / RESTRICTED AGENT TOOLING</span><h2>Agent workflows. <em>Clear boundaries.</em></h2><p>A local MCP server, reusable agent skill, and CI gates. Agent workflows analyze approved synthetic fixtures and return sanitized findings—not unrestricted wallet access.</p><Link className="zn-inline-link" href="/agents">Explore agent tooling <LuArrowUpRight size={17}/></Link></div>
       <div className="zn-agent-path">
         <span><LuWorkflow size={19}/> AI assistant</span><LuChevronRight size={16}/><span><LuShieldCheck size={19}/> Restricted MCP</span><LuChevronRight size={16}/><span><LuFileCode2 size={19}/> Synthetic fixture</span>
         <small>READ-ONLY · NO SIGNING KEYS · NO WALLET RPC</small>
       </div>
     </section>
-    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>BUILD PRIVACY INTO YOUR STACK.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
+    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>PRIVACY POLICY AND REGRESSION TESTS FOR ZCASH.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
   </main>
 }

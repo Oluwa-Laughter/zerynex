@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import App from '../../src/App'
 
 export const metadata: Metadata = {
-  title: 'Ecosystem Atlas',
-  description: 'Choose a development path for Zcash wallets, privacy engineering, node infrastructure, SDKs and AI-assisted tools using Zerynex.',
+  title: 'Zcash SDKs and Integrations',
+  description: 'Integrate Zerynex privacy-policy and transaction-regression checks into Zcash applications through Rust, TypeScript, Python, Go and local agent tooling.',
 }
 
 export default function EcosystemPage() {

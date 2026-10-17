@@ -27,7 +27,7 @@ export default function Ecosystem() {
   try{await navigator.clipboard.writeText(lane.command);setCopied(true)}catch{setCopied(false)}
  }
  return <main className="zn-ecos" ref={root}>
-  <header className="zn-ecos-header zn-ecos-reveal"><span className="zn-section-tag">LANGUAGE INTEGRATIONS / SDKs</span><h1>Speak your<br/><em>language.</em></h1><p>Choose the programming language you use. Zerynex keeps privacy policies in one tested Rust engine while exposing different integration surfaces.</p></header>
+  <header className="zn-ecos-header zn-ecos-reveal"><span className="zn-section-tag">LANGUAGE INTEGRATIONS / SDKs</span><h1>Bring Zcash privacy checks <em>into your code.</em></h1><p>SDKs are integration interfaces—not the product&apos;s limit. Select your programming language to use the canonical Rust policy engine inside Zcash wallets, transaction workflows and infrastructure applications.</p></header>
   <div className="zn-language-panel zn-ecos-reveal">
    <div className="zn-language-select" role="group" aria-label="Choose programming language">
     {integrations.map(i=><button type="button" key={i.id} aria-pressed={i.id===selected} onClick={()=>{setSelected(i.id);setCopied(false)}}><span>{i.id}</span><small>{i.state}</small></button>)}
@@ -43,11 +43,29 @@ export default function Ecosystem() {
    </div>
   </div>
   <section className="zn-stack-paths zn-ecos-reveal">
-   <div><span className="zn-section-tag">BEYOND LANGUAGE BINDINGS</span><h2>Other integration<br/><em>surfaces.</em></h2></div>
+   <div><span className="zn-section-tag">BEYOND LANGUAGE BINDINGS</span><h2>More than <em>language bindings.</em></h2></div>
    <div><Link href="/docs/github-action"><LuTerminal size={23}/><strong>CI / GitHub Actions</strong><p>Check synthetic regression fixtures on every pull request.</p><LuArrowUpRight size={19}/></Link>
    <Link href="/agents"><LuShieldCheck size={23}/><strong>MCP + agent skills</strong><p>Restricted tools for approved local fixtures and AI-assisted development.</p><LuArrowUpRight size={19}/></Link>
    <Link href="/docs/zk-prover-handoffs"><LuBookOpen size={23}/><strong>ZK / proving research</strong><p>Stage-structure checks today, proof integration still under research.</p><LuArrowUpRight size={19}/></Link></div>
   </section>
+  <motion.section className="zn-distribution-section"
+    initial={reduced?false:{opacity:0,y:44}}
+    whileInView={{opacity:1,y:0}}
+    viewport={{once:true,amount:.13}}
+    transition={{duration:.85,ease:[.2,.7,.2,1]}}>
+    <div className="zn-distribution-intro">
+      <span className="zn-section-tag">04 / DISTRIBUTION</span>
+      <h2>Keep the code.<br/><em>Skip the clone.</em></h2>
+      <p>Pick a tested local binary or a small SDK archive. Zerynex builds every release in clean Linux, macOS, Windows, npm and Python environments.</p>
+      <Link href="/docs/releases" className="zn-primary">Explore downloads <LuArrowUpRight size={18}/></Link>
+    </div>
+    <div className="zn-distribution-matrix">
+      <div><span>01 / NATIVE TOOLS</span><strong>Rust CLI</strong><small>Linux · macOS · Windows</small></div>
+      <div><span>02 / WEB APPLICATIONS</span><strong>TypeScript + WASM</strong><small>Bundled engine · npm tarball</small></div>
+      <div><span>03 / AUTOMATION</span><strong>Python + MCP</strong><small>Wheel · local CLI dependency</small></div>
+      <p>No account or installation is needed to try the hosted workbenches. Registries are not published yet.</p>
+    </div>
+  </motion.section>
   <section className="zn-ecos-end"><span>ZERO INSTALL TO TRY THE PRODUCT</span><h2>Start in the browser.</h2><p>Use our local-only workbench before installing anything in your app.</p><Link className="zn-primary" href="/tools">Open workbench <LuArrowUpRight size={17}/></Link></section>
  </main>
 }

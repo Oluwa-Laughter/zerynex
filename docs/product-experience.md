@@ -77,3 +77,25 @@ A Phase II release must pass:
 - public deployment smoke tests.
 
 A passing policy report is not a privacy guarantee or a consensus audit.
+
+## Phase III: Zcash ecosystem-wide positioning and responsive geometry
+
+Zerynex is a **privacy-policy analysis and regression-testing toolkit for
+Zcash transaction infrastructure**. It is not defined by Rust, TypeScript,
+Go or Python; those are developer integration paths into one tested engine.
+
+Homepage pathways must foreground the supported and explicitly limited
+Zcash use cases: local PCZT privacy-policy inspection, synthetic wallet
+signing handoff regressions, app and protocol CI, offline RPC contract
+validation, and restricted MCP synthetic-fixture reviews. A node RPC
+probe, a wallet adapter, and a ZK/prover handoff should never be marketed
+as full node-consensus or proof-security verification without matching
+upstream validation.
+
+The UI uses a shared maximum layout width with fluid gutters. Large
+product headings and illustrations can use the wide content area;
+long-form Markdown still has a bounded reading column. The same top
+navigation and mobile hamburger apply to every route, while docs
+provide a separate collapsible section menu on small screens. Test
+widths include 360, 390, 768, 1024, 1440 and 1920 pixels, in light and
+dark themes, with no unintended horizontal scroll.

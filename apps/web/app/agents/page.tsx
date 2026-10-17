@@ -13,7 +13,7 @@ const routes=[
 ] as const
 export default function Agents() {
   return <main className="zn-agents">
-    <header className="zn-agents-hero"><span className="zn-section-tag">AGENT INFRASTRUCTURE / SAFETY BY DESIGN</span><h1>Automation,<br/><em>with limits.</em></h1><p>One coherent way to extend Zerynex into agent-assisted workflows: a restricted MCP interface, portable skills, and CI gates. Built for developers—not for handing transaction secrets to language models.</p></header>
+    <header className="zn-agents-hero"><span className="zn-section-tag">AGENT INFRASTRUCTURE / SAFETY BY DESIGN</span><h1>Agent tooling for <em>Zcash privacy workflows.</em></h1><p>One coherent way to extend Zerynex into agent-assisted workflows: a restricted MCP interface, portable skills, and CI gates. Built for developers—not for handing transaction secrets to language models.</p></header>
     <div className="zn-agents-grid">{routes.map(item=><article key={item.id}><div className="zn-agents-meta"><span>{item.id} / {item.kind}</span><item.icon size={23}/></div><h2>{item.name}</h2><p>{item.body}</p><pre><code>{item.code}</code></pre><Link href={item.guide}>Installation and API guide <LuArrowUpRight size={16}/></Link></article>)}</div>
     <AgentConnect/>
     <section className="zn-agents-boundary"><div><LuLockKeyhole size={29}/><strong>Agents inspect approved synthetic fixtures only.</strong></div><p>Current MCP tools are read-only and return sanitized rule identifiers. This is not a wallet signer, proof verifier, or general filesystem MCP. Host-specific setup must be completed by the developer.</p><Link href="/docs/agents">Read the trust model <LuShieldCheck size={16}/></Link></section>

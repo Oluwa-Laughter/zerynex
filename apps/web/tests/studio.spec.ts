@@ -1,12 +1,17 @@
 import { test, expect } from '@playwright/test'
 
-test('homepage navigates to Zerynex developer tooling', async ({ page }) => {
+test('homepage navigates to Zerynex developer tooling', async ({ page, isMobile }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Zerynex/)
-  await expect(page.getByRole('heading', { name: /Privacy tooling/i })).toBeVisible()
-  await page.locator('.topbar').getByRole('button', { name: 'Open workbench' }).click()
+  await expect(page.getByRole('heading', { name: /Privacy testing for/i })).toBeVisible()
+  if(isMobile){
+    await page.getByRole('button',{name:'Open menu'}).click()
+    await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Open workbench'}).click()
+  } else {
+    await page.locator('.topbar').getByRole('button', { name: 'Open workbench' }).click()
+  }
   await expect(page).toHaveURL(/\/tools/)
-  await expect(page.getByRole('heading', { name: /Build with privacy/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Inspect Zcash transaction privacy/i })).toBeVisible()
   await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
 })
 
@@ -37,7 +42,7 @@ test('mobile navigation is accessible and uses icon components', async ({ page, 
   await menu.click()
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible()
   await expect(page.getByRole('navigation', {name:'Primary'}).getByRole('link', { name: 'Docs' })).toBeVisible()
-  await page.locator('.topbar').getByRole('button', { name: 'Open workbench' }).click()
+  await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Open workbench'}).click()
   await expect(page).toHaveURL(/\/tools/)
 })
 
@@ -103,7 +108,7 @@ test('SDK navigation shows language-only labels and a working Python quickstart'
   if (isMobile) await page.getByRole('button',{name:'Open menu'}).click()
   await page.getByRole('navigation',{name:'Primary'}).getByRole('button',{name:'SDKs'}).click()
   await expect(page).toHaveURL(/\/ecosystem/)
-  await expect(page.getByRole('heading',{name:/Speak your.*language/i})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Bring Zcash privacy checks/i})).toBeVisible()
   await page.getByRole('button',{name:/^Python/}).click()
   await expect(page.getByText('from zerynex_py import ZerynexClient',{exact:false})).toBeVisible()
   await expect(page.getByRole('button',{name:/^Rust/})).toBeVisible()
@@ -118,14 +123,14 @@ test('language SDK page and agent route fit small viewports',async ({page})=>{
   expect(size.width).toBeLessThanOrEqual(size.view+1)
   await page.getByRole('link',{name:/MCP \+ agent skills/}).click()
   await expect(page).toHaveURL(/\/agents/)
-  await expect(page.getByRole('heading',{name:/Automation.*with limits/i})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Agent tooling for Zcash privacy workflows/i})).toBeVisible()
   await expect(page.locator('.zn-agent-code')).toContainText('ZERYNEX_AGENT_ALLOWED_ROOT')
 })
 
 test('new homepage has working tool links and no personal repository CTA',async ({page,isMobile})=>{
   await page.goto('/')
-  await expect(page.getByRole('heading',{name:/Privacy tooling.*without friction/i})).toBeVisible()
-  await expect(page.getByRole('link',{name:/Launch workbench/})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Privacy testing for the Zcash ecosystem/i})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Run Zcash privacy checks/})).toBeVisible()
   await expect(page.getByRole('link',{name:/Explore GitHub/})).toHaveCount(0)
   await expect(page.getByRole('link',{name:/Inspect a PCZT/})).toBeVisible()
   const size=await page.evaluate(()=>({width:document.documentElement.scrollWidth,view:document.documentElement.clientWidth}))
@@ -146,9 +151,9 @@ test('homepage actually detects transparent fixture with the Rust WASM parser',a
 test('reduced-motion keeps hero and application controls accessible',async ({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'})
   await page.goto('/')
-  await expect(page.getByRole('heading',{name:/Privacy tooling/})).toBeVisible()
-  await expect(page.getByRole('link',{name:/Launch workbench/})).toBeVisible()
-  await page.getByRole('link',{name:/Launch workbench/}).click()
+  await expect(page.getByRole('heading',{name:/Privacy testing for/})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Run Zcash privacy checks/})).toBeVisible()
+  await page.getByRole('link',{name:/Run Zcash privacy checks/}).click()
   await expect(page).toHaveURL(/\/tools/)
 })
 
@@ -214,7 +219,7 @@ test('documentation navigation and guide discovery work from homepage', async ({
   if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
   await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Docs' }).click()
   await expect(page).toHaveURL(/\/docs$/)
-  await expect(page.getByRole('heading', { name: /Build with confidence/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Build on Zcash with clear documentation/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Go SDK/ }).first()).toBeVisible()
 })
 
@@ -225,7 +230,7 @@ test('documentation search filters guide cards and handles empty searches', asyn
   await page.locator('.docs-guide-card').first().click()
   await expect(page).toHaveURL(/\/docs\/rpc-contracts/)
   await expect(page.getByText('This tool does not test parameter types', { exact:false })).toBeVisible()
-  await page.getByRole('link', { name: 'Documentation index' }).click()
+  await page.locator('.docs-breadcrumb').getByRole('link', { name: 'Documentation' }).click()
   await page.getByRole('textbox', { name: 'Search documentation' }).fill('no_such_fake_feature_xyz')
   await expect(page.getByText('No matching guides')).toBeVisible()
 })
@@ -343,7 +348,7 @@ test('color themes switch and persist through navigation and reload',async ({pag
   await page.getByRole('button',{name:'Change color theme'}).click()
   await page.getByRole('button',{name:'Light'}).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme','light')
-  await page.getByRole('link',{name:/Launch workbench/}).click()
+  await page.getByRole('link',{name:/Run Zcash privacy checks/}).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme','light')
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme','light')
@@ -371,7 +376,7 @@ test('system color theme tracks OS preference and is keyboard accessible',async 
 
 test('new agent page shows scoped MCP/skill/CI interfaces',async ({page})=>{
   await page.goto('/agents')
-  await expect(page.getByRole('heading',{name:/Automation/})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Agent tooling for/})).toBeVisible()
   await expect(page.getByRole('heading',{name:'Local MCP server'})).toBeVisible()
   await expect(page.getByRole('heading',{name:'Portable agent skill'})).toBeVisible()
   await expect(page.getByRole('heading',{name:'CI policy gate'})).toBeVisible()
@@ -454,4 +459,88 @@ test('TypeScript onboarding uses bundled WebAssembly SDK and flags unpublished r
   await expect(page.getByText('Public npm registry publication',{exact:false})).toBeVisible()
   await page.getByRole('link',{name:'Read integration guide'}).click()
   await expect(page).toHaveURL(/\/docs\/releases/)
+})
+
+
+test('SDK download flow points to the matching source-free artifact guide',async ({page})=>{
+  await page.goto('/ecosystem')
+  await expect(page.getByRole('heading',{name:/Keep the code.*Skip the clone/i})).toBeVisible()
+  await page.getByRole('link',{name:'Explore downloads'}).click()
+  await expect(page).toHaveURL(/\/docs\/releases$/)
+  await expect(page.getByRole('heading',{name:/Download Zerynex without cloning/})).toBeVisible()
+})
+
+
+test('responsive Zcash product pages respect max-width and avoid viewport overflow',async ({page})=>{
+  test.slow()
+  const paths=['/','/ecosystem','/agents','/docs','/tools','/tools/stages','/tools/handoff']
+  for(const width of [360,768,1024,1440,1920]){
+    await page.setViewportSize({width,height:900})
+    for(const route of paths){
+      await page.goto(route)
+      const shape=await page.evaluate(()=>({
+        viewport:document.documentElement.clientWidth,
+        document:document.documentElement.scrollWidth,
+        body:document.body.scrollWidth,
+        heading:document.querySelector('h1')?.getBoundingClientRect().width??0,
+        header:document.querySelector('.zn-site-header')?.getBoundingClientRect().width??0,
+      }))
+      expect(shape.document,route+' overflows at '+width).toBeLessThanOrEqual(shape.viewport+2)
+      expect(shape.body,route+' body overflows at '+width).toBeLessThanOrEqual(shape.viewport+2)
+      expect(shape.header).toBeLessThanOrEqual(width)
+      expect(shape.heading).toBeGreaterThan(180)
+    }
+  }
+})
+
+test('phone hamburger navigation works from every product area and closes on Escape',async ({page})=>{
+  await page.setViewportSize({width:390,height:844})
+  for (const location of ['/','/tools','/ecosystem','/agents','/docs','/tools/stages']) {
+    await page.goto(location)
+    const open=page.getByRole('button',{name:'Open menu'})
+    await expect(open).toBeVisible()
+    await open.click()
+    const nav=page.getByRole('navigation',{name:'Primary'})
+    await expect(nav).toBeVisible()
+    await expect(page.getByRole('button',{name:'Close menu'})).toHaveAttribute('aria-expanded','true')
+    await page.keyboard.press('Escape')
+    await expect(nav).toBeHidden()
+    await expect(open).toHaveAttribute('aria-expanded','false')
+  }
+  await page.goto('/agents')
+  await page.getByRole('button',{name:'Open menu'}).click()
+  await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Docs'}).click()
+  await expect(page).toHaveURL(/\/docs$/)
+  await expect(page.getByRole('button',{name:'Open menu'})).toBeVisible()
+})
+
+test('phone docs hamburger opens full sections and navigates to the guide',async ({page})=>{
+  await page.setViewportSize({width:390,height:844})
+  await page.goto('/docs')
+  const toggle=page.getByRole('button',{name:'Browse documentation sections'})
+  await expect(toggle).toBeVisible()
+  const sections=page.getByLabel('Documentation sections')
+  await expect(sections).toBeHidden()
+  await toggle.click()
+  await expect(sections).toBeVisible()
+  await expect(page.getByRole('button',{name:'Close documentation menu'})).toHaveAttribute('aria-expanded','true')
+  await sections.getByRole('link',{name:'Privacy policy format'}).click()
+  await expect(page).toHaveURL(/\/docs\/policy-format$/)
+  await expect(page.getByRole('button',{name:'Browse documentation sections'})).toBeVisible()
+  await expect(sections).toBeHidden()
+})
+
+test('large-screen Zcash headline and workflow overview use the available content width',async ({page})=>{
+  await page.setViewportSize({width:1600,height:950})
+  await page.goto('/')
+  await expect(page.getByRole('heading',{name:/Privacy testing for the Zcash ecosystem/i})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/One toolkit.*Across the ecosystem/i})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Node and RPC integrations/i})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Wallets and signing handoffs/i})).toBeVisible()
+  const widths=await page.evaluate(()=>({
+    hero:document.querySelector('.zn-hero h1')?.getBoundingClientRect().width??0,
+    workflow:document.querySelector('.zn-workflows-heading h2')?.getBoundingClientRect().width??0,
+  }))
+  expect(widths.hero).toBeGreaterThan(650)
+  expect(widths.workflow).toBeGreaterThan(650)
 })

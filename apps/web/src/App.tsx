@@ -6,7 +6,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
-import { LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuCircleAlert as CircleAlert, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLockKeyhole as LockKeyhole, LuMenu as Menu, LuScanLine as ScanLine, LuTerminal as Terminal, LuX as X } from 'react-icons/lu'
+import { LuAsterisk as Asterisk, LuArrowLeft as ArrowLeft, LuArrowRight as ArrowRight, LuArrowUpRight as ArrowUpRight, LuCheck as Check, LuCheckCheck as CheckCheck, LuCircleAlert as CircleAlert, LuCopy as Copy, LuDownload as Download, LuUpload as Upload, LuFileCode2 as FileCode2, LuFingerprint as Fingerprint, LuLockKeyhole as LockKeyhole, LuScanLine as ScanLine, LuTerminal as Terminal } from 'react-icons/lu'
 import { inspectPczt, loadEngine } from './analyzer'
 import Ecosystem from './Ecosystem'
 import HomeExperience from './HomeExperience'
@@ -18,38 +18,8 @@ import type { Profile, Report } from './analyzer'
 type View = 'home' | 'tools' | 'ecosystem'
 type EngineStatus = 'loading' | 'ready' | 'unavailable'
 
-function Mark({ small = false }: { small?: boolean }) {
-  return <span className={'brand-mark' + (small ? ' brand-mark-small' : '')} aria-hidden="true">
-    <svg viewBox="0 0 80 80" fill="none">
-      <path d="M20 23H59L21 57H60" stroke="currentColor" strokeWidth="9" strokeLinejoin="round"/>
-      <path d="M22 14V25M58 55V66" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-      <circle cx="62" cy="19" r="5" fill="currentColor"/>
-    </svg>
-  </span>
-}
-function Brand({ onClick }: { onClick: () => void }) {
-  return <button type="button" className="brand" onClick={onClick} aria-label="Zerynex home">
-    <Mark/><span>ZERYNEX</span>
-  </button>
-}
 function Kicker({ children, number }: { children: React.ReactNode; number?: string }) {
   return <div className="kicker"><Asterisk className="kicker-cross" size={15} strokeWidth={2}/>{number && <span className="kicker-index">{number} /</span>} {children}</div>
-}
-function Header({ current, navigate }: { current: View; navigate: (v: View) => void }) {
-  const [menu, setMenu] = useState(false)
-  return <header className="topbar">
-    <Brand onClick={() => {setMenu(false);navigate('home')}}/>
-    <nav className={'desktop-nav' + (menu ? ' nav-open' : '')} aria-label="Primary">
-      <button className={current==='home'?'nav-active':''} onClick={() => {setMenu(false);navigate('home')}}>Overview</button>
-      <button className={current==='ecosystem'?'nav-active':''} onClick={() => {setMenu(false);navigate('ecosystem')}}>SDKs</button>
-      <Link href="/agents" onClick={()=>setMenu(false)}>Agents</Link>
-      <Link href="/docs" onClick={()=>setMenu(false)}>Docs</Link>
-    </nav>
-    <div className="nav-actions">
-      <button className="nav-console" onClick={()=>{setMenu(false);navigate('tools')}}>Open workbench <ArrowUpRight size={15}/></button>
-      <button className="mobile-toggle" aria-label={menu?'Close menu':'Open menu'} aria-expanded={menu} onClick={()=>setMenu(v=>!v)}>{menu?<X size={23}/>:<Menu size={23}/>}</button>
-    </div>
-  </header>
 }
 const synthetic = [
   { name:'External signer', message:'A recipient sees only the metadata your policy explicitly allows.', fields:[{ name:'spend.dummy_sk', status:'blocked' },{name:'output.proprietary', status:'review'},{name:'output.recipient',status:'permitted'}]},
@@ -195,7 +165,7 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
   }
   return <main ref={root} className="studio-page">
     <div className="studio-top studio-reveal"><button className="back-button" onClick={() => navigate('home')}><ArrowLeft size={17}/> BACK TO OVERVIEW</button><span className="studio-code">ZERYNEX / DEVELOPER TOOLS <span>001</span></span></div>
-    <div className="studio-heading studio-reveal"><div><Kicker>ZERYNEX TOOLING / LOCAL FIRST</Kicker><h1>Build with <em>privacy.</em></h1><p>Run real PCZT checks, enforce disclosure policies and integrate tested Rust tooling into Zcash applications.</p></div><div className={'engine-pill '+engine}><span className="live-led"/>{engine === 'ready' ? 'RUST ENGINE READY' : engine === 'loading' ? 'ENGINE INITIALIZING' : 'ENGINE UNAVAILABLE'}</div></div>
+    <div className="studio-heading studio-reveal"><div><Kicker>ZERYNEX TOOLING / LOCAL FIRST</Kicker><h1>Inspect Zcash transaction <em>privacy.</em></h1><p>Run Rust-powered PCZT privacy-policy checks, investigate disclosure findings and test transaction-stage changes locally before integrating them into wallets and infrastructure.</p></div><div className={'engine-pill '+engine}><span className="live-led"/>{engine === 'ready' ? 'RUST ENGINE READY' : engine === 'loading' ? 'ENGINE INITIALIZING' : 'ENGINE UNAVAILABLE'}</div></div>
     <section className="wb-entry-links studio-reveal" aria-label="Other interactive developer tools">
       <Link href="/tools/stages">
         <span>EXPERIMENT 02 / RUST + WASM</span><strong>PCZT Stage Comparator</strong>
@@ -276,9 +246,7 @@ export default function App({ page }: { page: View }) {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
   return <>
-    <a href="#main-content" className="skip-link">Skip to main content</a>
-    <div id="main-content">
-      <Header current={view} navigate={navigate}/>
+    <div>
       {view === 'home' ? <HomeExperience/> : view === 'ecosystem' ? <Ecosystem/> : <DeveloperTools navigate={navigate}/>}
     </div>
 
