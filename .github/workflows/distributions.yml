@@ -145,10 +145,12 @@ jobs:
           pattern: '*'
           path: dist
           merge-multiple: true
+      - name: Verify and flatten downloadable assets
+        run: python3 scripts/prepare-release-assets.py dist release-assets
       - name: Create versioned assets (no automatic npm/PyPI publish)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* \
+          gh release create "$GITHUB_REF_NAME" release-assets/* \
             --verify-tag --generate-notes \
             --title "Zerynex $GITHUB_REF_NAME"
