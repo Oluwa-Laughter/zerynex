@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -21,6 +22,55 @@ class RpcContractTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertEqual(result["checked_methods"], 4)
         self.assertEqual(result["finding_count"], 0)
+
+    def test_full_pczt_lifecycle_synthetic_contract(self):
+        root = ROOT / "tests/fixtures/rpc"
+        contract = json.loads((root / "zallet-pczt-lifecycle-contract.json").read_text())
+        schema = json.loads((root / "zallet-pczt-lifecycle-synthetic-openrpc.json").read_text())
+        report = compare(schema, contract, deny_new_required=True)
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["checked_methods"], 7)  # rpc.discover and six PCZT roles
+        self.assertTrue(report["deny_new_required"])
+        expected = {item["name"] for item in contract["methods"]}
+        self.assertEqual(expected, {"rpc.discover", "pczt_create", "pczt_combine", "pczt_inspect",
+                                    "pczt_prove", "pczt_sign", "pczt_extract"})
+        # Our earlier minimum fixture deliberately lacks create/combine.
+        old = compare(self.schema, contract, deny_new_required=True)
+        self.assertFalse(old["passed"])
+        missing = {(item["rule"], item["method"]) for item in old["findings"]}
+        self.assertIn(("RPC-METHOD-MISSING", "pczt_create"), missing)
+        self.assertIn(("RPC-METHOD-MISSING", "pczt_combine"), missing)
+
+    def test_new_required_parameter_detection_is_opt_in(self):
+        schema = copy.deepcopy(self.schema)
+        sign = next(item for item in schema["methods"] if item["name"] == "pczt_sign")
+        sign["params"].append({"name": "new_required", "required": True})
+        self.assertTrue(compare(schema, self.contract)["passed"])  # historical behavior
+        restricted = compare(schema, self.contract, deny_new_required=True)
+        self.assertFalse(restricted["passed"])
+        self.assertEqual(restricted["finding_count"], 1)
+        self.assertEqual(restricted["findings"][0], {"rule": "RPC-NEW-REQUIRED-PARAMETER",
+                                                     "method": "pczt_sign", "parameter": "new_required"})
+        sign["params"][-1]["required"] = False
+        self.assertTrue(compare(schema, self.contract, deny_new_required=True)["passed"])
+
+    def test_cli_new_required_parameter_exits_two_and_reports_only_structure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "synthetic.json"
+            schema = copy.deepcopy(self.schema)
+            sign = next(item for item in schema["methods"] if item["name"] == "pczt_sign")
+            sign["params"].append({"name": "extra_required", "required": True})
+            source.write_text(json.dumps(schema))
+            command = [sys.executable, str(ROOT / "scripts/check_rpc_contract.py"),
+                       "--schema", str(source),
+                       "--contract", str(ROOT / "tests/fixtures/rpc/zallet-minimum-contract.json"),
+                       "--json", "--deny-new-required"]
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 2)
+            report = json.loads(result.stdout)
+            self.assertTrue(report["deny_new_required"])
+            self.assertEqual(report["findings"][0]["rule"], "RPC-NEW-REQUIRED-PARAMETER")
+            self.assertNotIn("credential", result.stdout + result.stderr)
 
     def test_catches_missing_method(self):
         schema = copy.deepcopy(self.schema)
@@ -115,6 +165,23 @@ class RpcContractTests(unittest.TestCase):
             ], capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 1)
             self.assertNotIn("FAKE_PRIVATE_MARKER", result.stdout + result.stderr)
+
+    def test_openrpc_rejects_symlink_and_special_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "source.json"
+            source.write_text(json.dumps(self.schema))
+            link = root / "link.json"
+            link.symlink_to(source)
+            with self.assertRaises(ContractInputError):
+                read_json(str(link), MAX_SCHEMA)
+            with self.assertRaises(ContractInputError):
+                read_json(str(root), MAX_SCHEMA)
+            if hasattr(os, "mkfifo"):
+                pipe = root / "fifo"
+                os.mkfifo(pipe)
+                with self.assertRaises(ContractInputError):
+                    read_json(str(pipe), MAX_SCHEMA)
 
     def test_cli_machine_readable_codes(self):
         command = [sys.executable, str(ROOT / "scripts/check_rpc_contract.py"),

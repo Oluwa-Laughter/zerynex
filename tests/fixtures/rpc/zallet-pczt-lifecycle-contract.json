@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "methods": [
+    {
+      "name": "rpc.discover",
+      "params": []
+    },
+    {
+      "name": "pczt_create",
+      "params": [
+        {
+          "name": "from",
+          "required": true
+        },
+        {
+          "name": "amounts",
+          "required": true
+        },
+        {
+          "name": "minconf",
+          "required": false
+        },
+        {
+          "name": "privacy_policy",
+          "required": false
+        },
+        {
+          "name": "fund_source",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "pczt_combine",
+      "params": [
+        {
+          "name": "pczts",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "pczt_inspect",
+      "params": [
+        {
+          "name": "pczt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "pczt_prove",
+      "params": [
+        {
+          "name": "pczt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "pczt_sign",
+      "params": [
+        {
+          "name": "pczt",
+          "required": true
+        },
+        {
+          "name": "privacy_policy",
+          "required": false
+        },
+        {
+          "name": "strict",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "pczt_extract",
+      "params": [
+        {
+          "name": "pczt",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

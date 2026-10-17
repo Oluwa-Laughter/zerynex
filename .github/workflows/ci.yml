@@ -273,5 +273,7 @@ jobs:
         run: node scripts/validate-docs.mjs
       - name: Check synthetic OpenRPC method contract
         run: python3 scripts/check_rpc_contract.py --schema tests/fixtures/rpc/zallet-synthetic-openrpc.json --contract tests/fixtures/rpc/zallet-minimum-contract.json --json
+      - name: Verify synthetic full PCZT lifecycle contract (strict additive requirements)
+        run: python3 scripts/check_rpc_contract.py --schema tests/fixtures/rpc/zallet-pczt-lifecycle-synthetic-openrpc.json --contract tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json --deny-new-required --json
       - name: Offline RPC compatibility tests
         run: python3 -m unittest discover -s tests -p test_rpc_contract.py -v

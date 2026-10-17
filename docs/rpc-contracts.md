@@ -40,13 +40,62 @@ compare against your reviewed contract. **Do not upload wallet configuration,
 authentication cookies, real PCZTs, or sensitive RPC responses.** The checker
 makes no network connection and does not verify runtime Zallet behavior.
 
+## Complete synthetic PCZT lifecycle contract
+
+Zerynex provides a **reviewable, documentation-derived** baseline for Zallet's
+six PCZT RPC methods: `pczt_create`, `pczt_combine`, `pczt_inspect`,
+`pczt_prove`, `pczt_sign`, and `pczt_extract`, plus `rpc.discover`. It
+checks method existence, ordered parameter names, and required/optional
+flags. This expands the smaller historical four-method example.
+
+```bash
+python3 scripts/check_rpc_contract.py \
+  --schema tests/fixtures/rpc/zallet-pczt-lifecycle-synthetic-openrpc.json \
+  --contract tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json \
+  --deny-new-required --json
+```
+
+For a locally saved OpenRPC discovery response from **your own trusted
+Zallet environment**, replace `--schema` with its protected local path.
+The `--deny-new-required` option flags newly required parameters on covered
+methods (`RPC-NEW-REQUIRED-PARAMETER`), which are otherwise allowed for
+backwards compatibility. Adding an optional parameter remains permitted.
+The JSON result explicitly identifies whether strict checking was enabled.
+
+The bundled fixtures are **synthetic**, based on the published Zallet RPC
+reference reviewed on October 17, 2026; they are **not** a pinned release's
+actual generated `rpc.discover` schema or proof of live interoperability.
+An integration can only claim tested support after validating a specific
+upstream release binary and matching real, non-sensitive schema output.
+The checker never calls the wallet, signs, proves or extracts transactions.
+
+## Installable CLI for external Python projects
+
+The `zerynex-python` wheel includes `zerynex-rpc-check` as a command-line
+entry point (no Rust executable or wallet required for structural checks).
+Until the package has been published to PyPI, install it from this
+repository or from a verified wheel artifact:
+
+```bash
+python -m pip install ./packages/python
+zerynex-rpc-check --schema tests/fixtures/rpc/zallet-pczt-lifecycle-synthetic-openrpc.json --contract tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json --deny-new-required --json
+```
+
+The repository script `python3 scripts/check_rpc_contract.py` delegates to
+the same Python SDK implementation. A separately built wheel is tested in
+an unrelated virtual environment before a release is considered usable.
+
 ## Usage
 
 Contracts list method names and ordered parameters, with a required flag.
-Additional methods are accepted. All evaluation is local: no RPC URL,
+Additional methods are accepted; optional new parameters are also accepted.
+When strict additive checking is enabled, newly required parameters are reported.
+All evaluation is local: no RPC URL,
 credentials, cookies, wallet keys or network calls are necessary.
 
-The output contains only declared method/parameter names and their status.
+File reads reject symlinks and non-regular files; on POSIX they also
+prevent symlink substitutions during opening. Size limits apply to the
+opened file descriptor. The output contains only declared method/parameter names and their status.
 It does not print RPC request/response values.
 
 ## Limitations

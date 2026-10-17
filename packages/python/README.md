@@ -35,6 +35,25 @@ Pass the trusted Rust executable explicitly:
 The sample should flag a transparent output using the same Rust rules as the
 Next.js Studio, Rust CLI and TypeScript SDK.
 
+## Installable offline RPC contract checker
+
+The Python wheel also installs `zerynex-rpc-check`, a standalone **offline**
+OpenRPC compatibility checker. It does not require the Rust executable,
+connect to Zallet, or process PCZT bytes. Only method names and argument
+requirements from explicitly selected local JSON files are compared:
+
+```bash
+zerynex-rpc-check \
+  --schema tests/fixtures/rpc/zallet-pczt-lifecycle-synthetic-openrpc.json \
+  --contract tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json \
+  --deny-new-required --json
+```
+
+The fixture is synthetic, not a capture from an upstream Zallet release.
+Exit codes: `0` pass, `1` invalid input, `2` contract drift.
+For production integrations, pin an actual Zallet release and inspect its
+protected local `rpc.discover` response instead. See `docs/rpc-contracts.md`.
+
 ## Agent/MCP extra
 
     pip install './packages/python[mcp]'

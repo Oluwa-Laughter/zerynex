@@ -25,6 +25,7 @@ dev = ["pytest>=8"]
 zerynex-mcp = "zerynex_py.mcp_server:main"
 zerynex-mcp-doctor = "zerynex_py.mcp_doctor:main"
 zerynex-z3-check = "zerynex_py.z3:main"
+zerynex-rpc-check = "zerynex_py.rpc_contract:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

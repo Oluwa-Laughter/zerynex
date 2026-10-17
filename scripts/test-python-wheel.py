@@ -7,6 +7,7 @@ Rust CLI. Optional MCP dependencies are only needed by MCP users.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -39,6 +40,19 @@ def check_wheel(folder: Path, cli: Path) -> None:
             str(cli.resolve()), str((ROOT / "apps/web/public/examples/transparent-v6.bin").resolve())],
             capture_output=True, text=True, timeout=25, check=True)
         print(completed.stdout.strip())
+        checker = venv_dir / ("Scripts/zerynex-rpc-check.exe" if sys.platform == "win32" else "bin/zerynex-rpc-check")
+        if not checker.is_file():
+            raise AssertionError("RPC checker CLI was not installed from the wheel")
+        offline = subprocess.run([
+            str(checker),
+            "--schema", str((ROOT / "tests/fixtures/rpc/zallet-pczt-lifecycle-synthetic-openrpc.json").resolve()),
+            "--contract", str((ROOT / "tests/fixtures/rpc/zallet-pczt-lifecycle-contract.json").resolve()),
+            "--deny-new-required", "--json",
+        ], capture_output=True, text=True, timeout=25, check=True)
+        report = json.loads(offline.stdout)
+        if report.get("passed") is not True or report.get("checked_methods") != 7 or report.get("deny_new_required") is not True:
+            raise AssertionError("Installed RPC CLI returned an unexpected capability contract")
+        print("PACKED RPC CONSUMER PASS: installed wheel CLI validates seven synthetic methods")
 
 
 if __name__ == "__main__":

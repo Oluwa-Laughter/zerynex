@@ -97,6 +97,14 @@ wallet fixtures and live pczt_create/prove/sign/extract compatibility tests.
 It has not been completed. Zerynex does not sign, broadcast, generate
 proofs, authorize spends or validate cryptographic proofs.
 
+## Check the upstream RPC shape without invoking the wallet
+
+Developers can use the [offline RPC contract checker](rpc-contracts.md)
+to compare a protected local `rpc.discover` response against a documented
+PCZT method contract, including an optional check for new required
+parameters. This is structure-only compatibility detection and does **not**
+call Zallet or provide authorization, proof or signing verification.
+
 ## Offline role fixture testing before wallet integration
 
 The separate zerynex-handoff executable provides synthetic Creator,
