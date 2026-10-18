@@ -43,7 +43,7 @@ The Python SDK parses bounded catalog JSON from the *actual selected* local Rust
 
 ## Conformance and change policy
 
-The source of truth is `rules/catalog.json`, compiled into the canonical Rust library. Distributable SDK snapshots are generated using:
+The source of truth is `rules/catalog.json`, compiled into the canonical Rust library. Distributable SDK snapshots are generated using (the TypeScript and JavaScript source representations remain synchronized so direct-source bundlers such as Vercel can resolve NodeNext `.js` imports):
 
 ```bash
 python3 scripts/sync-rule-catalog.py
