@@ -214,7 +214,8 @@ export function createWalletHandoffCoordinator(
     let raw: unknown
     try { raw = await provider.getCapabilities() }
     catch { throw new WalletHandoffError('PROVIDER_UNAVAILABLE') }
-    return normalizeCapabilities(raw)
+    try { return normalizeCapabilities(raw) }
+    catch { throw new WalletHandoffError('CAPABILITY_INVALID') }
   }
 
   return {

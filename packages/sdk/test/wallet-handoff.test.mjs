@@ -219,3 +219,18 @@ test('multi-payment and memo require explicit wallet and application capability'
   assert.equal(review.payment_count,2)
   assert.deepEqual(review.payments.map(p=>p.amount_zat),[100_000_000,50_000_000])
 })
+
+
+test('malformed provider objects cannot leak raw thrown getter values', async () => {
+  const provider = {
+    async getCapabilities() {
+      return Object.defineProperty({...capabilities}, 'provider_id', {
+        get() { throw Error('PRIVATE_WALLET_SECRET') },
+      })
+    },
+    async presentZip321Request() { throw Error('MUST_NOT_INVOKE') },
+  }
+  const coordinator = createWalletHandoffCoordinator(provider, async () => safeReport)
+  await assert.rejects(coordinator.prepare(URI, policy), e =>
+    error('CAPABILITY_INVALID')(e) && !e.message.includes('PRIVATE_WALLET_SECRET'))
+})
