@@ -44,7 +44,7 @@ Expected: `PCZT-TRANSPARENT-OUTPUTS`, exit code `2`. Exit `1` instead means the 
 - **Rust or shell**: [CLI reference](cli-reference.md) and [Rust API](rust-api.md)
 - **React/TypeScript**: [TypeScript and browser API](typescript-api.md)
 - **Backend/Python**: [Python SDK](python-api.md) or [Go SDK](go-sdk.md)
-- **CI pipeline**: [GitHub Action](github-action.md)
+- **CI pipeline**: [GitHub Action](github-action.md) and [SARIF security reports](sarif.md)
 - **Coding assistants**: [MCP and agent tools](agents.md), restricted to approved synthetic fixtures
 
 ## What a passing check means

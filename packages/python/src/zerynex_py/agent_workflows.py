@@ -83,6 +83,7 @@ def core_capabilities(client: ZerynexClient) -> dict[str, object]:
         "cli_version": capabilities.version,
         "operations": list(capabilities.operations),
         "input_formats": list(capabilities.input_formats),
+        "output_formats": list(capabilities.output_formats),
         "max_decoded_pczt_bytes": capabilities.max_decoded_pczt_bytes,
         "max_policy_file_bytes": capabilities.max_policy_file_bytes,
         "network_access": False,

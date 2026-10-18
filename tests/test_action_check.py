@@ -1,5 +1,8 @@
 """Consumer contract tests for the dependency-free composite action."""
 import base64
+import contextlib
+import io
+from unittest.mock import patch
 import json
 import shutil
 import os
@@ -10,7 +13,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from action_check import check
+from action_check import check, main, safe_sarif_destination
 
 class ConsumerActionTests(unittest.TestCase):
     @classmethod
@@ -145,6 +148,109 @@ class ConsumerActionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             check(self.env("apps/web/public/examples/clean-v6.bin",
                            ZERYNEX_INPUT_FORMAT="rpc-call"))
+
+    def test_optional_sarif_export_redacts_paths_and_preserves_ci_failure(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
+            directory = Path(temp)
+            destination = directory / "zerynex.sarif"
+            relative = destination.relative_to(ROOT).as_posix()
+            status, report = check(self.env(
+                "apps/web/public/examples/transparent-v6.bin",
+                ZERYNEX_SARIF_OUTPUT=relative,
+            ))
+            self.assertEqual(status, 2)
+            self.assertFalse(report["passed"])
+            self.assertEqual(report["sarif_path"], relative)
+            result = json.loads(destination.read_text())
+            self.assertEqual(result["version"], "2.1.0")
+            self.assertEqual(result["runs"][0]["results"][0]["ruleId"], "PCZT-TRANSPARENT-OUTPUTS")
+            self.assertNotIn("transparent-v6.bin", destination.read_text())
+            self.assertNotIn(str(ROOT), destination.read_text())
+            self.assertNotIn("physicalLocation", destination.read_text())
+            self.assertNotIn("artifactLocation", destination.read_text())
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
+            # A second execution must not overwrite or follow the first artifact.
+            with self.assertRaises(ValueError):
+                check(self.env("apps/web/public/examples/clean-v6.bin", ZERYNEX_SARIF_OUTPUT=relative))
+
+    def test_optional_sarif_stage_preserves_existing_and_structural_findings(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
+            dest = Path(temp) / "stages.sarif"
+            status, report = check(self.env(
+                "apps/web/public/examples/transparent-v6.bin",
+                ZERYNEX_BASELINE_PATH="apps/web/public/examples/clean-v6.bin",
+                ZERYNEX_SARIF_OUTPUT=dest.relative_to(ROOT).as_posix(),
+            ))
+            self.assertEqual(status, 2)
+            self.assertFalse(report["passed"])
+            results = json.loads(dest.read_text())["runs"][0]["results"]
+            self.assertEqual({x["ruleId"] for x in results}, {
+                "PCZT-TRANSPARENT-OUTPUTS", "PCZT-STRUCTURE-DRIFT",
+            })
+
+    def test_optional_sarif_clean_output_and_reporting_only(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
+            dest = Path(temp) / "report.sarif"
+            relative = dest.relative_to(ROOT).as_posix()
+            status, report = check(self.env(
+                "apps/web/public/examples/clean-v6.bin", ZERYNEX_SARIF_OUTPUT=relative,
+            ))
+            self.assertEqual(status, 0)
+            self.assertTrue(report["passed"])
+            self.assertEqual(json.loads(dest.read_text())["runs"][0]["results"], [])
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
+            dest = Path(temp) / "report.sarif"
+            status, report = check(self.env(
+                "apps/web/public/examples/transparent-v6.bin",
+                ZERYNEX_FAIL_ON_FINDINGS="false",
+                ZERYNEX_SARIF_OUTPUT=dest.relative_to(ROOT).as_posix(),
+            ))
+            self.assertEqual(status, 0)
+            self.assertFalse(report["passed"])
+            self.assertFalse(json.loads(dest.read_text())["runs"][0]["properties"]["zerynexPassed"])
+
+    def test_action_main_writes_safe_sarif_artifact_output(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
+            root = Path(temp)
+            relative = (root / "result.sarif").relative_to(ROOT).as_posix()
+            output = root / "github-output"
+            summary = root / "github-summary"
+            env = self.env(
+                "apps/web/public/examples/transparent-v6.bin",
+                ZERYNEX_SARIF_OUTPUT=relative,
+                ZERYNEX_FAIL_ON_FINDINGS="false",
+                GITHUB_OUTPUT=str(output),
+                GITHUB_STEP_SUMMARY=str(summary),
+            )
+            with patch.dict(os.environ, env, clear=True), contextlib.redirect_stdout(io.StringIO()) as stdout:
+                status = main()
+            self.assertEqual(status, 0)
+            self.assertIn("sarif_path=" + relative, output.read_text())
+            self.assertIn("passed=false", output.read_text())
+            self.assertIn("PCZT-TRANSPARENT-OUTPUTS", summary.read_text())
+            self.assertNotIn("transparent-v6.bin", (root / "result.sarif").read_text())
+            self.assertNotIn("/home/laughter", (root / "result.sarif").read_text())
+            self.assertNotIn("synthetic-only", stdout.getvalue())
+
+    def test_sarif_output_rejects_unsafe_paths(self):
+        for name in ("../outside.sarif", "/tmp/private.sarif", "reports/../bad.sarif",
+                     "report.json", "report.sarif\nmarker", "report.SARIF", "nested/missing.sarif"):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                safe_sarif_destination(ROOT, name)
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
+            directory = Path(temp)
+            outside = Path(tempfile.gettempdir())
+            link = directory / "symlinked"
+            link.symlink_to(outside, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                safe_sarif_destination(ROOT, (link / "bad.sarif").relative_to(ROOT).as_posix())
+            target = directory / "old.sarif"
+            target.write_text('some existing private contents')
+            with self.assertRaises(ValueError):
+                safe_sarif_destination(ROOT, target.relative_to(ROOT).as_posix())
+        with self.assertRaises(ValueError):
+            check(self.env("", ZERYNEX_SCENARIO_MANIFEST="tests/fixtures/role-handoff/scenario.json",
+                           ZERYNEX_SARIF_OUTPUT="zerynex.sarif"))
 
     def test_malformed_input_never_appears_in_error(self):
         with tempfile.TemporaryDirectory(dir=ROOT) as temp:

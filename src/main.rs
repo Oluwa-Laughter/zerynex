@@ -1,3 +1,5 @@
+mod sarif;
+
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use clap::{Parser, ValueEnum};
 use std::{
@@ -42,8 +44,11 @@ struct Args {
     /// Flag any Sapling spend or output components.
     #[arg(long)]
     deny_sapling: bool,
-    #[arg(long)]
+    #[arg(long, conflicts_with = "sarif")]
     json: bool,
+    /// Emit redacted SARIF 2.1.0 for developer security tooling; no PCZT filenames or transaction bytes.
+    #[arg(long, conflicts_with = "json")]
+    sarif: bool,
 }
 #[derive(Clone, Copy, ValueEnum)]
 enum InputFormat {
@@ -153,6 +158,7 @@ fn run() -> Result<ExitCode, &'static str> {
             "tool": "zerynex",
             "operations": ["analyze_pczt", "compare_pczt_stages"],
             "input_formats": ["binary", "base64"],
+            "output_formats": ["text", "json", "sarif"],
             "input_sources": ["file", "stdin"],
             "policy_profiles": ["external_signer", "restricted_handoff"],
             "max_decoded_pczt_bytes": MAX_PCZT_BYTES,
@@ -174,7 +180,10 @@ fn run() -> Result<ExitCode, &'static str> {
         }
         let candidate = read_pczt(candidate_path, args.input_format)?;
         let result = compare_stages_with_policy(&bytes, &candidate, policy)?;
-        if args.json {
+        if args.sarif {
+            let after = analyze_with_policy(&candidate, policy)?;
+            println!("{}", sarif::comparison(&after, &result)?);
+        } else if args.json {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&result).map_err(|_| "Cannot encode comparison")?
@@ -204,7 +213,9 @@ fn run() -> Result<ExitCode, &'static str> {
         });
     }
     let report = analyze_with_policy(&bytes, policy)?;
-    if args.json {
+    if args.sarif {
+        println!("{}", sarif::analysis(&report)?);
+    } else if args.json {
         println!(
             "{}",
             serde_json::to_string_pretty(&report).map_err(|_| "Cannot encode report")?

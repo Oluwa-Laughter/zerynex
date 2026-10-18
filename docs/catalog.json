@@ -138,6 +138,14 @@
       "summary": "Stable report fields, stage deltas, failure meanings and interpretation boundaries."
     },
     {
+      "slug": "sarif",
+      "title": "SARIF security reports",
+      "group": "Reference",
+      "status": "supported",
+      "audience": "Security tooling and CI developers",
+      "summary": "Export redacted structural PCZT findings and stage regressions using SARIF 2.1.0."
+    },
+    {
       "slug": "cli-capabilities",
       "title": "CLI capabilities and integration contract",
       "group": "Reference",

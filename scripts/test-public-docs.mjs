@@ -13,7 +13,7 @@ const privateSlugs = [
   'sdk-distribution', 'package-managers',
 ]
 const mandatory = ['quickstart', 'installation', 'cli-reference', 'rust-api', 'typescript-api',
-  'python-api', 'report-reference', 'github-action', 'agents', 'privacy-model']
+  'python-api', 'report-reference', 'sarif', 'github-action', 'agents', 'privacy-model']
 if (catalog.version !== 1 || !Array.isArray(catalog.entries)) throw Error('Invalid docs catalog')
 const publicSlugs = new Set()
 let lastGroup = -1

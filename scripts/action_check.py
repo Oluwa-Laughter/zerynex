@@ -7,6 +7,7 @@ The PCZT itself never leaves the runner through this program.
 from __future__ import annotations
 
 import json
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -31,6 +32,89 @@ def safe_file(workspace: Path, name: str, max_bytes: int) -> Path:
     if not 0 < resolved.stat().st_size <= max_bytes:
         raise ValueError("Input is empty or exceeds the size limit.")
     return resolved
+
+
+def safe_sarif_destination(workspace: Path, name: str) -> Path:
+    """Choose a new report file without allowing user-controlled path escapes."""
+    if not isinstance(name, str) or not name or len(name) > 200 or not name.endswith(".sarif"):
+        raise ValueError("Use a relative .sarif report path.")
+    path = Path(name)
+    if path.is_absolute() or any(
+        not 0 < len(part) <= 70 or part in (".", "..") or
+        not re.fullmatch(r"[A-Za-z0-9_-][A-Za-z0-9_.-]*", part)
+        for part in path.parts
+    ):
+        raise ValueError("Invalid relative SARIF path.")
+    try:
+        directory = (workspace / path.parent).resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise ValueError("SARIF output directory does not exist.") from None
+    if not directory.is_relative_to(workspace) or not directory.is_dir():
+        raise ValueError("SARIF output must stay in checked-out workspace.")
+    destination = directory / path.name
+    if destination.exists() or destination.is_symlink():
+        raise ValueError("SARIF output already exists; refusing to overwrite.")
+    return destination
+
+
+def export_sarif(
+    workspace: Path, filename: str, command: list[str], passed: bool, compared: bool,
+) -> str:
+    """Ask the trusted Rust engine for a redacted SARIF report, then validate it.
+
+    Never serialize the fixture path, transaction bytes or stderr into artifacts.
+    Writing uses exclusive creation to prevent symlink replacement races.
+    """
+    destination = safe_sarif_destination(workspace, filename)
+    if command.count("--json") != 1:
+        raise ValueError("Invalid Rust report request.")
+    args = ["--sarif" if arg == "--json" else arg for arg in command]
+    try:
+        run = subprocess.run(args, stdin=subprocess.DEVNULL, capture_output=True, timeout=40)
+    except (OSError, subprocess.TimeoutExpired):
+        raise ValueError("Rust SARIF export failed or timed out.") from None
+    if run.returncode not in (0, 2) or (run.returncode == 0) != passed or len(run.stdout) > 2 * 1024 * 1024:
+        raise ValueError("Rust SARIF export disagrees with selected policy result.")
+    try:
+        data = json.loads(run.stdout)
+        if data["version"] != "2.1.0" or len(data["runs"]) != 1:
+            raise ValueError
+        record = data["runs"][0]
+        if record["tool"]["driver"]["name"] != "Zerynex":
+            raise ValueError
+        if record["properties"]["zerynexPassed"] is not passed or record["properties"]["stageComparison"] is not compared:
+            raise ValueError
+        results = record["results"]
+        known = {
+            "PCZT-GLOBAL-METADATA", "PCZT-TRANSPARENT-INPUTS", "PCZT-TRANSPARENT-OUTPUTS",
+            "PCZT-UNREVIEWED-METADATA", "PCZT-RESTRICTED-DISCLOSURE", "PCZT-SAPLING-POLICY",
+            "PCZT-DUMMY-KEY", "PCZT-STRUCTURE-DRIFT",
+        }
+        if not isinstance(results, list) or len(results) > 1000:
+            raise ValueError
+        for finding in results:
+            if finding["ruleId"] not in known:
+                raise ValueError
+            field = finding["properties"]["pczt_field"]
+            if not isinstance(field, str) or not re.fullmatch(r"[A-Za-z0-9_.\[\]-]{1,500}", field):
+                raise ValueError
+            locations = finding["locations"]
+            if (len(locations) != 1 or "physicalLocation" in locations[0] or
+                    locations[0]["logicalLocations"][0]["fullyQualifiedName"] != "pczt::" + field):
+                raise ValueError
+        # Reject unexpected physical artifact paths anywhere in the report.
+        if b'"physicalLocation"' in run.stdout or b'"artifactLocation"' in run.stdout:
+            raise ValueError
+    except (KeyError, IndexError, TypeError, ValueError):
+        raise ValueError("Rust SARIF report is invalid or unsafe.") from None
+    descriptor = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    try:
+        with os.fdopen(descriptor, "wb") as sink:
+            sink.write(run.stdout)
+    except OSError:
+        destination.unlink(missing_ok=True)
+        raise ValueError("Cannot write redacted SARIF report.") from None
+    return destination.relative_to(workspace).as_posix()
 
 
 def bool_env(env: dict[str, str], name: str, default: str) -> bool:
@@ -102,6 +186,8 @@ def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
     workspace = Path(env["GITHUB_WORKSPACE"]).resolve(strict=True)
     scenario = env.get("ZERYNEX_SCENARIO_MANIFEST", "")
     if scenario:
+        if env.get("ZERYNEX_SARIF_OUTPUT", ""):
+            raise ValueError("SARIF export is available only for individual and stage checks.")
         return check_scenario(env, workspace, scenario)
     pczt = safe_file(workspace, env["ZERYNEX_PCZT_PATH"], 12 * 1024 * 1024)
     input_format = env.get("ZERYNEX_INPUT_FORMAT", "binary")
@@ -179,7 +265,10 @@ def check(env: dict[str, str]) -> tuple[int, dict[str, object]]:
     if passed != (process.returncode == 0):
         raise ValueError("Rust findings and exit code disagree.")
     sanitized = [{"rule": item["rule"], "field": item["field"]} for item in findings]
+    sarif_requested = env.get("ZERYNEX_SARIF_OUTPUT", "")
+    sarif_path = export_sarif(workspace, sarif_requested, command, passed, baseline is not None) if sarif_requested else ""
     return (2 if fail_on_findings and not passed else 0), {
+        "sarif_path": sarif_path,
         "passed": passed,
         "finding_count": current_count,
         "regression_count": len(sanitized) if baseline else 0,
@@ -207,6 +296,7 @@ def main() -> int:
                 f"finding_count={count}\nregression_count={regressions}\n"
                 f"scenario_count={scenario_count}\nscenario_matched={scenario_matched}\n"
                 f"passed={passed}\n"
+                f"sarif_path={report.get('sarif_path', '')}\n"
             )
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:

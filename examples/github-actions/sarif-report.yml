@@ -1,0 +1,27 @@
+# Copy into a Zcash developer repository only with NONSPENDABLE synthetic PCZTs.
+# Pin the Zerynex Action to a reviewed immutable commit SHA.
+name: Synthetic Zcash PCZT SARIF report
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  synthetic-pczt-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check fixture disclosure policy
+        id: privacy
+        uses: Oluwa-Laughter/zerynex@<reviewed-commit-sha>
+        with:
+          pczt-path: tests/fixtures/transparent-v6.bin
+          deny-transparent: 'true'
+          fail-on-findings: 'false' # informational; set true to enforce the gate
+          sarif-output: zerynex.sarif
+      - name: Archive sanitized security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-pczt-findings
+          path: ${{ steps.privacy.outputs.sarif-path }}
+          if-no-files-found: error
+# No wallet material, full PCZT, source path, or physicalLocation is in SARIF.
+# GitHub Code Scanning ingestion of logical-location-only results is unverified.

@@ -69,6 +69,17 @@ def verify(archive: Path) -> None:
             found_rule = "PCZT-TRANSPARENT-OUTPUTS" in result.stdout
             if found_rule != (status == 2):
                 raise AssertionError("Unexpected policy report.")
+        sarif = subprocess.run(
+            [str(destination), str(root / "transparent-v6.bin"), "--deny-transparent", "--sarif"],
+            stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=20,
+        )
+        if sarif.returncode != 2:
+            raise AssertionError("Packaged CLI SARIF report exit status differs")
+        structured = json.loads(sarif.stdout)
+        if structured.get("version") != "2.1.0" or structured["runs"][0]["results"][0]["ruleId"] != "PCZT-TRANSPARENT-OUTPUTS":
+            raise AssertionError("Packaged CLI lacks privacy-safe SARIF output")
+        if "transparent-v6.bin" in sarif.stdout or str(root) in sarif.stdout or '"physicalLocation"' in sarif.stdout:
+            raise AssertionError("Packaged CLI SARIF disclosed local input path")
         print("PACKAGED CLI CONSUMER PASS:", archive.name,
               "- clean and transparent synthetic policies, SHA-256 verified")
 

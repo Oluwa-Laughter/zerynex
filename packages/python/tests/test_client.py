@@ -33,13 +33,18 @@ class IntegrationTests(unittest.TestCase):
             (ROOT / "packages/python/pyproject.toml").read_text())["project"]["version"])
         self.assertIn("analyze_pczt", capabilities.operations)
         self.assertIn("base64", capabilities.input_formats)
+        self.assertIn("sarif", capabilities.output_formats)
         self.assertEqual(capabilities.max_decoded_pczt_bytes, 8 * 1024 * 1024)
 
     def test_capability_parser_rejects_untrusted_metadata(self):
         valid = json.loads(subprocess.run(
             [str(BIN), "--capabilities"], capture_output=True, text=True, check=True,
         ).stdout)
-        for field, value in (("network_access", True), ("schema_version", 2),
+        self.assertEqual(_parse_cli_capabilities(json.dumps({k:v for k,v in valid.items()
+            if k != "output_formats"})).output_formats, ("text", "json"))
+        for field, value in (("output_formats", ["json", "sarif"]),
+                             ("output_formats", ["text", "json", "sarif", "unknown"]),
+                             ("network_access", True), ("schema_version", 2),
                              ("max_decoded_pczt_bytes", 999999999), ("tool", "another")):
             with self.subTest(field=field), self.assertRaises(ZerynexError):
                 _parse_cli_capabilities(json.dumps({**valid, field: value}))

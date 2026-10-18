@@ -627,7 +627,7 @@ test('developer docs prioritize quickstart, API paths and curated categories', a
   await expect(page.getByRole('link', { name: /First privacy check/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Integrate an SDK/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Automate a workflow/ })).toBeVisible()
-  await expect(page.locator('.docs-guide-card')).toHaveCount(20)
+  await expect(page.locator('.docs-guide-card')).toHaveCount(21)
   await expect(page.getByRole('navigation', { name: 'Documentation sections' }).getByRole('heading', { name: 'Research' })).toHaveCount(0)
   await page.getByRole('button', { name: 'SDKs & APIs' }).click()
   await expect(page.locator('.docs-guide-card')).toHaveCount(5)

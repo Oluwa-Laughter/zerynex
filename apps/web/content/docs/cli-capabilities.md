@@ -17,6 +17,7 @@ This prints JSON on standard output and exits with status `0`. No file path, RPC
 | `tool` | Fixed identifier `zerynex` |
 | `operations` | Available actions: `analyze_pczt` and `compare_pczt_stages` |
 | `input_formats` | Raw `binary` and Zallet-compatible `base64` input **transport** |
+| `output_formats` | Human-readable `text`, native `json`, and redacted `sarif` reports; older CLI builds may omit this property |
 | `input_sources` | Local `file` or stdin (`-`) |
 | `policy_profiles` | `external_signer`, `restricted_handoff` |
 | `max_decoded_pczt_bytes` | Per-PCZT input limit (8 MiB) |
@@ -40,7 +41,7 @@ assert "analyze_pczt" in capabilities.operations
 print(capabilities.version, capabilities.max_decoded_pczt_bytes)
 ```
 
-The Python wrapper rejects unsupported or contradictory capability responses and never echoes process stderr. This is a local executable discovery API, **not** a remote service or a guarantee that another Zcash wallet's transaction lifecycle is fully supported.
+The Python wrapper exposes `capabilities.output_formats` (falling back to `text` and `json` for older CLI builds) and rejects unsupported or contradictory capability responses and never echoes process stderr. This is a local executable discovery API, **not** a remote service or a guarantee that another Zcash wallet's transaction lifecycle is fully supported.
 
 ## Downstream acceptance
 

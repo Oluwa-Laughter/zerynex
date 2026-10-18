@@ -24,6 +24,7 @@ zerynex --capabilities
 | `--policy-file <path>` | Read a strict, bounded JSON policy file |
 | `--compare-with <path>` | Compare the primary PCZT with a later local stage |
 | `--json` | Output a machine-readable report instead of human text |
+| `--sarif` | Output sanitized SARIF 2.1.0 results with logical PCZT field locations; mutually exclusive with `--json` |
 | `--capabilities` | Print a versioned capability JSON document; cannot be combined with analysis arguments |
 | `--help`, `--version` | Display usage or version information |
 
@@ -61,4 +62,4 @@ The report detects new or resolved *structural findings* and component counts, *
 | `1` | Invalid input, parsing, unsupported option or runtime failure | Stop; no reliable report |
 | `2` | Policy findings or stage regressions detected | Stop or request explicit review |
 
-If you need to detect supported features without passing a file, use `zerynex --capabilities` and check `schema_version` before consuming it. See [Capabilities](cli-capabilities.md), [Policy JSON](policy-format.md), and [Reports](report-reference.md).
+If you need to detect supported features without passing a file, use `zerynex --capabilities` and check `schema_version` before consuming it. See [Capabilities](cli-capabilities.md), [Policy JSON](policy-format.md), [SARIF security reports](sarif.md), and [Reports](report-reference.md).

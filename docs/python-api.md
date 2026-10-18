@@ -37,7 +37,7 @@ The fixture path above exists in a Zerynex source checkout. For an external SDK 
 | --- | --- |
 | `Policy(profile=..., deny_transparent=..., deny_sapling=...)` | Immutable typed disclosure policy |
 | `ZerynexClient(cli=..., timeout=12.0)` | Configure a local Rust binary and finite timeout |
-| `client.capabilities()` | Return a validated CLI version and supported operations |
+| `client.capabilities()` | Return validated CLI version, supported operations and output formats (including SARIF when available) |
 | `client.analyze_file(path, policy?)` | Inspect a local PCZT file |
 | `client.analyze_base64(encoded, policy?)` | Pass an in-memory base64 PCZT to the CLI via stdin |
 | `client.compare_files(before, after, policy?)` | Compare local handoff stages |

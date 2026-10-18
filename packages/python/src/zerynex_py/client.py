@@ -43,6 +43,7 @@ class CliCapabilities:
     input_formats: tuple[str, ...]
     max_decoded_pczt_bytes: int
     max_policy_file_bytes: int
+    output_formats: tuple[str, ...] = ("text", "json")
 
 
 def _parse_cli_capabilities(raw: str) -> CliCapabilities:
@@ -67,13 +68,21 @@ def _parse_cli_capabilities(raw: str) -> CliCapabilities:
                 any(item not in ("binary", "base64") for item in formats) or
                 len(set(formats)) != len(formats) or "binary" not in formats):
             raise ValueError("formats")
+        output_formats = data.get("output_formats", ["text", "json"])
+        if (not isinstance(output_formats, list) or not 2 <= len(output_formats) <= 3 or
+                any(not isinstance(item, str) or item not in ("text", "json", "sarif")
+                    for item in output_formats) or
+                len(set(output_formats)) != len(output_formats) or
+                not {"text", "json"}.issubset(output_formats)):
+            raise ValueError("unsupported output formats")
         size = data["max_decoded_pczt_bytes"]
         policy_size = data["max_policy_file_bytes"]
         if type(size) is not int or not 0 < size <= MAX_PCZT_BYTES:
             raise ValueError("input limit")
         if type(policy_size) is not int or not 0 < policy_size <= 4096:
             raise ValueError("policy limit")
-        return CliCapabilities(version, tuple(operations), tuple(formats), size, policy_size)
+        return CliCapabilities(version, tuple(operations), tuple(formats), size, policy_size,
+                               tuple(output_formats))
     except (KeyError, ValueError, TypeError):
         raise ZerynexError("Invalid capabilities from local Rust CLI.") from None
 

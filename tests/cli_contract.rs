@@ -282,3 +282,99 @@ fn capabilities_refuse_conflicting_flags_or_file_inputs() {
     assert_ne!(output.status.code(), Some(0));
     assert!(output.stdout.is_empty());
 }
+
+#[test]
+fn sarif_clean_report_is_machine_readable_and_contains_no_locations_on_disk() {
+    let output = execute(&[
+        "apps/web/public/examples/clean-v6.bin",
+        "--deny-transparent",
+        "--sarif",
+    ]);
+    assert_eq!(output.status.code(), Some(0));
+    let sarif = json(&output);
+    assert_eq!(sarif["version"], "2.1.0");
+    assert_eq!(sarif["runs"][0]["tool"]["driver"]["name"], "Zerynex");
+    assert_eq!(sarif["runs"][0]["results"].as_array().unwrap().len(), 0);
+    assert_eq!(sarif["runs"][0]["properties"]["zerynexPassed"], true);
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("clean-v6.bin"));
+}
+
+#[test]
+fn sarif_findings_use_logical_paths_and_never_include_original_pczt_path() {
+    let output = execute(&[
+        "apps/web/public/examples/transparent-v6.bin",
+        "--deny-transparent",
+        "--sarif",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    let sarif = json(&output);
+    let result = &sarif["runs"][0]["results"][0];
+    assert_eq!(result["ruleId"], "PCZT-TRANSPARENT-OUTPUTS");
+    assert_eq!(result["properties"]["pczt_field"], "transparent.outputs");
+    assert_eq!(
+        result["locations"][0]["logicalLocations"][0]["fullyQualifiedName"],
+        "pczt::transparent.outputs"
+    );
+    let serialized = String::from_utf8_lossy(&output.stdout);
+    assert!(!serialized.contains("transparent-v6.bin"));
+    assert!(!serialized.contains(env!("CARGO_MANIFEST_DIR")));
+    assert!(!serialized.contains("physicalLocation"));
+    assert!(!serialized.contains("artifactLocation"));
+}
+
+#[test]
+fn sarif_stage_reports_new_findings_and_component_drift() {
+    let output = execute(&[
+        "apps/web/public/examples/clean-v6.bin",
+        "--compare-with",
+        "apps/web/public/examples/transparent-v6.bin",
+        "--deny-transparent",
+        "--sarif",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    let document = json(&output);
+    let results = document["runs"][0]["results"].as_array().unwrap();
+    assert!(results
+        .iter()
+        .any(|entry| entry["ruleId"] == "PCZT-TRANSPARENT-OUTPUTS"));
+    assert!(results
+        .iter()
+        .any(|entry| entry["ruleId"] == "PCZT-STRUCTURE-DRIFT"));
+    assert_eq!(document["runs"][0]["properties"]["stageComparison"], true);
+    assert_eq!(document["runs"][0]["properties"]["zerynexPassed"], false);
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("transparent-v6.bin"));
+}
+
+#[test]
+fn sarif_stage_reports_preexisting_violations_without_false_clean_result() {
+    let output = execute(&[
+        "apps/web/public/examples/flagged-v6.bin",
+        "--compare-with",
+        "apps/web/public/examples/flagged-v6.bin",
+        "--sarif",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    let document = json(&output);
+    let results = document["runs"][0]["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0]["ruleId"], "PCZT-GLOBAL-METADATA");
+    assert_eq!(results[0]["properties"]["new_in_candidate"], false);
+}
+
+#[test]
+fn sarif_and_json_are_mutually_exclusive() {
+    let output = execute(&["apps/web/public/examples/clean-v6.bin", "--sarif", "--json"]);
+    assert_eq!(output.status.code(), Some(2)); // clap's usage error
+    assert!(output.stdout.is_empty());
+}
+
+#[test]
+fn capabilities_include_sarif_output_support() {
+    let output = execute(&["--capabilities"]);
+    assert_eq!(output.status.code(), Some(0));
+    let caps = json(&output);
+    assert!(caps["output_formats"]
+        .as_array()
+        .unwrap()
+        .contains(&serde_json::json!("sarif")));
+}

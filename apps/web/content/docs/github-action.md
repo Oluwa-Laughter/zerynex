@@ -38,10 +38,12 @@ Supported action inputs:
 - deny-transparent: true by default; can be false when appropriate.
 - deny-sapling: false by default, optional application policy.
 - fail-on-findings: true by default; false enables reporting-only CI.
+- sarif-output: optional relative `.sarif` path for redacted single-PCZT or stage findings; no scenario-manifest support.
 
 Outputs:
 - passed: true only if zero policy findings.
 - finding-count: an integer.
+- sarif-path: relative generated SARIF path, or empty when not requested.
 
 Exit behaviors: malformed input always fails CI. In default mode findings
 also fail the job. Reporting-only mode retains a false passed result but
@@ -99,3 +101,9 @@ a policy finding can still pass a regression test if this was expected.
 Do not mix scenario-manifest with pczt-path, baseline-path or policy-path.
 
 See docs/handoff-harness.md for the format and safety boundaries.
+
+## Optional SARIF artifact
+
+To produce a standard-format, **logical-location-only** report, set `sarif-output: zerynex.sarif` and archive `steps.<id>.outputs.sarif-path` with `actions/upload-artifact@v4` or another approved artifact system. The input path must be relative, inside the workspace, refer to a new file, and end in `.sarif`. No original PCZT path, bytes or wallet values are included in the report.
+
+See [SARIF security reports](sarif.md) for a full example, disclosure limits, and status of GitHub Code Scanning support. The optional feature does not change the action's default behavior or policy failure exit codes.

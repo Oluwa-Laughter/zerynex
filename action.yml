@@ -37,6 +37,10 @@ inputs:
     description: Fail this job when Rust reports policy findings.
     required: false
     default: 'true'
+  sarif-output:
+    description: Optional relative .sarif output path inside the checked-out repository for redacted analysis findings. Requires an existing parent directory; not supported with scenario-manifest.
+    required: false
+    default: ''
 outputs:
   finding-count:
     description: Number of sanitized disclosure policy findings.
@@ -53,6 +57,9 @@ outputs:
   passed:
     description: 'true only when current policy checks pass and, for comparisons, component structure is unchanged.'
     value: ${{ steps.report.outputs.passed }}
+  sarif-path:
+    description: Relative sanitized SARIF report path when sarif-output is requested. No source files or PCZT bytes are embedded.
+    value: ${{ steps.report.outputs.sarif_path }}
 runs:
   using: composite
   steps:
@@ -77,4 +84,5 @@ runs:
         ZERYNEX_DENY_TRANSPARENT: ${{ inputs.deny-transparent }}
         ZERYNEX_DENY_SAPLING: ${{ inputs.deny-sapling }}
         ZERYNEX_FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
+        ZERYNEX_SARIF_OUTPUT: ${{ inputs.sarif-output }}
       run: python3 "$GITHUB_ACTION_PATH/scripts/action_check.py"

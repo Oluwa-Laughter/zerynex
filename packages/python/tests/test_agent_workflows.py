@@ -50,6 +50,7 @@ class AgentWorkflowContracts(unittest.TestCase):
         self.assertIn("compare_pczt_stages", caps["operations"])
         self.assertFalse(caps["network_access"])
         self.assertFalse(caps["signing"])
+        self.assertIn("sarif", caps["output_formats"])
         healthy = developer_preflight(client, ROOT / "apps/web/public/examples")
         self.assertTrue(healthy["passed"])
         self.assertEqual(healthy["checks"]["synthetic_pczt_suite"]["matched"], 4)

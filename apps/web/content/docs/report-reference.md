@@ -43,6 +43,8 @@ The example is illustrative: its `explanation` is abbreviated, not an assertion 
 
 Rule identifiers should be used for programmatic comparisons, not arbitrary prose matching.
 
+For automated security tooling, use [SARIF exports](sarif.md) to produce rule IDs and **logical** PCZT field locations with no original input filename or physical source path. A policy failure still exits `2` when the report is written successfully.
+
 ## Stage comparison
 
 When `--compare-with` is supplied, the report includes `before_findings_count`, `after_findings_count`, `added_findings`, `resolved_findings`, `component_deltas`, `no_new_findings`, `passed`, active policy fields, and a disclaimer. `component_deltas` report `component`, `before` and `after` counts. A passing stage comparison requires no new findings, no component-count changes, and no outstanding candidate policy findings.
