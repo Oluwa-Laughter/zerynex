@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {"name":"mainnet-ready","expected_network":"main","result":{"chain":"main","blocks":3150000,"headers":3150000,"initial_block_download_complete":true,"verificationprogress":1.0,"bestblockhash":"DO_NOT_LEAK_PRIVATE_MARKER","valuePools":[{"address":"DO_NOT_LEAK_PRIVATE_MARKER"}]},"ready":true,"codes":["pass","pass","pass","pass","pass"]},
+    {"name":"testnet-ready-legacy-ibd","expected_network":"test","result":{"chain":"test","blocks":500,"headers":501,"initialblockdownload":false,"verificationprogress":0.9995},"ready":true,"codes":["pass","pass","pass","pass","pass"]},
+    {"name":"wrong-network","expected_network":"test","result":{"chain":"main","blocks":800,"headers":800,"initial_block_download_complete":true,"verificationprogress":1},"ready":false,"codes":["fail","pass","pass","pass","pass"]},
+    {"name":"headers-behind","expected_network":"test","result":{"chain":"test","blocks":400,"headers":430,"initial_block_download_complete":true,"verificationprogress":1},"ready":false,"codes":["pass","pass","fail","pass","pass"]},
+    {"name":"sync-in-progress","expected_network":"test","result":{"chain":"test","blocks":400,"headers":450,"initialblockdownload":true,"verificationprogress":0.65},"ready":false,"codes":["pass","pass","fail","fail","fail"]},
+    {"name":"missing-sync-fields","expected_network":"regtest","result":{"chain":"regtest","blocks":0,"headers":0},"ready":false,"codes":["pass","pass","pass","unknown","unknown"]},
+    {"name":"untrusted-chain-text","expected_network":"test","result":{"chain":"DO_NOT_LEAK_PRIVATE_MARKER","blocks":true,"headers":4,"initial_block_download_complete":true,"verificationprogress":1},"ready":false,"codes":["unknown","unknown","unknown","pass","pass"]},
+    {"name":"invalid-header-order","expected_network":"test","result":{"chain":"test","blocks":5,"headers":4,"initial_block_download_complete":true,"verificationprogress":1},"ready":false,"codes":["pass","fail","pass","pass","pass"]},
+    {"name":"nonfinite-progress","expected_network":"test","result":{"chain":"test","blocks":5,"headers":5,"initial_block_download_complete":true,"verificationprogress":"NaN"},"ready":false,"codes":["pass","pass","pass","pass","unknown"]}
+  ]
+}

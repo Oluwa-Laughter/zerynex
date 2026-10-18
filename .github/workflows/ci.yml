@@ -83,6 +83,8 @@ jobs:
       - name: Install SDK dependencies
         working-directory: packages/sdk
         run: pnpm install --frozen-lockfile
+      - name: Ensure published and direct-source node adapters stay in sync
+        run: node packages/sdk/scripts/sync-network-source.mjs --check
       - name: Build and unit-test reusable SDK
         working-directory: packages/sdk
         run: |

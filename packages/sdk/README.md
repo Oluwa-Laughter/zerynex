@@ -129,3 +129,12 @@ console.log(finding?.severity, finding?.category)
 
 The catalog is generated from `rules/catalog.json` and checked in CI. It
 reports **selected structural observations**, not transaction correctness.
+
+## Zcash node readiness (browser/Node.js)
+
+Use `evaluateZcashNodeStatus(chainInfo, { expectedNetwork: 'test' })` on a
+`getblockchaininfo` result supplied by your own trusted backend. This pure
+function does not load WASM or connect to a Zcash node and never echoes
+untrusted RPC metadata. Unknown/missing fields fail closed. For a real node,
+use the loopback-only Python adapter on the backend; never ship node RPC
+credentials in browser code. See `docs/node-readiness.md`.

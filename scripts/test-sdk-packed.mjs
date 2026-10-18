@@ -35,6 +35,7 @@ try {
   if (vectorFiles.length !== 8) throw new Error('Rule conformance fixtures are incomplete.')
   for (const name of vectorFiles) await copyFile(join(vectors, name), join(app, name))
   await copyFile(join(vectors, 'expectations.json'), join(app, 'rule-expectations.json'))
+  await copyFile(join(repo, 'tests/fixtures/node/chain-readiness.json'), join(app, 'node-readiness.json'))
   await copyFile(join(repo, 'scripts/fixtures/sdk-consumer.mjs'), join(app, 'check.mjs'))
   const output = execFileSync(process.execPath, ['check.mjs'], {
     cwd: app, encoding: 'utf8', timeout: 30_000,

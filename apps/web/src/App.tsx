@@ -177,6 +177,11 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
         <small>Run four upstream role-fixture regressions and export the results.</small>
         <ArrowUpRight size={21}/>
       </Link>
+      <Link href="/tools/node">
+        <span>EXPERIMENT 04 / ZCASH INFRASTRUCTURE</span><strong>Node Readiness</strong>
+        <small>Review network and sync status from a public RPC result, entirely in-browser.</small>
+        <ArrowUpRight size={21}/>
+      </Link>
     </section>
     <div className="studio-grid">
       <div className="studio-left">

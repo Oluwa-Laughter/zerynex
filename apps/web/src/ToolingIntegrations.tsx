@@ -5,7 +5,7 @@ import { gsap } from 'gsap'
 import Link from 'next/link'
 import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow, LuGitPullRequest, LuGitBranch, LuGitMerge, LuPackage, LuFileJson, LuShieldCheck } from 'react-icons/lu'
 
-type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'github' | 'stages' | 'handoff' | 'go' | 'rpc' | 'zk'
+type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'node' | 'github' | 'stages' | 'handoff' | 'go' | 'rpc' | 'zk'
 const integrations: {key:Integration,label:string,title:string,kind:string,description:string,code:string,documentation:string,icon:typeof LuCode}[] = [
   {
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
@@ -68,6 +68,12 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     documentation: '/docs/rpc-contracts',icon:LuFileJson,
   },
   {
+    key:'node',label:'Zcash Node RPC',title:'Integrate network and synchronization readiness',kind:'ZEBRA / ZCASHD / READ-ONLY',
+    description:'Inspect the network and synchronization state of an explicitly local Zcash node, or pass public chain information into the TypeScript SDK from your trusted backend. No wallet or payment RPC.',
+    code:"from zerynex_py import inspect_node_local\n\nreport = inspect_node_local(port=8232, expected_network='test')\nif not report.ready: raise RuntimeError('Zcash node not ready')\n\n# Or: zerynex-node-check --expect-network test",
+    documentation:'/docs/node-readiness',icon:LuNetwork,
+  },
+  {
     key:'z3',label:'Z3 / Zebra',title:'Diagnose local node readiness',kind:'LOOPBACK ONLY',
     description:'Check documented Zebra /healthy and /ready responses on localhost. This does not validate Zcash consensus, Zallet RPC, or Zaino indexing.',
     code:"cargo build --locked --release\npython -m venv .venv\n.venv/bin/python -m pip install ./packages/python\n.venv/bin/zerynex-z3-check --host 127.0.0.1 --port 8080",
@@ -122,6 +128,7 @@ export default function ToolingIntegrations() {
         <div className="dev-integration-links">
           <Link className="dev-integration-docs" href={current.documentation}>READ INTEGRATION DOCUMENTATION <LuArrowUpRight size={15}/></Link>
           {active==='stages'&&<Link className="dev-integration-try" href="/tools/stages">RUN STAGE COMPARATOR <LuArrowUpRight size={15}/></Link>}
+          {active==='node'&&<Link className="dev-integration-try" href="/tools/node">TRY NODE READINESS <LuArrowUpRight size={15}/></Link>}
           {active==='handoff'&&<Link className="dev-integration-try" href="/tools/handoff">RUN ROLE HARNESS <LuArrowUpRight size={15}/></Link>}
         </div>
       </div>

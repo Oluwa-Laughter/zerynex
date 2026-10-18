@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
-import { normalizePolicy, RULE_CATALOG, getRule } from '@zerynex/sdk'
+import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
 assert.equal(RULE_CATALOG.schema_version, 1)
@@ -67,4 +67,12 @@ for (const scenario of vectors.stage_cases) {
 }
 console.log('PACKED STAGE CONFORMANCE PASS: 7 stage regressions match canonical Rust and Python')
 console.log('PACKED RULE CONFORMANCE PASS: 18 PCZT policy vectors match Rust CLI and Python contract')
+const nodeVectors = JSON.parse(await readFile('node-readiness.json', 'utf8'))
+for (const vector of nodeVectors.cases) {
+  const readiness = evaluateZcashNodeStatus(vector.result, {expectedNetwork: vector.expected_network})
+  assert.equal(readiness.ready, vector.ready, vector.name)
+  assert.deepEqual(readiness.checks.map(x => x.status), vector.codes, vector.name)
+  assert.doesNotMatch(JSON.stringify(readiness), /DO_NOT_LEAK_PRIVATE_MARKER|bestblockhash|valuePools/)
+}
+console.log('PACKED NODE READINESS PASS: all 9 Zebra/zcashd readiness vectors in a clean npm consumer')
 console.log('PACKED SDK CONSUMER PASS: real Rust/WASM scanner and stage comparison, no monorepo')

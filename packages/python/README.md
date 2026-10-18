@@ -166,3 +166,16 @@ Zallet-style synthetic RPC contract. Exit codes: pass `0`, input/error `1`,
 regression mismatch `2`. The agent MCP tools use the same implementation,
 including a fixed RPC regression scenario menu with **no arbitrary files**.
 See `docs/agents.md` for the trust boundaries.
+
+## Read-only local Zcash node readiness
+
+`zerynex-node-check --host 127.0.0.1 --port 8232 --expect-network test`
+reads one local `getblockchaininfo` response and emits only network/sync readiness
+fields. Use `--cookie-file /path/to/owner-private/.cookie` for nodes requiring
+RPC authentication. It never takes a password in argv, connects to public
+hosts, or exposes arbitrary wallet RPCs.
+
+Python applications may use `inspect_node_local()` or pass an already obtained
+response to `evaluate_blockchain_info()`. The pure `evaluate_blockchain_info()`
+function has no network dependency. A lack of sync/status fields fails closed.
+See `docs/node-readiness.md` for API examples and limitations.

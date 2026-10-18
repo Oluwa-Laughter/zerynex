@@ -50,3 +50,5 @@ The fixture path above exists in a Zerynex source checkout. For an external SDK 
 The wheel also installs `zerynex-rpc-check` for offline schema drift, `zerynex-agent-preflight` for local synthetic integration verification and an optional `zerynex-mcp` server when installed with `[mcp]`. The MCP tools are **read-only and synthetic-fixture-only**.
 
 See [MCP and agents](agents.md), [RPC compatibility](rpc-contracts.md), and [Report reference](report-reference.md).
+
+For real Zcash infrastructure integrations, see [Node readiness](node-readiness.md) and [Zcash application recipes](zcash-app-recipes.md).

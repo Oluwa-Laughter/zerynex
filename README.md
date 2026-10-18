@@ -1,8 +1,8 @@
 # Zerynex
 
-**Privacy-policy analysis and regression testing for Zcash transaction infrastructure.**
+**Local-first Zcash developer tooling for privacy policies, PCZT testing, node readiness, RPC compatibility, SDK integration, and CI.**
 
-Zerynex is a local-first, Rust-powered toolkit for developers building on Zcash: inspect Partially Created Zcash Transaction (PCZT) disclosures, compare privacy policies across transaction stages, validate synthetic wallet role handoffs, and integrate reproducible checks into application CI. Rust, TypeScript, Python, Go and MCP are interfaces into that foundation—not the limits of the product. Originally created for Zecathon 2026's **Core & Tooling** track.
+Zerynex is a local-first, composable toolkit for developers building on Zcash: inspect Partially Created Zcash Transaction (PCZT) disclosures, compare privacy policies across transaction stages, validate synthetic wallet role handoffs, and integrate reproducible checks into application CI. Rust, TypeScript, Python, Go and MCP are interfaces into that foundation—not the limits of the product. Originally created for Zecathon 2026's **Core & Tooling** track.
 
 **Try it without installing anything:** https://zerynex.vercel.app/tools
 
@@ -10,6 +10,8 @@ Zerynex is a local-first, Rust-powered toolkit for developers building on Zcash:
 **Problem:** ZIP-374 intermediary PCZT files may carry sensitive metadata that never appears in a final shielded transaction. Zerynex helps developers establish explicit policies at those handoff boundaries.
 
 **Executable rule conformance:** The same 18 policy fixtures/scenarios and seven stage regressions run through the Rust CLI, Python SDK and independently packed TypeScript/WASM SDK. See [rule vectors](docs/rule-registry.md#executable-rule-conformance-vectors).
+
+**Zcash node integration:** Read-only, loopback-only `zerynex-node-check` checks chain/network readiness; a pure TypeScript normalizer works in browser/backend projects without exposing RPC credentials. See [Node readiness](docs/node-readiness.md) and [Zcash builder recipes](docs/zcash-app-recipes.md).
 
 **Rule registry:** `zerynex --rule-catalog` returns the public, versioned PCZT finding definitions used across SDKs, SARIF and MCP. See [rule metadata](docs/rule-registry.md).
 
@@ -23,7 +25,7 @@ Zerynex is a local-first, Rust-powered toolkit for developers building on Zcash:
 - **Transaction-stage regression tests**: compare two local PCZT snapshots and report newly introduced findings.
 - **Wallet signer/handoff scenarios**: verify deterministic synthetic Creator, Updater, Combiner and Redactor checkpoints.
 - **CI and SDK integration**: reuse the canonical Rust engine with CLI, WebAssembly and language adapters.
-- **Infrastructure diagnostics**: offline RPC contract drift and limited local node-readiness checks; live RPC, consensus and indexer integration are not complete.
+- **Infrastructure diagnostics**: read-only loopback `getblockchaininfo` node readiness and offline RPC contract checks. Real signing, consensus verification and indexer adapters remain outside the supported scope.
 - **Agent tooling**: explicitly authorized, read-only MCP operations for approved synthetic fixtures, not private wallet contents.
 
 ## Architecture
@@ -31,7 +33,8 @@ Zerynex is a local-first, Rust-powered toolkit for developers building on Zcash:
 - **Rust library** (`src/lib.rs`): real PCZT parsing via the Zcash `pczt` crate, policy checks on global proprietary metadata and selected Orchard/Ironwood fields.
 - **CLI** (`src/main.rs`): local binary input, text/JSON report, 0 pass / 1 input error / 2 policy findings.
 - **Browser engine**: the *same* Rust core compiled to WebAssembly; no hosted file upload or analysis API.
-- **Developer Tools** (`apps/web`): Next.js 16 App Router, React 19, TypeScript, Tailwind 4, GSAP animation, adaptive responsive UX, local file analysis, JSON export.
+- **Developer Tools** (`apps/web`): Next.js 16 App Router, React 19, TypeScript, Tailwind 4, GSAP, responsive PCZT workbenches and a local-only node-readiness report workbench (`/tools/node`).
+- **Node adapters** (`packages/python/src/zerynex_py/node.py` and `packages/sdk/src/network.ts`): read-only local RPC checks and pure cross-platform chain-state normalization, validated against shared fixtures.
 - **Fixtures** (`examples/generate_fixtures.rs`): synthetic non-spendable v6 PCZT files: clean, metadata-flagged, and transparent-output.
 
 ## Development

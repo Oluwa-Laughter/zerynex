@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test('homepage navigates to Zerynex developer tooling', async ({ page, isMobile }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Zerynex/)
-  await expect(page.getByRole('heading', { name: /Privacy testing for/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Build for Zcash/i })).toBeVisible()
   if(isMobile){
     await page.getByRole('button',{name:'Open menu'}).click()
     await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Open workbench'}).click()
@@ -129,8 +129,8 @@ test('language SDK page and agent route fit small viewports',async ({page})=>{
 
 test('new homepage has working tool links and no personal repository CTA',async ({page,isMobile})=>{
   await page.goto('/')
-  await expect(page.getByRole('heading',{name:/Privacy testing for the Zcash ecosystem/i})).toBeVisible()
-  await expect(page.getByRole('link',{name:/Run Zcash privacy checks/})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Build for Zcash.*Privacy comes first/i})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Explore developer tools/})).toBeVisible()
   await expect(page.getByRole('link',{name:/Explore GitHub/})).toHaveCount(0)
   await expect(page.getByRole('link',{name:/Inspect a PCZT/})).toBeVisible()
   const size=await page.evaluate(()=>({width:document.documentElement.scrollWidth,view:document.documentElement.clientWidth}))
@@ -151,9 +151,9 @@ test('homepage actually detects transparent fixture with the Rust WASM parser',a
 test('reduced-motion keeps hero and application controls accessible',async ({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'})
   await page.goto('/')
-  await expect(page.getByRole('heading',{name:/Privacy testing for/})).toBeVisible()
-  await expect(page.getByRole('link',{name:/Run Zcash privacy checks/})).toBeVisible()
-  await page.getByRole('link',{name:/Run Zcash privacy checks/}).click()
+  await expect(page.getByRole('heading',{name:/Build for Zcash/})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Explore developer tools/})).toBeVisible()
+  await page.getByRole('link',{name:/Explore developer tools/}).click()
   await expect(page).toHaveURL(/\/tools/)
 })
 
@@ -348,7 +348,7 @@ test('color themes switch and persist through navigation and reload',async ({pag
   await page.getByRole('button',{name:'Change color theme'}).click()
   await page.getByRole('button',{name:'Light'}).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme','light')
-  await page.getByRole('link',{name:/Run Zcash privacy checks/}).click()
+  await page.getByRole('link',{name:/Explore developer tools/}).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme','light')
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme','light')
@@ -535,9 +535,9 @@ test('phone docs hamburger opens full sections and navigates to the guide',async
 test('large-screen Zcash headline and workflow overview use the available content width',async ({page})=>{
   await page.setViewportSize({width:1600,height:950})
   await page.goto('/')
-  await expect(page.getByRole('heading',{name:/Privacy testing for the Zcash ecosystem/i})).toBeVisible()
+  await expect(page.getByRole('heading',{name:/Build for Zcash.*Privacy comes first/i})).toBeVisible()
   await expect(page.getByRole('heading',{name:/One toolkit.*Across the ecosystem/i})).toBeVisible()
-  await expect(page.getByRole('link',{name:/Node and RPC integrations/i})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Zcash node and RPC integrations/i})).toBeVisible()
   await expect(page.getByRole('link',{name:/Wallets and signing handoffs/i})).toBeVisible()
   const widths=await page.evaluate(()=>({
     hero:document.querySelector('.zn-hero h1')?.getBoundingClientRect().width??0,
@@ -629,7 +629,7 @@ test('developer docs prioritize quickstart, API paths and curated categories', a
   await expect(page.getByRole('link', { name: /First privacy check/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Integrate an SDK/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Automate a workflow/ })).toBeVisible()
-  await expect(page.locator('.docs-guide-card')).toHaveCount(22)
+  await expect(page.locator('.docs-guide-card')).toHaveCount(24)
   await expect(page.getByRole('navigation', { name: 'Documentation sections' }).getByRole('heading', { name: 'Research' })).toHaveCount(0)
   await page.getByRole('button', { name: 'SDKs & APIs' }).click()
   await expect(page.locator('.docs-guide-card')).toHaveCount(5)
@@ -668,4 +668,31 @@ test('internal repository notes are not published as product docs routes', async
   await expect(page.getByLabel('Documentation sections').getByText('Product design and release policy')).toHaveCount(0)
   await expect(page.getByLabel('Documentation sections').getByText('Deploy the developer frontend')).toHaveCount(0)
   await expect(page.getByLabel('Documentation sections').getByText('Python SDK API')).toBeVisible()
+})
+
+test('Zcash node readiness workbench checks public chain state locally', async ({ page }) => {
+  await page.goto('/tools/node')
+  await expect(page.getByRole('heading',{name:/Is your Zcash node ready/})).toBeVisible()
+  await page.getByRole('button',{name:'Ready node'}).click()
+  await page.getByRole('button',{name:/Analyze readiness/}).click()
+  await expect(page.getByText('NODE READINESS CONFIRMED')).toBeVisible()
+  await expect(page.getByText('NETWORK MATCH')).toBeVisible()
+  await page.getByRole('button',{name:'Wrong network'}).click()
+  await page.getByRole('button',{name:/Analyze readiness/}).click()
+  await expect(page.getByText('NODE IS NOT READY')).toBeVisible()
+  await expect(page.getByText('CHECK FAILED').first()).toBeVisible()
+  await page.getByLabel('Blockchain info JSON').fill('not valid JSON')
+  await page.getByRole('button',{name:/Analyze readiness/}).click()
+  await expect(page.locator('[role="alert"]').filter({hasText:'Cannot evaluate this response'})).toBeVisible()
+  await expect(page.getByText('NODE READINESS CONFIRMED')).toHaveCount(0)
+})
+
+test('mobile Zcash node workbench supports local synthetic readiness checks', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844})
+  await page.goto('/tools/node')
+  await page.getByRole('button',{name:'Syncing node'}).click()
+  await page.getByRole('button',{name:/Analyze readiness/}).click()
+  await expect(page.getByText('NODE IS NOT READY')).toBeVisible()
+  await expect(page.getByText('INITIAL SYNC')).toBeVisible()
+  await expect(page.getByText('CHECK FAILED').first()).toBeVisible()
 })

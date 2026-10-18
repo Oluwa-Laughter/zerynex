@@ -1,3 +1,5 @@
+export { evaluateZcashNodeStatus } from './network.js'
+export type { NodeReadiness, ZcashNetwork, NodeCheckCode, NodeCheckStatus } from './network.js'
 export { RULE_CATALOG, getRule } from './rule-catalog.js'
 export type { RuleId, RuleDefinition } from './rule-catalog.js'
 

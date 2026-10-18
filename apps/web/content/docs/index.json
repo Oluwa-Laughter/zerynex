@@ -114,6 +114,22 @@
       "summary": "Invoke the canonical Rust engine from Go applications without a remote API."
     },
     {
+      "slug": "node-readiness",
+      "title": "Zcash node readiness",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Wallet, payments and infrastructure developers",
+      "summary": "Check local Zebra/zcashd chain/network sync and integrate a typed, read-only readiness report."
+    },
+    {
+      "slug": "zcash-app-recipes",
+      "title": "Build Zcash applications",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Shielded payment, private-market, cross-chain and tooling developers",
+      "summary": "Compose Zerynex SDKs and privacy checks in real product integration patterns."
+    },
+    {
       "slug": "github-action",
       "title": "GitHub Actions integration",
       "group": "Automation",

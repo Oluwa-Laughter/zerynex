@@ -3,7 +3,7 @@ import App from '../../src/App'
 
 export const metadata: Metadata = {
   title: 'Zcash SDKs and Integrations',
-  description: 'Integrate Zerynex privacy-policy and transaction-regression checks into Zcash applications through Rust, TypeScript, Python, Go and local agent tooling.',
+  description: 'Integrate Zcash node-readiness checks, PCZT privacy policies, RPC compatibility and developer SDKs into payments, wallets, relayers and infrastructure applications.',
 }
 
 export default function EcosystemPage() {

@@ -64,6 +64,26 @@ def check_wheel(folder: Path, cli: Path) -> None:
         if report.get("passed") is not True or report.get("checked_methods") != 7 or report.get("deny_new_required") is not True:
             raise AssertionError("Installed RPC CLI returned an unexpected capability contract")
         print("PACKED RPC CONSUMER PASS: installed wheel CLI validates seven synthetic methods")
+        # Real package consumer must expose the standalone local-only Zcash
+        # infrastructure adapter, not just monorepo module imports.
+        node_checker = venv_dir / ("Scripts/zerynex-node-check.exe" if sys.platform == "win32" else "bin/zerynex-node-check")
+        if not node_checker.is_file():
+            raise AssertionError("Local Zcash node probe is absent from installed wheel")
+        node_help = subprocess.run([str(node_checker), "--help"],
+                                   capture_output=True, text=True, timeout=10, check=True)
+        if '--expect-network' not in node_help.stdout or '--cookie-file' not in node_help.stdout:
+            raise AssertionError("Installed node probe lacks operator safety controls")
+        vectors_code = (
+            "import json,sys;from zerynex_py import evaluate_blockchain_info;"
+            "f=json.load(open(sys.argv[1]));"
+            "assert f['schema_version']==1;"
+            "assert all(evaluate_blockchain_info(x['result'],expected_network=x['expected_network']).ready==x['ready'] for x in f['cases']);"
+            "print('PACKED NODE READINESS PASS: installed wheel parses nine shared Zcash node vectors')"
+        )
+        vector_check = subprocess.run([str(python),'-c',vectors_code,
+           str((ROOT/'tests/fixtures/node/chain-readiness.json').resolve())],
+           capture_output=True,text=True,timeout=10,check=True)
+        print(vector_check.stdout.strip())
         preflight = venv_dir / ("Scripts/zerynex-agent-preflight.exe" if sys.platform == "win32" else "bin/zerynex-agent-preflight")
         if not preflight.is_file():
             raise AssertionError("Developer preflight was not installed from the wheel")

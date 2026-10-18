@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { LuArrowUpRight, LuArrowRight, LuShieldCheck, LuLayers, LuGitCompare,
+import { LuArrowUpRight, LuArrowRight, LuShieldCheck, LuGitCompare,
   LuLockKeyhole, LuTerminal, LuWorkflow, LuCheck, LuScanLine, LuCheckCheck, LuBookOpen,
   LuPlay, LuNetwork, LuChevronRight, LuFileCode2 } from 'react-icons/lu'
 import { inspectPczt, loadEngine, type Report } from './analyzer'
@@ -13,7 +13,7 @@ import { inspectPczt, loadEngine, type Report } from './analyzer'
 const capabilities = [
   {n:'01', title:'Inspect a PCZT', desc:'Know which disclosure policy fields appear before signing or handoff.', icon:LuScanLine,href:'/tools',state:'LIVE IN BROWSER'},
   {n:'02', title:'Compare stages', desc:'Detect new metadata and changed shielded or transparent components.',icon:LuGitCompare,href:'/tools/stages',state:'LIVE IN BROWSER'},
-  {n:'03', title:'Role handoffs',desc:'Replay reproducible PCZT role snapshots against expected privacy invariants.',icon:LuLayers,href:'/tools/handoff',state:'SYNTHETIC TESTS'},
+  {n:'03', title:'Check node readiness',desc:'Review network and synchronization state before connecting Zcash applications.',icon:LuNetwork,href:'/tools/node',state:'LOCAL / READ ONLY'},
   {n:'04', title:'SDK and CI',desc:'Add checks to app pipelines with one canonical Rust engine and reusable adapters.',icon:LuTerminal,href:'/docs/installation',state:'SOURCE INTEGRATIONS'},
 ]
 const ecosystemWorkflows = [
@@ -37,12 +37,18 @@ const ecosystemWorkflows = [
   },
   {
     code: '04', type: 'PREVIEW / OFFLINE CONTRACTS',
-    title: 'Node and RPC integrations',
-    description: 'Check offline RPC schema compatibility and explore loopback Zebra diagnostics. Live consensus and indexer validation are not supported yet.',
-    href: '/docs/rpc-contracts', cta: 'Explore RPC compatibility',
+    title: 'Zcash node and RPC integrations',
+    description: 'Run read-only loopback node network/sync checks and verify pinned RPC method contracts. No wallet access, consensus audit, or arbitrary network RPC.',
+    href: '/tools/node', cta: 'Check node readiness',
   },
   {
-    code: '05', type: 'SUPPORTED / APPROVED FIXTURES',
+    code: '05', type: 'SUPPORTED / APPLICATION INTEGRATIONS',
+    title: 'Payments, markets and cross-chain apps',
+    description: 'Compose node readiness, policy checks and SDK interfaces into real applications; payment construction, wallet signing and settlement remain your app’s responsibility.',
+    href: '/docs/zcash-app-recipes', cta: 'See Zcash app recipes',
+  },
+  {
+    code: '06', type: 'SUPPORTED / APPROVED FIXTURES',
     title: 'Agent-assisted privacy reviews',
     description: 'Connect restricted local MCP tools, inspect synthetic fixtures and explain known privacy-policy findings.',
     href: '/agents', cta: 'Explore agent workflows',
@@ -114,10 +120,10 @@ export default function HomeExperience() {
   return <main className="zn-home" ref={scope}>
     <section className="zn-hero">
       <div className="zn-hero-content">
-        <MotionTitle className="zn-overline"><span className="zn-overline-dot"/> ZERYNEX / ZCASH PRIVACY INFRASTRUCTURE</MotionTitle>
-        <MotionTitle><h1>Privacy testing for <em>the Zcash ecosystem.</em></h1></MotionTitle>
-        <MotionTitle><p className="zn-hero-text">Zerynex is a privacy-policy and regression-testing toolkit for Zcash transaction infrastructure. Inspect PCZT disclosures, test wallet handoffs and catch policy changes with local tools that developers can actually integrate.</p></MotionTitle>
-        <MotionTitle className="zn-hero-actions"><Link href="/tools" className="zn-primary">Run Zcash privacy checks <LuArrowUpRight size={19}/></Link><Link href="/docs/installation" className="zn-secondary">Explore the toolkit <LuArrowRight size={19}/></Link></MotionTitle>
+        <MotionTitle className="zn-overline"><span className="zn-overline-dot"/> ZERYNEX / ZCASH DEVELOPER INFRASTRUCTURE</MotionTitle>
+        <MotionTitle><h1>Build for Zcash. <em>Privacy comes first.</em></h1></MotionTitle>
+        <MotionTitle><p className="zn-hero-text">Zerynex is a local-first developer toolkit for Zcash applications. Combine PCZT privacy-policy checks, node-readiness diagnostics, RPC compatibility testing, SDKs, CI and controlled agent workflows inside your own wallets, payments systems and protocol infrastructure.</p></MotionTitle>
+        <MotionTitle className="zn-hero-actions"><Link href="/tools" className="zn-primary">Explore developer tools <LuArrowUpRight size={19}/></Link><Link href="/docs/zcash-app-recipes" className="zn-secondary">Integration recipes <LuArrowRight size={19}/></Link></MotionTitle>
         <MotionTitle className="zn-hero-foot"><span><LuShieldCheck size={15}/> OPEN SOURCE ENGINE</span><span><LuLockKeyhole size={15}/> BROWSER-LOCAL ANALYSIS</span><span><LuNetwork size={15}/> BUILT FOR ZCASH</span></MotionTitle>
       </div>
       <div className="zn-hero-visual" aria-hidden="true">
@@ -135,7 +141,7 @@ export default function HomeExperience() {
         <span className="zn-geometry-label zn-label-bottom">VERIFIABLE WORKFLOWS / 001</span>
       </div>
     </section>
-    <section className="zn-proof-strip" aria-label="Zcash development workflows"><span>DEVELOPMENT SURFACES</span><div><strong>PCZT</strong><i/><strong>Wallet handoffs</strong><i/><strong>Regression CI</strong><i/><strong>RPC tooling</strong><i/><strong>Local MCP</strong></div><Link href="/ecosystem">SDK interfaces <LuArrowUpRight size={17}/></Link></section>
+    <section className="zn-proof-strip" aria-label="Zcash development workflows"><span>DEVELOPMENT SURFACES</span><div><strong>PCZT</strong><i/><strong>Wallet handoffs</strong><i/><strong>Regression CI</strong><i/><strong>RPC tooling</strong><i/><strong>Node readiness</strong><i/><strong>Local MCP</strong></div><Link href="/ecosystem">SDK interfaces <LuArrowUpRight size={17}/></Link></section>
     <section className="zn-ecosystem-workflows" aria-labelledby="zn-ecosystem-title">
       <div className="zn-workflows-heading zn-scroll-reveal">
         <span className="zn-section-tag">01 / BUILT FOR ZCASH DEVELOPMENT</span>
@@ -188,6 +194,6 @@ export default function HomeExperience() {
         <small>READ-ONLY · NO SIGNING KEYS · NO WALLET RPC</small>
       </div>
     </section>
-    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>PRIVACY POLICY AND REGRESSION TESTS FOR ZCASH.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
+    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>ZCASH DEVELOPER TOOLS / PRIVACY-FIRST INFRASTRUCTURE.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
   </main>
 }
