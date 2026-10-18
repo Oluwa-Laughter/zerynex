@@ -44,6 +44,9 @@ Select a file from your application's own input. Ensure the bundler can serve th
 | `client.compareStageBlobs(before, after, policy?)` | Compare browser file stages |
 | `normalizePolicy(policy?)` | Reject unsupported or mistyped settings |
 | `RULE_CATALOG`, `getRule(id)` | Access bundled, typed rule metadata without initializing WASM |
+| `createWalletHandoffCoordinator(provider, inspector)` | Wallet-neutral, fail-closed one-use ZIP-321 handoff policy and user-consent boundary |
+| `createBrowserWalletHandoff(provider, options?)` | Canonical Rust/WASM inspector-backed provider handoff coordinator |
+| `createZip321UriProvider({network, openUri, ...})` | Explicit OS ZIP-321 URI adapter; wallet launch does not prove transaction acceptance |
 | `evaluateZcashNodeStatus(result, options?)` | Pure, read-only normalization of Zcash `getblockchaininfo` chain readiness |
 | `parsePolicyJson(json)` | Import a strict JSON policy, at most 4 KiB |
 | `exportPolicyJson(policy?)` | Serialize a normalized policy |
@@ -67,3 +70,5 @@ try {
 Known SDK categories: `INPUT_INVALID`, `POLICY_INVALID`, `ENGINE_UNAVAILABLE`, `ANALYSIS_FAILED`, and `REPORT_INVALID`. A successful analysis response may contain *findings*: those are policy results, not exceptions. See [Reports](report-reference.md) and [Privacy model](privacy-model.md).
 
 See [Zcash node readiness](node-readiness.md) for a backend integration pattern that does not expose RPC credentials in the browser.
+
+See [Wallet provider handoffs](wallet-handoffs.md) for typed capabilities, policy matching and mandatory host-side user consent.

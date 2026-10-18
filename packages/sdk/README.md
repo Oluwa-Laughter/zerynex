@@ -145,3 +145,9 @@ Use `inspectZip321Uri(uri, 'test', {wasm: trustedWasmBytes})` from
 `@zerynex/sdk/browser`. Uses the bundled Rust parser with actual address
 checksum/network validation. Returns only redacted structural metadata.
 Does not sign, build or send transactions. See `docs/payment-requests.md`.
+
+## Wallet-neutral ZIP-321 handoffs
+
+Use `createWalletHandoffCoordinator` from `@zerynex/sdk` for a one-use, policy-checked wallet handoff. It separates local inspection, trusted-provider capability discovery, host-user consent, and wallet presentation. The `createBrowserWalletHandoff` helper uses the bundled canonical Rust/WASM parser.
+
+The `createZip321UriProvider` adapter accepts a host-supplied `openUri` callback. It never auto-discovers wallets. A `presented` result only means an attempted wallet handoff—not signing, broadcasting or settlement. See [Wallet handoffs](../../docs/wallet-handoffs.md) for limitations and examples.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { createBrowserZerynexClient, inspectZip321Uri } from '@zerynex/sdk/browser'
+import { createBrowserZerynexClient, inspectZip321Uri, createBrowserWalletHandoff, createZip321UriProvider } from '@zerynex/sdk/browser'
 import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
@@ -85,5 +85,26 @@ assert.equal(request.total_zat,100_000_000)
 assert.doesNotMatch(JSON.stringify(request), /ztestsapling|Thank%20you|VGhpcy|private/)
 await assert.rejects(inspectZip321Uri(payUri,'main',{wasm}),/ZIP-321 input rejected/)
 await assert.rejects(inspectZip321Uri(payUri+'&req-wallet-sign=1','test',{wasm}),/ZIP-321 input rejected/)
+
+const openedWalletUris = []
+const uriProvider = createZip321UriProvider({
+  network: 'test',
+  supports_memos: true,
+  openUri: uri => { openedWalletUris.push(uri) },
+})
+const handoff = createBrowserWalletHandoff(uriProvider, {wasm})
+const ticket = await handoff.prepare(payUri, {
+  expected_network:'test', expected_total_zat:100_000_000,
+  allow_memos:true,
+})
+assert.equal(ticket.payment_count,1)
+assert.equal(openedWalletUris.length,0)
+assert.doesNotMatch(JSON.stringify(ticket),/ztestsapling|Thank|VGhpcy/)
+const presented = await handoff.handoff(ticket, async () => true)
+assert.equal(presented.status, 'presented')
+assert.deepEqual(openedWalletUris,[payUri])
+assert.doesNotMatch(JSON.stringify(presented),/zcash:|ztestsapling|VGhpcy/)
+await assert.rejects(handoff.handoff(ticket, async () => true), error => error.code === 'TICKET_INVALID')
+console.log('PACKED WALLET HANDOFF PASS: canonical Rust/WASM preflight, policy, consent, and one-use ticket')
 console.log('PACKED ZIP-321 PASS: real Rust/WASM payment-request checks, redacted output')
 console.log('PACKED SDK CONSUMER PASS: real Rust/WASM scanner and stage comparison, no monorepo')

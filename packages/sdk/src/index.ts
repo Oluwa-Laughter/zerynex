@@ -1,3 +1,5 @@
+export { createWalletHandoffCoordinator, createZip321UriProvider, WalletHandoffError } from './wallet-handoff.js'
+export type { WalletNetwork, WalletProviderCapabilities, WalletPaymentProvider, WalletHandoffPolicy, PreparedWalletHandoff, WalletHandoffCoordinator, WalletHandoffResult, WalletHandoffErrorCode } from './wallet-handoff.js'
 export { evaluateZcashNodeStatus } from './network.js'
 export type { NodeReadiness, ZcashNetwork, NodeCheckCode, NodeCheckStatus } from './network.js'
 export { RULE_CATALOG, getRule } from './rule-catalog.js'

@@ -130,6 +130,14 @@
       "summary": "Validate and inspect ZIP-321 ZEC payment requests locally using Rust, WebAssembly and redacted native CLI."
     },
     {
+      "slug": "wallet-handoffs",
+      "title": "Wallet provider handoffs",
+      "group": "SDKs & APIs",
+      "status": "preview",
+      "audience": "Wallet, checkout, and Zcash application developers",
+      "summary": "Integrate ZIP-321 wallet handoffs with capability negotiation, one-use tickets, exact-amount policies and explicit host consent."
+    },
+    {
       "slug": "zcash-app-recipes",
       "title": "Build Zcash applications",
       "group": "SDKs & APIs",

@@ -68,3 +68,7 @@ For a runnable integration contract and security model, see [Node readiness](nod
 Prototype merchant tooling, privacy monitors, AI-assisted development or wallet workflow automation by combining **offline structural checks**, **read-only node state**, and **application-owned signing/payment systems**. Keep MCP agents restricted to approved synthetic fixtures. A passed preflight or rule report must never become an unconditional wallet-signing instruction.
 
 **Compatibility evidence:** Local parsing and normalization are tested against shared synthetic Zebra/zcashd response fixtures; a mock local HTTP node is used to exercise the transport and authentication. Production Zallet/Zebra nodes, live wallet handoff, private payments and bridge contracts have **not** been validated by this page.
+
+### Wallet-provider integration boundary
+
+Use the [wallet handoff coordinator](wallet-handoffs.md) to combine local ZIP-321 validation, exact-zatoshi and expected-network policies, declared trusted-provider capabilities, and an explicit host authorization callback. Handing a URI to a wallet is not confirmation of payment. Never grant autonomous agents access to the host authorization or provider-presentation methods.
