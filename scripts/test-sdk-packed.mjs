@@ -30,6 +30,11 @@ try {
     archive], { cwd: app, stdio: 'pipe', timeout: 60_000 })
   for (const filename of ['clean-v6.bin', 'transparent-v6.bin', 'flagged-v6.bin'])
     await copyFile(join(repo, 'apps/web/public/examples', filename), join(app, filename))
+  const vectors = join(repo, 'tests/fixtures/rules')
+  const vectorFiles = (await readdir(vectors)).filter(name => name.endsWith('.bin'))
+  if (vectorFiles.length !== 8) throw new Error('Rule conformance fixtures are incomplete.')
+  for (const name of vectorFiles) await copyFile(join(vectors, name), join(app, name))
+  await copyFile(join(vectors, 'expectations.json'), join(app, 'rule-expectations.json'))
   await copyFile(join(repo, 'scripts/fixtures/sdk-consumer.mjs'), join(app, 'check.mjs'))
   const output = execFileSync(process.execPath, ['check.mjs'], {
     cwd: app, encoding: 'utf8', timeout: 30_000,

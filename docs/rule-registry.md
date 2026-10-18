@@ -53,3 +53,29 @@ python3 scripts/sync-rule-catalog.py --check
 CI verifies both snapshots, the Rust finding IDs, the CLI's exported catalog and the installed SDK package tests. Introducing a rule means reviewing its metadata, adding a test vector, verifying that its detection is implemented, and intentionally updating the rule-set version if semantics change. Do not silently reassign an existing ID to a different meaning.
 
 See [Reports](report-reference.md), [SARIF exports](sarif.md), [CLI capabilities](cli-capabilities.md), and [MCP agent integration](agents.md).
+
+## Executable rule conformance vectors
+
+Zerynex provides **eight deterministic, nonspendable PCZT binary fixtures** under `tests/fixtures/rules/`. They exercise transparent inputs, transparent metadata, restricted transparent outputs, Sapling policy and restricted-field checks, and Orchard dummy-key, metadata and output checks. Existing `clean-v6.bin`, `flagged-v6.bin` and `transparent-v6.bin` fixtures supply positive and negative baselines. The Orchard dummy-key vector uses an **all-zero synthetic sentinel**, not a wallet secret.
+
+`tests/fixtures/rules/expectations.json` is the single, reviewed expected-output contract for **18 policy cases and seven stage transitions**. Each policy case specifies a fixture basename, policy profile, pool-deny settings and the exact expected rule IDs and field paths. Stage cases additionally specify introduced and resolved findings, topology changes, and pass/fail expectations.
+
+From a local source checkout:
+
+```bash
+# Validate committed fixture bytes against the upstream PCZT generator.
+cargo run --locked --example generate_rule_fixtures -- --check
+
+# Exercise all fixtures through the real Rust CLI and SARIF exporter.
+cargo test --locked --test rule_conformance
+
+# Exercise the same expectations through the Python CLI adapter.
+python3 -m unittest discover -s packages/python/tests -p test_rule_vectors.py
+
+# Verify the real Rust/WASM engine in a clean external npm consumer.
+node scripts/test-sdk-packed.mjs
+```
+
+The generator can be run without `--check` to deliberately regenerate the version-controlled binary fixtures. Verify every fixture and its expected finding before committing changes. CI verifies reproducible fixture bytes, exact Rust CLI JSON and SARIF output, Python SDK behavior and separately packed npm/WASM behavior. All rule IDs in the analysis registry must be exercised by at least one positive fixture; **`PCZT-STRUCTURE-DRIFT` is stage-only** and is checked through the shared stage cases.
+
+This conformance suite tests Zerynex's current limited structural analysis and adapter parity. **It does not exercise real Zallet wallet RPC, create spendable transactions, validate proof/signature correctness or establish transaction equivalence.** Keep wallet credentials and private PCZT data out of fixtures, issues, CI artifacts and AI-assisted workflows.

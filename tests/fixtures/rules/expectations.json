@@ -1,0 +1,331 @@
+{
+  "schema_version": 1,
+  "rule_set_version": "1.0.0",
+  "cases": [
+    {
+      "fixture": "clean-v6.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": []
+    },
+    {
+      "fixture": "flagged-v6.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-GLOBAL-METADATA",
+          "field": "global.proprietary"
+        }
+      ]
+    },
+    {
+      "fixture": "transparent-v6.bin",
+      "profile": "external_signer",
+      "deny_transparent": true,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-TRANSPARENT-OUTPUTS",
+          "field": "transparent.outputs"
+        }
+      ]
+    },
+    {
+      "fixture": "transparent-v6.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": []
+    },
+    {
+      "fixture": "transparent-inputs.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": []
+    },
+    {
+      "fixture": "transparent-inputs.bin",
+      "profile": "external_signer",
+      "deny_transparent": true,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-TRANSPARENT-INPUTS",
+          "field": "transparent.inputs"
+        }
+      ]
+    },
+    {
+      "fixture": "transparent-input-metadata.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "transparent.inputs[0].proprietary"
+        }
+      ]
+    },
+    {
+      "fixture": "transparent-input-metadata.bin",
+      "profile": "external_signer",
+      "deny_transparent": true,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-TRANSPARENT-INPUTS",
+          "field": "transparent.inputs"
+        },
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "transparent.inputs[0].proprietary"
+        }
+      ]
+    },
+    {
+      "fixture": "transparent-output-metadata.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "transparent.outputs[0].proprietary"
+        }
+      ]
+    },
+    {
+      "fixture": "restricted-transparent-output.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": []
+    },
+    {
+      "fixture": "restricted-transparent-output.bin",
+      "profile": "restricted_handoff",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-RESTRICTED-DISCLOSURE",
+          "field": "transparent.outputs[0].user_address"
+        }
+      ]
+    },
+    {
+      "fixture": "sapling-output.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": []
+    },
+    {
+      "fixture": "sapling-output.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": true,
+      "findings": [
+        {
+          "rule": "PCZT-SAPLING-POLICY",
+          "field": "sapling"
+        }
+      ]
+    },
+    {
+      "fixture": "sapling-output.bin",
+      "profile": "restricted_handoff",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-RESTRICTED-DISCLOSURE",
+          "field": "sapling.outputs[0].value"
+        }
+      ]
+    },
+    {
+      "fixture": "orchard-dummy-key.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-DUMMY-KEY",
+          "field": "orchard.actions[0].spend.dummy_sk"
+        }
+      ]
+    },
+    {
+      "fixture": "orchard-spend-metadata.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "orchard.actions[0].spend.proprietary"
+        }
+      ]
+    },
+    {
+      "fixture": "orchard-restricted-output.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": []
+    },
+    {
+      "fixture": "orchard-restricted-output.bin",
+      "profile": "restricted_handoff",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "findings": [
+        {
+          "rule": "PCZT-RESTRICTED-DISCLOSURE",
+          "field": "orchard.actions[0].output.value"
+        }
+      ]
+    }
+  ],
+  "stage_cases": [
+    {
+      "name": "metadata-introduced-same-components",
+      "before": "transparent-inputs.bin",
+      "after": "transparent-input-metadata.bin",
+      "profile": "external_signer",
+      "deny_transparent": true,
+      "deny_sapling": false,
+      "added_findings": [
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "transparent.inputs[0].proprietary"
+        }
+      ],
+      "resolved_findings": [],
+      "component_deltas": [],
+      "no_new_findings": false,
+      "passed": false
+    },
+    {
+      "name": "metadata-resolved-but-input-policy-still-violated",
+      "before": "transparent-input-metadata.bin",
+      "after": "transparent-inputs.bin",
+      "profile": "external_signer",
+      "deny_transparent": true,
+      "deny_sapling": false,
+      "added_findings": [],
+      "resolved_findings": [
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "transparent.inputs[0].proprietary"
+        }
+      ],
+      "component_deltas": [],
+      "no_new_findings": true,
+      "passed": false
+    },
+    {
+      "name": "dummy-key-added-same-orchard-action-count",
+      "before": "orchard-restricted-output.bin",
+      "after": "orchard-dummy-key.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "added_findings": [
+        {
+          "rule": "PCZT-DUMMY-KEY",
+          "field": "orchard.actions[0].spend.dummy_sk"
+        }
+      ],
+      "resolved_findings": [],
+      "component_deltas": [],
+      "no_new_findings": false,
+      "passed": false
+    },
+    {
+      "name": "metadata-resolved-clean-candidate",
+      "before": "flagged-v6.bin",
+      "after": "clean-v6.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "added_findings": [],
+      "resolved_findings": [
+        {
+          "rule": "PCZT-GLOBAL-METADATA",
+          "field": "global.proprietary"
+        }
+      ],
+      "component_deltas": [],
+      "no_new_findings": true,
+      "passed": true
+    },
+    {
+      "name": "structure-change-without-policy-finding",
+      "before": "clean-v6.bin",
+      "after": "sapling-output.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "added_findings": [],
+      "resolved_findings": [],
+      "component_deltas": [
+        {
+          "component": "sapling.outputs",
+          "before": 0,
+          "after": 1
+        }
+      ],
+      "no_new_findings": true,
+      "passed": false
+    },
+    {
+      "name": "structure-rollback-still-flags-change",
+      "before": "sapling-output.bin",
+      "after": "clean-v6.bin",
+      "profile": "external_signer",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "added_findings": [],
+      "resolved_findings": [],
+      "component_deltas": [
+        {
+          "component": "sapling.outputs",
+          "before": 1,
+          "after": 0
+        }
+      ],
+      "no_new_findings": true,
+      "passed": false
+    },
+    {
+      "name": "restricted-disclosure-becomes-metadata",
+      "before": "restricted-transparent-output.bin",
+      "after": "transparent-output-metadata.bin",
+      "profile": "restricted_handoff",
+      "deny_transparent": false,
+      "deny_sapling": false,
+      "added_findings": [
+        {
+          "rule": "PCZT-UNREVIEWED-METADATA",
+          "field": "transparent.outputs[0].proprietary"
+        }
+      ],
+      "resolved_findings": [
+        {
+          "rule": "PCZT-RESTRICTED-DISCLOSURE",
+          "field": "transparent.outputs[0].user_address"
+        }
+      ],
+      "component_deltas": [],
+      "no_new_findings": false,
+      "passed": false
+    }
+  ]
+}

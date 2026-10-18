@@ -33,6 +33,8 @@ jobs:
         run: cargo clippy --locked --all-targets -- -D warnings
       - name: Test all targets
         run: cargo test --locked --all-targets
+      - name: Verify deterministic privacy-rule fixtures (no keys or wallets)
+        run: cargo run --locked --example generate_rule_fixtures -- --check
       - name: Verify deterministic PCZT role fixtures
         run: cargo run --locked --example generate_role_handoff -- --check
       - name: Run node-free PCZT role-handoff scenarios

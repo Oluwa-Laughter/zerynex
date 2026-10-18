@@ -30,4 +30,41 @@ assert.equal(comparison.no_new_findings, false)
 assert.ok(comparison.added_findings.some(item => item.rule === 'PCZT-GLOBAL-METADATA'))
 await assert.rejects(client.analyzeBytes(Uint8Array.of(1,2,3)), error =>
   error.code === 'ANALYSIS_FAILED' && !error.message.includes('secret-spending-key'))
+// This is intentionally the same independent vector manifest as Rust CLI
+// and Python SDK conformance; not a browser-local snapshot.
+const vectors = JSON.parse(await readFile('rule-expectations.json', 'utf8'))
+assert.equal(vectors.schema_version, 1)
+assert.equal(vectors.rule_set_version, RULE_CATALOG.rule_set_version)
+assert.equal(vectors.cases.length, 18)
+const covered = new Set()
+for (const scenario of vectors.cases) {
+  const bytes = new Uint8Array(await readFile(scenario.fixture))
+  const result = await client.analyzeBytes(bytes, {
+    profile: scenario.profile,
+    deny_transparent: scenario.deny_transparent,
+    deny_sapling: scenario.deny_sapling,
+  })
+  assert.deepEqual(result.findings.map(item => ({rule: item.rule, field: item.field})),
+    scenario.findings, 'Rule mismatch: ' + scenario.fixture)
+  assert.equal(result.findings.length === 0, scenario.findings.length === 0)
+  for (const item of result.findings) covered.add(item.rule)
+  assert.doesNotMatch(JSON.stringify(result), /synthetic-marker|example-synthetic-not-a-real-address/)
+}
+assert.deepEqual([...covered].sort(), RULE_CATALOG.rules.filter(rule =>
+  rule.applies_to.includes('analysis')).map(rule => rule.id).sort())
+for (const scenario of vectors.stage_cases) {
+  const before = new Uint8Array(await readFile(scenario.before))
+  const after = new Uint8Array(await readFile(scenario.after))
+  const outcome = await client.compareStages(before, after, {
+    profile: scenario.profile,
+    deny_transparent: scenario.deny_transparent,
+    deny_sapling: scenario.deny_sapling,
+  })
+  for (const field of ['added_findings', 'resolved_findings', 'component_deltas', 'no_new_findings', 'passed']) {
+    assert.deepEqual(outcome[field], scenario[field], 'Stage mismatch: ' + scenario.name + '/' + field)
+  }
+  assert.doesNotMatch(JSON.stringify(outcome), /synthetic-marker|example-synthetic-not-a-real-address/)
+}
+console.log('PACKED STAGE CONFORMANCE PASS: 7 stage regressions match canonical Rust and Python')
+console.log('PACKED RULE CONFORMANCE PASS: 18 PCZT policy vectors match Rust CLI and Python contract')
 console.log('PACKED SDK CONSUMER PASS: real Rust/WASM scanner and stage comparison, no monorepo')
