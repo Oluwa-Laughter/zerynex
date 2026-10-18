@@ -55,4 +55,6 @@ The inspector takes the URI only via **standard input**, not command-line argume
 
 ZIP-321 parsing validates *encoding and current supported semantics*, not address ownership, which receiver a wallet can spend to, funds availability, memo encryption, consensus validity, proof generation, signing, confirmation depth, or privacy outcomes. Not every Zcash wallet supports full ZIP-321 multi-recipient requests. Show the entire destination and fee to the user in the wallet and require independent authorization. **Do not show, persist, broadcast, or paste sensitive payment details into public CI or agent contexts.**
 
+See also [Wallet handoff provider integration](wallet-handoffs.md) for one-use checkout tickets and explicit host authorization. The coordinator cannot prove user activation, signing, or settlement.
+
 See [Zcash application recipes](zcash-app-recipes.md), [TypeScript SDK](typescript-api.md), [Native releases](releases.md), and [Privacy & trust](privacy-model.md).

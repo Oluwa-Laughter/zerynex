@@ -7,6 +7,7 @@
  * A host bundler must correctly serve .wasm with application/wasm MIME type.
  */
 import { createZerynexClient, type ZerynexClient } from './index.js'
+import { createWalletHandoffCoordinator, type WalletPaymentProvider, type WalletHandoffCoordinator } from './wallet-handoff.js'
 import init, { analyze_pczt_policy, compare_pczt_stages, inspect_zip321_request, type InitInput } from './wasm/zerynex.js'
 
 export interface BrowserClientOptions {
@@ -78,3 +79,14 @@ export async function inspectZip321Uri(
     throw new Error('ZIP-321 input rejected or trusted Rust/WASM engine unavailable')
   }
 }
+
+/** Rust/WASM-backed, opt-in, one-use wallet handoff coordinator. */
+export function createBrowserWalletHandoff(
+  provider: WalletPaymentProvider,
+  options: BrowserClientOptions = {},
+): WalletHandoffCoordinator {
+  return createWalletHandoffCoordinator(provider,
+    (uri, network) => inspectZip321Uri(uri, network, options))
+}
+export { createZip321UriProvider } from './wallet-handoff.js'
+export type { WalletPaymentProvider, WalletHandoffPolicy, PreparedWalletHandoff, WalletHandoffResult } from './wallet-handoff.js'
