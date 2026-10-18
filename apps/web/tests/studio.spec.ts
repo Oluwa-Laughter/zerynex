@@ -219,8 +219,8 @@ test('documentation navigation and guide discovery work from homepage', async ({
   if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
   await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Docs' }).click()
   await expect(page).toHaveURL(/\/docs$/)
-  await expect(page.getByRole('heading', { name: /Build on Zcash with clear documentation/ })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Go SDK/ }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Learn the core.*Build with confidence/ })).toBeVisible()
+  await expect(page.locator('.docs-guide-card').filter({ hasText: 'Go SDK' })).toBeVisible()
 })
 
 test('documentation search filters guide cards and handles empty searches', async ({ page }) => {
@@ -457,8 +457,10 @@ test('TypeScript onboarding uses bundled WebAssembly SDK and flags unpublished r
   await page.getByRole('button',{name:/^TypeScript/}).click()
   await expect(page.getByText('createBrowserZerynexClient',{exact:false}).first()).toBeVisible()
   await expect(page.getByText('Public npm registry publication',{exact:false})).toBeVisible()
-  await page.getByRole('link',{name:'Read integration guide'}).click()
-  await expect(page).toHaveURL(/\/docs\/releases/)
+  const guide = page.getByRole('link',{name:'Read integration guide'})
+  await expect(guide).toHaveAttribute('href', '/docs/typescript-api')
+  await guide.click()
+  await expect(page).toHaveURL(/\/docs\/typescript-api/)
 })
 
 
