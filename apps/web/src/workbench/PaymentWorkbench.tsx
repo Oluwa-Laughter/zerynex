@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { LuArrowLeft, LuArrowUpRight, LuCheck, LuCircleAlert, LuCode, LuLockKeyhole, LuWallet } from 'react-icons/lu'
-import { inspectZip321Uri, type Zip321Summary } from '@zerynex/sdk/browser'
+import { inspectPaymentUri, type Zip321Summary } from '../paymentAnalyzer'
 import styles from './NodeWorkbench.module.css'
 
 const sample = 'zcash:ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez?amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase'
@@ -19,7 +19,7 @@ export default function PaymentWorkbench() {
     if (busy)return
     setError(null);setReport(null);setBusy(true)
     try {
-      const result=await inspectZip321Uri(uri,network,{wasm:'/wasm/zerynex_bg.wasm'})
+      const result=await inspectPaymentUri(uri,network)
       setReport(result)
     } catch {
       setError('Payment request rejected. Check its network, recipient checksum, amount, memo and required parameters. No payment was attempted.')
