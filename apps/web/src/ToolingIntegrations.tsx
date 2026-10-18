@@ -5,7 +5,7 @@ import { gsap } from 'gsap'
 import Link from 'next/link'
 import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow, LuGitPullRequest, LuGitBranch, LuGitMerge, LuPackage, LuFileJson, LuShieldCheck } from 'react-icons/lu'
 
-type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'node' | 'payment' | 'github' | 'stages' | 'handoff' | 'go' | 'rpc' | 'zk'
+type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'node' | 'transaction' | 'payment' | 'github' | 'stages' | 'handoff' | 'go' | 'rpc' | 'zk'
 const integrations: {key:Integration,label:string,title:string,kind:string,description:string,code:string,documentation:string,icon:typeof LuCode}[] = [
   {
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
@@ -74,6 +74,12 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     documentation:'/docs/payment-requests',icon:LuShieldCheck,
   },
   {
+    key:'transaction',label:'TX Confirmation',title:'Inspect transaction confirmations and reorg hints',kind:'ZCASH / RPC / READ-ONLY',
+    description:'Normalize trusted getrawtransaction and getblockchaininfo results with expected-network, transaction identity and exact confirmation thresholds. No wallet access, polling or payment claims.',
+    code:"import {evaluateZcashTransaction} from '@zerynex/sdk'\n\nconst observation=evaluateZcashTransaction(rawTx, chainState, {\n  expectedNetwork:'test',\n  expectedTxid,\n  requiredConfirmations:6,\n})\n// A threshold met is NOT proof that a wallet received a payment.",
+    documentation:'/docs/transaction-observations',icon:LuGitBranch,
+  },
+  {
     key:'node',label:'Zcash Node RPC',title:'Integrate network and synchronization readiness',kind:'ZEBRA / ZCASHD / READ-ONLY',
     description:'Inspect the network and synchronization state of an explicitly local Zcash node, or pass public chain information into the TypeScript SDK from your trusted backend. No wallet or payment RPC.',
     code:"from zerynex_py import inspect_node_local\n\nreport = inspect_node_local(port=8232, expected_network='test')\nif not report.ready: raise RuntimeError('Zcash node not ready')\n\n# Or: zerynex-node-check --expect-network test",
@@ -135,6 +141,7 @@ export default function ToolingIntegrations() {
           <Link className="dev-integration-docs" href={current.documentation}>READ INTEGRATION DOCUMENTATION <LuArrowUpRight size={15}/></Link>
           {active==='stages'&&<Link className="dev-integration-try" href="/tools/stages">RUN STAGE COMPARATOR <LuArrowUpRight size={15}/></Link>}
           {active==='payment'&&<Link className="dev-integration-try" href="/tools/payment">INSPECT ZIP-321 URI <LuArrowUpRight size={15}/></Link>}
+          {active==='transaction'&&<Link className="dev-integration-try" href="/tools/transaction">TRY TX OBSERVER <LuArrowUpRight size={15}/></Link>}
           {active==='node'&&<Link className="dev-integration-try" href="/tools/node">TRY NODE READINESS <LuArrowUpRight size={15}/></Link>}
           {active==='handoff'&&<Link className="dev-integration-try" href="/tools/handoff">RUN ROLE HARNESS <LuArrowUpRight size={15}/></Link>}
         </div>

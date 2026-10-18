@@ -1,3 +1,5 @@
+export { evaluateZcashTransaction, createZcashTransactionObserver } from './transaction.js'
+export type { TransactionPolicy, TransactionState, TransactionObservation, TransactionCheck, TransactionChange } from './transaction.js'
 export { createWalletHandoffCoordinator, createZip321UriProvider, WalletHandoffError } from './wallet-handoff.js'
 export type { WalletNetwork, WalletProviderCapabilities, WalletPaymentProvider, WalletHandoffPolicy, PreparedWalletHandoff, WalletHandoffCoordinator, WalletHandoffResult, WalletHandoffErrorCode } from './wallet-handoff.js'
 export { evaluateZcashNodeStatus } from './network.js'

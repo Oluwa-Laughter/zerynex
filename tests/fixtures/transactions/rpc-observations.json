@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "expectedNetwork": "test",
+    "expectedTxid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "requiredConfirmations": 6
+  },
+  "cases": [
+    {
+      "name": "sufficient confirmations",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "confirmation_target_met"
+    },
+    {
+      "name": "still confirming",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "confirming",
+      "policy": {
+        "expectedNetwork": "test",
+        "expectedTxid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "requiredConfirmations": 8
+      }
+    },
+    {
+      "name": "unconfirmed node observation",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 0,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "unconfirmed"
+    },
+    {
+      "name": "orphaned outside active chain",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": -1,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "in_active_chain": false,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "orphaned"
+    },
+    {
+      "name": "wrong network",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "main",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "wrong_network"
+    },
+    {
+      "name": "wrong txid",
+      "transaction": {
+        "txid": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "inconsistent"
+    },
+    {
+      "name": "incorrect confirmation count",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 6,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "inconsistent"
+    },
+    {
+      "name": "incomplete confirmed response",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "inconsistent"
+    },
+    {
+      "name": "height ahead of chain",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 108,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "inconsistent"
+    },
+    {
+      "name": "invalid chain height",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": "106",
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "unknown"
+    },
+    {
+      "name": "unknown network",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "other",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "unknown"
+    },
+    {
+      "name": "missing transaction response",
+      "transaction": null,
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "unavailable"
+    },
+    {
+      "name": "inconsistent explicit active chain",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": 7,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "in_active_chain": false,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "inconsistent"
+    },
+    {
+      "name": "negative confirmations without active-chain evidence",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": -1,
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "unknown"
+    },
+    {
+      "name": "unknown confirmation count",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "confirmations": "7",
+        "blockhash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "height": 100,
+        "vin": [
+          {
+            "memo": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ],
+        "vout": [
+          {
+            "address": "DO_NOT_LEAK_PRIVATE_MARKER"
+          }
+        ]
+      },
+      "chain": {
+        "chain": "test",
+        "blocks": 106,
+        "headers": 106,
+        "initial_block_download_complete": true,
+        "verificationprogress": 1,
+        "bestblockhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "nonce": "DO_NOT_LEAK_PRIVATE_MARKER"
+      },
+      "expected_state": "unknown"
+    }
+  ]
+}

@@ -72,3 +72,7 @@ Prototype merchant tooling, privacy monitors, AI-assisted development or wallet 
 ### Wallet-provider integration boundary
 
 Use the [wallet handoff coordinator](wallet-handoffs.md) to combine local ZIP-321 validation, exact-zatoshi and expected-network policies, declared trusted-provider capabilities, and an explicit host authorization callback. Handing a URI to a wallet is not confirmation of payment. Never grant autonomous agents access to the host authorization or provider-presentation methods.
+
+## Read-only transaction confirmations for checkout and relayers
+
+Use [Transaction observations](transaction-observations.md) to normalize an existing trusted backend’s `getrawtransaction(txid, 1)` and `getblockchaininfo` results. Your app chooses the expected network, expected transaction ID, and confirmation threshold. The SDK reports whether the node's own confirmation values are internally consistent and can flag possible reorganizations across observations. This **does not verify who received funds, wallet ownership, finality or cross-chain settlement**.

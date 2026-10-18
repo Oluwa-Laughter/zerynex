@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createBrowserZerynexClient, inspectZip321Uri, createBrowserWalletHandoff, createZip321UriProvider } from '@zerynex/sdk/browser'
-import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus } from '@zerynex/sdk'
+import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateZcashTransaction, createZcashTransactionObserver } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
 assert.equal(RULE_CATALOG.schema_version, 1)
@@ -75,6 +75,23 @@ for (const vector of nodeVectors.cases) {
   assert.doesNotMatch(JSON.stringify(readiness), /DO_NOT_LEAK_PRIVATE_MARKER|bestblockhash|valuePools/)
 }
 console.log('PACKED NODE READINESS PASS: all 9 Zebra/zcashd readiness vectors in a clean npm consumer')
+const txVectors = JSON.parse(await readFile('transaction-observations.json','utf8'))
+assert.equal(txVectors.schema_version,1)
+for(const vector of txVectors.cases){
+  const result=evaluateZcashTransaction(vector.transaction,vector.chain,vector.policy??txVectors.policy)
+  assert.equal(result.state,vector.expected_state,vector.name)
+  assert.equal(result.confirmation_target_met,result.state==='confirmation_target_met')
+  assert.doesNotMatch(JSON.stringify(result),/DO_NOT_LEAK_PRIVATE_MARKER|bestblockhash|blockhash|txid|address/i)
+}
+const observer=createZcashTransactionObserver(txVectors.policy)
+const snapshot=txVectors.cases[0]
+const firstObservation=observer.observe(snapshot.transaction,snapshot.chain)
+assert.equal(firstObservation.possible_reorg,false)
+const secondObservation=observer.observe(txVectors.cases[3].transaction,txVectors.cases[3].chain)
+assert.equal(secondObservation.possible_reorg,true)
+assert.equal(secondObservation.observation.state,'orphaned')
+console.log('PACKED TRANSACTION OBSERVER PASS: fifteen offline RPC cases and reorg hints')
+
 // Official ZIP-321 testnet payment example, parsed by the same Rust/WASM core.
 const payUri='zcash:ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez?amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase'
 const request=await inspectZip321Uri(payUri,'test',{wasm})

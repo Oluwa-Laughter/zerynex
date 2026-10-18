@@ -47,6 +47,8 @@ Select a file from your application's own input. Ensure the bundler can serve th
 | `createWalletHandoffCoordinator(provider, inspector)` | Wallet-neutral, fail-closed one-use ZIP-321 handoff policy and user-consent boundary |
 | `createBrowserWalletHandoff(provider, options?)` | Canonical Rust/WASM inspector-backed provider handoff coordinator |
 | `createZip321UriProvider({network, openUri, ...})` | Explicit OS ZIP-321 URI adapter; wallet launch does not prove transaction acceptance |
+| `evaluateZcashTransaction(txResult, chainResult, policy)` | Check trusted RPC confirmations against network, identity and chain tip, returning a sanitized result |
+| `createZcashTransactionObserver(policy)` | Compare consecutive local snapshots for possible reorganization warnings |
 | `evaluateZcashNodeStatus(result, options?)` | Pure, read-only normalization of Zcash `getblockchaininfo` chain readiness |
 | `parsePolicyJson(json)` | Import a strict JSON policy, at most 4 KiB |
 | `exportPolicyJson(policy?)` | Serialize a normalized policy |
@@ -72,3 +74,5 @@ Known SDK categories: `INPUT_INVALID`, `POLICY_INVALID`, `ENGINE_UNAVAILABLE`, `
 See [Zcash node readiness](node-readiness.md) for a backend integration pattern that does not expose RPC credentials in the browser.
 
 See [Wallet provider handoffs](wallet-handoffs.md) for typed capabilities, policy matching and mandatory host-side user consent.
+
+See [Transaction observations](transaction-observations.md) for the integration contract and confirmation/finality limitations.

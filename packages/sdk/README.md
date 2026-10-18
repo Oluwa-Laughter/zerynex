@@ -151,3 +151,7 @@ Does not sign, build or send transactions. See `docs/payment-requests.md`.
 Use `createWalletHandoffCoordinator` from `@zerynex/sdk` for a one-use, policy-checked wallet handoff. It separates local inspection, trusted-provider capability discovery, host-user consent, and wallet presentation. The `createBrowserWalletHandoff` helper uses the bundled canonical Rust/WASM parser.
 
 The `createZip321UriProvider` adapter accepts a host-supplied `openUri` callback. It never auto-discovers wallets. A `presented` result only means an attempted wallet handoff—not signing, broadcasting or settlement. See [Wallet handoffs](../../docs/wallet-handoffs.md) for limitations and examples.
+
+## Read-only Zcash transaction confirmation and reorg observations
+
+Use `evaluateZcashTransaction(txResult, chainState, {expectedNetwork, expectedTxid, requiredConfirmations})` from `@zerynex/sdk` on trusted `getrawtransaction(txid,1)` and `getblockchaininfo` results. `createZcashTransactionObserver(policy).observe(...)` tracks possible reorganizations in memory without exposing transaction IDs, block hashes, wallet data or complete RPC responses. No network requests, signing, confirmation receipts or payment settlement is performed. See `docs/transaction-observations.md`.

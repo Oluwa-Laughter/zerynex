@@ -182,8 +182,13 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
         <small>Validate Zcash payment URI syntax, recipient network, memo constraints and amounts.</small>
         <ArrowUpRight size={21}/>
       </Link>
+      <Link href="/tools/transaction">
+        <span>EXPERIMENT 05 / READ-ONLY RPC</span><strong>Transaction Observer</strong>
+        <small>Check confirmation consistency and possible reorgs without exposing transaction data.</small>
+        <ArrowUpRight size={21}/>
+      </Link>
       <Link href="/tools/node">
-        <span>EXPERIMENT 05 / ZCASH INFRASTRUCTURE</span><strong>Node Readiness</strong>
+        <span>EXPERIMENT 06 / ZCASH INFRASTRUCTURE</span><strong>Node Readiness</strong>
         <small>Review network and sync status from a public RPC result, entirely in-browser.</small>
         <ArrowUpRight size={21}/>
       </Link>
