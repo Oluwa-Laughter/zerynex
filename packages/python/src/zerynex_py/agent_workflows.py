@@ -81,6 +81,7 @@ def core_capabilities(client: ZerynexClient) -> dict[str, object]:
     return {
         "schema_version": 1,
         "cli_version": capabilities.version,
+        "rule_set_version": capabilities.rule_set_version,
         "operations": list(capabilities.operations),
         "input_formats": list(capabilities.input_formats),
         "output_formats": list(capabilities.output_formats),

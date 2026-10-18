@@ -26,6 +26,7 @@ zerynex --capabilities
 | `--json` | Output a machine-readable report instead of human text |
 | `--sarif` | Output sanitized SARIF 2.1.0 results with logical PCZT field locations; mutually exclusive with `--json` |
 | `--capabilities` | Print a versioned capability JSON document; cannot be combined with analysis arguments |
+| `--rule-catalog` | Print a versioned registry of implemented PCZT rules with severity and scope, without opening a transaction |
 | `--help`, `--version` | Display usage or version information |
 
 The primary PCZT argument is required except for `--capabilities`. Binary inputs have an **8 MiB limit**; policy files have a **4 KiB limit**. Exceeding limits, failing to decode, or supplying unknown policy fields fails closed.

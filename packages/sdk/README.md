@@ -114,3 +114,18 @@ This is used by the interactive /tools/stages frontend. Both inputs
 are analyzed locally without uploading their bytes. It only compares
 selected disclosure fields and pool component counts, not cryptographic
 transaction equivalence, signatures or ZK proofs.
+
+## Versioned rule definitions
+
+The bundled SDK exports `RULE_CATALOG`, `RuleId` and `getRule` without loading
+WASM, reading a PCZT or making a network request:
+
+```ts
+import { RULE_CATALOG, getRule } from '@zerynex/sdk'
+console.log(RULE_CATALOG.rule_set_version)
+const finding = getRule('PCZT-TRANSPARENT-OUTPUTS')
+console.log(finding?.severity, finding?.category)
+```
+
+The catalog is generated from `rules/catalog.json` and checked in CI. It
+reports **selected structural observations**, not transaction correctness.

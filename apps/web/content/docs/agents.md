@@ -3,7 +3,7 @@
 Zerynex supplies a portable Agent Skill and an optional local MCP server
 for Zcash privacy engineering. Agents work with sanitized policy findings,
 never raw intermediate transactions. The current implementation uses a real
-MCP 2.x stdio server with the canonical Rust CLI and **nine verified tools**.
+MCP 2.x stdio server with the canonical Rust CLI and **ten verified tools**.
 
 You can start at [the Agent Tools page](/agents): choose Cursor, Claude
 Desktop or VS Code, enter three local absolute paths, and copy the
@@ -42,7 +42,7 @@ diagnostic:
 
     /absolute/path/to/zerynex/.venv/bin/zerynex-mcp-doctor       --server /absolute/path/to/zerynex/.venv/bin/zerynex-mcp       --cli /absolute/path/to/zerynex/target/release/zerynex       --fixtures /absolute/path/to/zerynex/apps/web/public/examples
 
-It launches an independent stdio MCP server process, discovers all nine
+It launches an independent stdio MCP server process, discovers all ten
 tools, executes three real Rust scans plus a stage comparison against
 approved synthetic fixtures, and reports how many of four expectations
 matched. Exit 0 = connected and all expectations matched; 1 = connection/
@@ -100,8 +100,9 @@ Exit status: `0` all checks matched; `2` a synthetic check failed; `1`
 configuration or execution error. The check does **not** prove compatibility
 with any Zallet release or confirm real wallet transaction safety.
 
-Three additional read-only MCP tools expose the same verified components:
+Four additional read-only MCP tools expose reviewed registry metadata and the same verified components:
 
+- `zerynex_rule_catalog`: validates the live local Rust rule registry against the bundled Python metadata and returns only public IDs, descriptions, severity and scope; mismatched versions fail closed
 - `zerynex_core_capabilities`: validated Rust CLI operations and limits,
   without reading a transaction file
 - `check_synthetic_zallet_rpc_contract`: takes only `baseline`,

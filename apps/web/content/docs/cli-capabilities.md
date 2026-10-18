@@ -14,6 +14,8 @@ This prints JSON on standard output and exits with status `0`. No file path, RPC
 | --- | --- |
 | `schema_version` | The capability-document structure version, currently `1` |
 | `cli_version` | The exact installed Rust CLI package version |
+| `rule_set_version` | Version of the compiled rule registry (use `--rule-catalog` to inspect it) |
+| `rule_catalog_schema_version` | JSON registry schema version (currently `1`) |
 | `tool` | Fixed identifier `zerynex` |
 | `operations` | Available actions: `analyze_pczt` and `compare_pczt_stages` |
 | `input_formats` | Raw `binary` and Zallet-compatible `base64` input **transport** |

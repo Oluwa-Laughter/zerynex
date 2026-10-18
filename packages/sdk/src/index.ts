@@ -1,3 +1,6 @@
+export { RULE_CATALOG, getRule } from './rule-catalog.js'
+export type { RuleId, RuleDefinition } from './rule-catalog.js'
+
 /**
  * Zerynex SDK: local PCZT privacy-policy analysis powered by Zcash Rust/WASM.
  *

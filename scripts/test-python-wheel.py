@@ -40,6 +40,17 @@ def check_wheel(folder: Path, cli: Path) -> None:
             str(cli.resolve()), str((ROOT / "apps/web/public/examples/transparent-v6.bin").resolve())],
             capture_output=True, text=True, timeout=25, check=True)
         print(completed.stdout.strip())
+        metadata_code = (
+            "import json,sys;from pathlib import Path;"
+            "from zerynex_py import ZerynexClient,bundled_rule_catalog;"
+            "r=ZerynexClient(cli=Path(sys.argv[1])).rule_catalog();"
+            "assert r==bundled_rule_catalog();"
+            "assert len(r['rules'])==8 and r['rule_set_version']=='1.0.0';"
+            "print('PACKED RULE REGISTRY PASS: canonical Rust and installed Python metadata agree')"
+        )
+        metadata = subprocess.run([str(python), "-c", metadata_code, str(cli.resolve())],
+                                  capture_output=True, text=True, check=True, timeout=25)
+        print(metadata.stdout.strip())
         checker = venv_dir / ("Scripts/zerynex-rpc-check.exe" if sys.platform == "win32" else "bin/zerynex-rpc-check")
         if not checker.is_file():
             raise AssertionError("RPC checker CLI was not installed from the wheel")

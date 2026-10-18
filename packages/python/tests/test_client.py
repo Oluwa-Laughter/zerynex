@@ -49,6 +49,28 @@ class IntegrationTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(ZerynexError):
                 _parse_cli_capabilities(json.dumps({**valid, field: value}))
 
+    def test_versioned_rule_catalog_matches_packaged_sdk_and_sarif(self):
+        from zerynex_py.rules import bundled_rule_catalog, parse_rule_catalog
+        catalog = self.client.rule_catalog()
+        self.assertEqual(catalog, bundled_rule_catalog())
+        self.assertEqual(catalog['schema_version'], 1)
+        self.assertEqual(catalog['rule_set_version'], self.client.capabilities().rule_set_version)
+        self.assertEqual(len(catalog['rules']), 8)
+        import subprocess
+        sarif = subprocess.run([str(BIN), str(FIXTURES / 'transparent-v6.bin'),
+                                '--deny-transparent', '--sarif'], capture_output=True, check=False)
+        self.assertEqual(sarif.returncode, 2)
+        rules = json.loads(sarif.stdout)['runs'][0]['tool']['driver']['rules']
+        self.assertEqual({item['id'] for item in rules}, {item['id'] for item in catalog['rules']})
+        self.assertIn('PCZT-TRANSPARENT-OUTPUTS', [x['id'] for x in rules])
+        for damaged in (
+            {**catalog, 'schema_version': 2},
+            {**catalog, 'rules': catalog['rules'] + catalog['rules'][:1]},
+            {**catalog, 'tool': 'fake-wallet'},
+        ):
+            with self.subTest(keys=damaged.keys()), self.assertRaises(ZerynexError):
+                parse_rule_catalog(json.dumps(damaged))
+
     def test_real_clean_fixture(self):
         report = self.client.analyze_file(FIXTURES / "clean-v6.bin", Policy(deny_transparent=True))
         self.assertTrue(report.passed)

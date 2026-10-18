@@ -41,7 +41,7 @@ The example is illustrative: its `explanation` is abbreviated, not an assertion 
 | `PCZT-TRANSPARENT-OUTPUTS` | Transparent outputs under a no-transparent policy |
 | `PCZT-SAPLING-POLICY` | Sapling component under a no-Sapling application policy |
 
-Rule identifiers should be used for programmatic comparisons, not arbitrary prose matching.
+Rule identifiers should be used for programmatic comparisons, not arbitrary prose matching. The canonical machine-readable definitions and assigned severities are in the [versioned rule registry](rule-registry.md); this page illustrates reported IDs but is not an independent source of truth.
 
 For automated security tooling, use [SARIF exports](sarif.md) to produce rule IDs and **logical** PCZT field locations with no original input filename or physical source path. A policy failure still exits `2` when the report is written successfully.
 

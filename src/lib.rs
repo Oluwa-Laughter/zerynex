@@ -2,6 +2,8 @@
 //! A clean report establishes only that selected rules passed. It is not a privacy proof,
 //! transaction validator, shielded-pool verifier, or signing authorization mechanism.
 
+pub mod rules;
+
 use pczt::Pczt;
 use serde::{Deserialize, Serialize};
 
@@ -88,6 +90,10 @@ fn finding(
     field: String,
     explanation: &'static str,
 ) {
+    assert!(
+        rules::find_rule(rule).is_some(),
+        "privacy finding is missing from the public registry"
+    );
     findings.push(Finding {
         rule,
         field,

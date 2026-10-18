@@ -40,11 +40,20 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
             "run_synthetic_smoke_suite",
             "zerynex_policy_schema",
             "zerynex_core_capabilities",
+            "zerynex_rule_catalog",
             "check_synthetic_zallet_rpc_contract",
             "run_zerynex_developer_preflight",
         }
         if not needed.issubset(names):
             raise RuntimeError("Local server does not expose all expected MCP capabilities.")
+        registry = await agent.call_tool("zerynex_rule_catalog", {})
+        rule_data = registry.structured_content
+        if not isinstance(rule_data, dict):
+            from mcp.types import TextContent
+            blocks = [item for item in registry.content if isinstance(item, TextContent)]
+            rule_data = json.loads(blocks[0].text) if len(blocks) == 1 else None
+        if not isinstance(rule_data, dict) or rule_data.get("rule_set_version") != "1.0.0" or len(rule_data.get("rules", [])) != 8:
+            raise RuntimeError("Installed Rust rule registry and bundled SDK are incompatible.")
         suite = await agent.call_tool("run_synthetic_smoke_suite", {})
         result = suite.structured_content
         # Some supported protocol versions return text blocks instead.

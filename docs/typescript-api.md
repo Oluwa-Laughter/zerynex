@@ -43,6 +43,7 @@ Select a file from your application's own input. Ensure the bundler can serve th
 | `client.compareStages(before, after, policy?)` | Compare policy findings and component counts |
 | `client.compareStageBlobs(before, after, policy?)` | Compare browser file stages |
 | `normalizePolicy(policy?)` | Reject unsupported or mistyped settings |
+| `RULE_CATALOG`, `getRule(id)` | Access bundled, typed rule metadata without initializing WASM |
 | `parsePolicyJson(json)` | Import a strict JSON policy, at most 4 KiB |
 | `exportPolicyJson(policy?)` | Serialize a normalized policy |
 

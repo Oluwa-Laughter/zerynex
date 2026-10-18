@@ -14,7 +14,7 @@ cargo run --locked -- \
   --deny-transparent --sarif > zerynex.sarif
 ```
 
-The output is valid JSON containing `version: "2.1.0"`, the Zerynex rule catalog, a single `runs` entry, and any findings under `results`. The fixture above deliberately triggers `PCZT-TRANSPARENT-OUTPUTS`, so the CLI exits with code **2** even though it successfully wrote the report. An input or runtime error exits **1** and must not be treated as a clean report.
+Rule IDs, severity, category and human-readable descriptions are read from the [versioned rule registry](rule-registry.md), not from a separate hand-maintained SARIF list. The output is valid JSON containing `version: "2.1.0"`, the Zerynex rule catalog, a single `runs` entry, and any findings under `results`. The fixture above deliberately triggers `PCZT-TRANSPARENT-OUTPUTS`, so the CLI exits with code **2** even though it successfully wrote the report. An input or runtime error exits **1** and must not be treated as a clean report.
 
 The `--sarif` and `--json` switches are **mutually exclusive**. `zerynex --capabilities` lists all supported output formats without accepting PCZT data.
 

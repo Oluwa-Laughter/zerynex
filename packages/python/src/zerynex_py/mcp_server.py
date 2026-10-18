@@ -152,9 +152,17 @@ def explain_policy_rule(rule_id: str) -> dict[str, str]:
     """Explain only enumerated rules. Never echo arbitrary agent prompt contents."""
     if not isinstance(rule_id, str) or rule_id not in RULE_GUIDANCE:
         raise ZerynexError("Unknown supported privacy rule.")
+    from .rules import bundled_rule_catalog
+    catalog = bundled_rule_catalog()
+    definition = next((item for item in catalog['rules'] if item['id'] == rule_id), None)
+    if definition is None:
+        raise ZerynexError("Unknown supported privacy rule.")
     meaning, next_step = RULE_GUIDANCE[rule_id]
     return {
         "rule": rule_id,
+        "severity": definition["severity"],
+        "category": definition["category"],
+        "rule_set_version": catalog["rule_set_version"],
         "meaning": meaning,
         "suggested_review": next_step,
         "limitation": "Policy guidance, not a complete security review or cryptographic verification.",
@@ -306,6 +314,19 @@ def create_server(client: ZerynexClient, root: Path):
             return developer_preflight(client, root)
         except ZerynexError:
             return {"error": "Local developer preflight failed or is misconfigured."}
+
+    @server.tool()
+    def zerynex_rule_catalog() -> dict:
+        """Discover the reviewed versioned Rust rule registry. Static metadata only; no wallet, keys or PCZT bytes."""
+        try:
+            from .rules import bundled_rule_catalog
+            source = client.rule_catalog()
+            reviewed = bundled_rule_catalog()
+            if source != reviewed:
+                return {"error": "Local Rust rule catalog differs from packaged SDK; update the trusted versions."}
+            return source
+        except ZerynexError:
+            return {"error": "Local Rust rule catalog is unavailable or unsupported."}
 
     @server.tool()
     def zerynex_policy_schema() -> dict:

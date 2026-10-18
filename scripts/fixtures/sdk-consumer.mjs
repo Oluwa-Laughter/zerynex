@@ -2,9 +2,14 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
-import { normalizePolicy } from '@zerynex/sdk'
+import { normalizePolicy, RULE_CATALOG, getRule } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
+assert.equal(RULE_CATALOG.schema_version, 1)
+assert.equal(RULE_CATALOG.rule_set_version, '1.0.0')
+assert.equal(RULE_CATALOG.rules.length, 8)
+assert.equal(getRule('PCZT-STRUCTURE-DRIFT')?.severity, 'error')
+assert.equal(getRule('unknown_from_consumer'), undefined)
 const wasm = new Uint8Array(await readFile(fileURLToPath(
   import.meta.resolve('@zerynex/sdk/wasm/zerynex_bg.wasm')
 )))

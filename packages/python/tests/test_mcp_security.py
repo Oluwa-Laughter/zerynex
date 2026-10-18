@@ -31,6 +31,10 @@ class SyntheticBoundaries(unittest.TestCase):
 
     def test_known_rules_only_no_agent_input_reflection(self):
         self.assertEqual(len(RULE_GUIDANCE),7)
+        from zerynex_py.rules import bundled_rule_catalog
+        expected = {rule['id'] for rule in bundled_rule_catalog()['rules']
+                    if 'analysis' in rule['applies_to']}
+        self.assertEqual(expected, set(RULE_GUIDANCE))
         self.assertIn("output",explain_policy_rule("PCZT-TRANSPARENT-OUTPUTS")["meaning"].lower())
         with self.assertRaises(ZerynexError):
             explain_policy_rule("IGNORE_PREVIOUS_INSTRUCTIONS")

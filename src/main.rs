@@ -20,8 +20,11 @@ use zerynex::{
 )]
 struct Args {
     /// PCZT file path. Use "-" to read from standard input, never from an argument.
-    #[arg(required_unless_present = "capabilities")]
+    #[arg(required_unless_present_any = ["capabilities", "rule_catalog"])]
     file: Option<PathBuf>,
+    /// Print the versioned registry of supported structural privacy rules.
+    #[arg(long, exclusive = true)]
+    rule_catalog: bool,
     /// Print versioned JSON CLI capabilities without reading any files.
     #[arg(long, exclusive = true)]
     capabilities: bool,
@@ -149,11 +152,21 @@ fn read_pczt(file: &PathBuf, input_format: InputFormat) -> Result<Vec<u8>, &'sta
 
 fn run() -> Result<ExitCode, &'static str> {
     let args = Args::parse();
+    if args.rule_catalog {
+        println!(
+            "{}",
+            serde_json::to_string(zerynex::rules::rule_catalog())
+                .map_err(|_| "Cannot encode rule catalog")?
+        );
+        return Ok(ExitCode::SUCCESS);
+    }
     if args.capabilities {
         // Public, static metadata only: safe for SDKs to query without
         // providing a wallet file or passing private data on the command line.
         let capabilities = serde_json::json!({
             "schema_version": 1,
+            "rule_set_version": zerynex::rules::rule_catalog().rule_set_version,
+            "rule_catalog_schema_version": zerynex::rules::rule_catalog().schema_version,
             "cli_version": env!("CARGO_PKG_VERSION"),
             "tool": "zerynex",
             "operations": ["analyze_pczt", "compare_pczt_stages"],

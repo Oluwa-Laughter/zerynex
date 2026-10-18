@@ -138,6 +138,14 @@
       "summary": "Stable report fields, stage deltas, failure meanings and interpretation boundaries."
     },
     {
+      "slug": "rule-registry",
+      "title": "Versioned privacy rule registry",
+      "group": "Reference",
+      "status": "supported",
+      "audience": "Wallet, security, SDK and agent developers",
+      "summary": "Stable rule IDs, severity, scope and metadata shared across Rust, SDKs, SARIF and MCP."
+    },
+    {
       "slug": "sarif",
       "title": "SARIF security reports",
       "group": "Reference",

@@ -69,7 +69,7 @@ Run a real local stdio MCP diagnostic before connecting an AI assistant:
 
     zerynex-mcp-doctor --server /abs/path/to/zerynex-mcp --cli /abs/path/to/zerynex --fixtures /abs/path/to/synthetic-fixtures
 
-It discovers nine tools, checks four Rust-backed synthetic expectations, and verifies the unified developer preflight and an expected RPC regression.
+It discovers ten tools, checks four Rust-backed synthetic expectations, and verifies the unified developer preflight and an expected RPC regression.
 Exit 0 means all matched, 1 means setup failed, 2 means a test mismatched.
 The public /agents frontend also generates client-specific configuration
 for common MCP hosts; it does not execute the MCP process in-browser.
@@ -131,7 +131,7 @@ analyze_synthetic_pczt, compare_synthetic_pczt_stages,
 list_synthetic_fixtures, explain_zerynex_rule,
 run_synthetic_smoke_suite, zerynex_policy_schema,
 zerynex_core_capabilities, check_synthetic_zallet_rpc_contract,
-and run_zerynex_developer_preflight.
+run_zerynex_developer_preflight, and zerynex_rule_catalog.
 
 A tested host workflow can list allowed .bin fixtures, analyze a synthetic
 transparent output, explain the corresponding privacy rule, and compare

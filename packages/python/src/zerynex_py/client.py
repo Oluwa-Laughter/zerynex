@@ -44,6 +44,7 @@ class CliCapabilities:
     max_decoded_pczt_bytes: int
     max_policy_file_bytes: int
     output_formats: tuple[str, ...] = ("text", "json")
+    rule_set_version: str | None = None
 
 
 def _parse_cli_capabilities(raw: str) -> CliCapabilities:
@@ -75,6 +76,10 @@ def _parse_cli_capabilities(raw: str) -> CliCapabilities:
                 len(set(output_formats)) != len(output_formats) or
                 not {"text", "json"}.issubset(output_formats)):
             raise ValueError("unsupported output formats")
+        rule_set_version = data.get("rule_set_version")
+        if rule_set_version is not None and (not isinstance(rule_set_version,str) or
+                not 0 < len(rule_set_version) <= 64):
+            raise ValueError("rule set version")
         size = data["max_decoded_pczt_bytes"]
         policy_size = data["max_policy_file_bytes"]
         if type(size) is not int or not 0 < size <= MAX_PCZT_BYTES:
@@ -82,7 +87,7 @@ def _parse_cli_capabilities(raw: str) -> CliCapabilities:
         if type(policy_size) is not int or not 0 < policy_size <= 4096:
             raise ValueError("policy limit")
         return CliCapabilities(version, tuple(operations), tuple(formats), size, policy_size,
-                               tuple(output_formats))
+                               tuple(output_formats), rule_set_version)
     except (KeyError, ValueError, TypeError):
         raise ZerynexError("Invalid capabilities from local Rust CLI.") from None
 
@@ -265,6 +270,24 @@ class ZerynexClient:
             raise ZerynexError("Configured Rust CLI does not exist.")
         self._cli = executable
         self._timeout = timeout
+
+    def rule_catalog(self) -> dict[str, object]:
+        """Read bounded, validated public metadata from the actual local Rust CLI.
+
+        No PCZT, policy or wallet path is provided to the subprocess.
+        """
+        from .rules import parse_rule_catalog
+        try:
+            completed = subprocess.run(
+                [str(self._cli), "--rule-catalog"], shell=False,
+                stdin=subprocess.DEVNULL, capture_output=True, text=True,
+                timeout=self._timeout, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            raise ZerynexError("Local rule catalog discovery failed or timed out.") from None
+        if completed.returncode != 0:
+            raise ZerynexError("Local CLI does not support rule catalog discovery.")
+        return parse_rule_catalog(completed.stdout)
 
     def capabilities(self) -> CliCapabilities:
         """Inspect supported local Rust CLI operations without passing PCZT data."""

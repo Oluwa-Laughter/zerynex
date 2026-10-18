@@ -29,7 +29,7 @@ class McpProtocolTests(unittest.TestCase):
                 self.assertIn("deny_transparent", str(response))
                 tools = await client.list_tools()
                 discovered = {item.name for item in tools.tools}
-                self.assertEqual(len(discovered), 9)
+                self.assertEqual(len(discovered), 10)
                 self.assertIn("run_synthetic_smoke_suite", discovered)
                 self.assertIn("list_synthetic_fixtures", discovered)
                 listed = await client.call_tool("list_synthetic_fixtures", {})
@@ -40,6 +40,9 @@ class McpProtocolTests(unittest.TestCase):
                 unknown = await client.call_tool("explain_zerynex_rule", {"rule_id": "../malicious_instruction"})
                 self.assertIn("Unknown", str(unknown))
                 self.assertNotIn("malicious_instruction", str(unknown))
+                catalog = await client.call_tool("zerynex_rule_catalog", {})
+                self.assertIn('"rule_set_version": "1.0.0"', str(catalog))
+                self.assertIn("PCZT-STRUCTURE-DRIFT", str(catalog))
                 caps = await client.call_tool("zerynex_core_capabilities", {})
                 self.assertIn("compare_pczt_stages", str(caps))
                 baseline = await client.call_tool("check_synthetic_zallet_rpc_contract", {})
@@ -104,7 +107,7 @@ class McpStdioSubprocessTests(unittest.TestCase):
             )
             async with Client(params, raise_exceptions=True, read_timeout_seconds=25) as client:
                 tools = await client.list_tools()
-                self.assertEqual(len(tools.tools), 9)
+                self.assertEqual(len(tools.tools), 10)
                 ready = await client.call_tool("run_zerynex_developer_preflight", {})
                 self.assertIn('"passed": true', str(ready))
                 regression = await client.call_tool("check_synthetic_zallet_rpc_contract", {"scenario": "missing_method"})
