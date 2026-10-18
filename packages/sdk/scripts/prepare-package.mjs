@@ -14,7 +14,7 @@ for (const file of files) {
   await copyFile(src, join(dest, file))
 }
 const runtime = await readFile(join(dest, 'zerynex.js'), 'utf8')
-for (const expected of ['export function analyze_pczt_policy', 'export function compare_pczt_stages']) {
+for (const expected of ['export function analyze_pczt_policy', 'export function compare_pczt_stages', 'export function inspect_zip321_request']) {
   if (!runtime.includes(expected)) throw new Error('Rust/WASM API mismatch: ' + expected)
 }
 const wasm = await readFile(join(dest, 'zerynex_bg.wasm'))

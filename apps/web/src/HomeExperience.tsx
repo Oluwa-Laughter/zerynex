@@ -14,7 +14,7 @@ const capabilities = [
   {n:'01', title:'Inspect a PCZT', desc:'Know which disclosure policy fields appear before signing or handoff.', icon:LuScanLine,href:'/tools',state:'LIVE IN BROWSER'},
   {n:'02', title:'Compare stages', desc:'Detect new metadata and changed shielded or transparent components.',icon:LuGitCompare,href:'/tools/stages',state:'LIVE IN BROWSER'},
   {n:'03', title:'Check node readiness',desc:'Review network and synchronization state before connecting Zcash applications.',icon:LuNetwork,href:'/tools/node',state:'LOCAL / READ ONLY'},
-  {n:'04', title:'SDK and CI',desc:'Add checks to app pipelines with one canonical Rust engine and reusable adapters.',icon:LuTerminal,href:'/docs/installation',state:'SOURCE INTEGRATIONS'},
+  {n:'04', title:'ZIP-321 requests',desc:'Inspect payment URIs with strict network and address validation before wallet approval.',icon:LuTerminal,href:'/tools/payment',state:'RUST / WASM'},
 ]
 const ecosystemWorkflows = [
   {

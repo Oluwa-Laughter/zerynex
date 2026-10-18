@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
+import { createBrowserZerynexClient, inspectZip321Uri } from '@zerynex/sdk/browser'
 import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
@@ -75,4 +75,15 @@ for (const vector of nodeVectors.cases) {
   assert.doesNotMatch(JSON.stringify(readiness), /DO_NOT_LEAK_PRIVATE_MARKER|bestblockhash|valuePools/)
 }
 console.log('PACKED NODE READINESS PASS: all 9 Zebra/zcashd readiness vectors in a clean npm consumer')
+// Official ZIP-321 testnet payment example, parsed by the same Rust/WASM core.
+const payUri='zcash:ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez?amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase'
+const request=await inspectZip321Uri(payUri,'test',{wasm})
+assert.equal(request.payments.length,1)
+assert.equal(request.payments[0].amount_zat,100_000_000)
+assert.equal(request.payments[0].memo_present,true)
+assert.equal(request.total_zat,100_000_000)
+assert.doesNotMatch(JSON.stringify(request), /ztestsapling|Thank%20you|VGhpcy|private/)
+await assert.rejects(inspectZip321Uri(payUri,'main',{wasm}),/ZIP-321 input rejected/)
+await assert.rejects(inspectZip321Uri(payUri+'&req-wallet-sign=1','test',{wasm}),/ZIP-321 input rejected/)
+console.log('PACKED ZIP-321 PASS: real Rust/WASM payment-request checks, redacted output')
 console.log('PACKED SDK CONSUMER PASS: real Rust/WASM scanner and stage comparison, no monorepo')

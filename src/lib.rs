@@ -2,6 +2,7 @@
 //! A clean report establishes only that selected rules passed. It is not a privacy proof,
 //! transaction validator, shielded-pool verifier, or signing authorization mechanism.
 
+pub mod payments;
 pub mod rules;
 
 use pczt::Pczt;
@@ -602,4 +603,16 @@ mod tests {
         assert!(encoded.contains("ironwood.actions[0]"));
         assert!(!encoded.contains("my-private-seed"));
     }
+}
+
+/// Browser-only ZIP-321 validator. Returns a sanitized summary; never addresses,
+/// memos or label contents. Caller must separately obtain wallet approval.
+#[cfg(feature = "browser")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn inspect_zip321_request(uri: &str, network: &str) -> Result<String, wasm_bindgen::JsValue> {
+    let network =
+        payments::PaymentNetwork::parse(network).map_err(wasm_bindgen::JsValue::from_str)?;
+    let request = payments::parse_zip321(uri, network).map_err(wasm_bindgen::JsValue::from_str)?;
+    serde_json::to_string(&request.summary())
+        .map_err(|_| wasm_bindgen::JsValue::from_str("Cannot encode ZIP-321 report"))
 }

@@ -8,7 +8,7 @@ hosted PCZT workbenches** at [/tools](/tools).
 
 | Package | Included | Runtime requirements |
 | --- | --- | --- |
-| CLI archive (.tar.gz or .zip) | Compiled Zerynex analyzer and handoff runner, MIT license, policies and docs | Compatible OS/architecture; no Rust compiler or Next.js |
+| CLI archive (.tar.gz or .zip) | Compiled `zerynex` analyzer, `zerynex-handoff`, and `zerynex-payreq` payment-request validator, MIT license, policies and docs | Compatible OS/architecture; no Rust compiler or Next.js |
 | TypeScript SDK (.tgz) | Typed SDK APIs **and** the matching Rust WebAssembly binary | Modern Node for server tests; compatible bundler for browsers |
 | Python SDK (.whl and .tar.gz) | Python API, MCP server/doctor, Z3 loopback diagnostic | Python 3.11+ plus the separately installed trusted Rust CLI |
 | Go SDK | Go adapter using a trusted local Rust CLI | Go 1.23+ and an installed CLI; public tagged module pending |

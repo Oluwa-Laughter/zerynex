@@ -138,3 +138,10 @@ function does not load WASM or connect to a Zcash node and never echoes
 untrusted RPC metadata. Unknown/missing fields fail closed. For a real node,
 use the loopback-only Python adapter on the backend; never ship node RPC
 credentials in browser code. See `docs/node-readiness.md`.
+
+## ZIP-321 Zcash payment request inspection
+
+Use `inspectZip321Uri(uri, 'test', {wasm: trustedWasmBytes})` from
+`@zerynex/sdk/browser`. Uses the bundled Rust parser with actual address
+checksum/network validation. Returns only redacted structural metadata.
+Does not sign, build or send transactions. See `docs/payment-requests.md`.

@@ -35,10 +35,10 @@ def platform_label() -> tuple[str, str, str]:
 def package(out: Path, binaries: Path) -> Path:
     system, arch, suffix = platform_label()
     folder = f"zerynex-v{VERSION}-{system}-{arch}"
-    docs = [ROOT / "LICENSE", ROOT / "docs" / "installation.md", ROOT / "docs" / "agents.md"]
+    docs = [ROOT / "LICENSE", ROOT / "docs" / "installation.md", ROOT / "docs" / "agents.md", ROOT / "docs" / "payment-requests.md"]
     policies = sorted((ROOT / "policies").glob("*.json"))
     files: list[tuple[str, bytes, int]] = []
-    for name in ("zerynex", "zerynex-handoff"):
+    for name in ("zerynex", "zerynex-handoff", "zerynex-payreq"):
         path = binaries / (name + suffix)
         if not path.is_file() or path.stat().st_size < 1000:
             raise SystemExit(f"Missing compiled release executable: {name}")

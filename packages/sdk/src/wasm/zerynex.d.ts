@@ -10,6 +10,12 @@ export function analyze_pczt_policy(bytes: Uint8Array, policy_json: string): str
  */
 export function compare_pczt_stages(before: Uint8Array, after: Uint8Array, policy_json: string): string;
 
+/**
+ * Browser-only ZIP-321 validator. Returns a sanitized summary; never addresses,
+ * memos or label contents. Caller must separately obtain wallet approval.
+ */
+export function inspect_zip321_request(uri: string, network: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -17,6 +23,7 @@ export interface InitOutput {
     readonly analyze_pczt: (a: number, b: number, c: number) => [number, number, number, number];
     readonly analyze_pczt_policy: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly compare_pczt_stages: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly inspect_zip321_request: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;

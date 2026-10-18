@@ -46,6 +46,7 @@ export default function Ecosystem() {
    <div><span className="zn-section-tag">BEYOND LANGUAGE BINDINGS</span><h2>More than <em>language bindings.</em></h2></div>
    <div><Link href="/docs/github-action"><LuTerminal size={23}/><strong>CI / GitHub Actions</strong><p>Check synthetic regression fixtures on every pull request.</p><LuArrowUpRight size={19}/></Link>
    <Link href="/agents"><LuShieldCheck size={23}/><strong>MCP + agent skills</strong><p>Restricted tools for approved local fixtures and AI-assisted development.</p><LuArrowUpRight size={19}/></Link>
+   <Link href="/tools/payment"><LuShieldCheck size={23}/><strong>ZIP-321 payments</strong><p>Validate multi-recipient payment requests with the Rust engine—no wallet custody or signing.</p><LuArrowUpRight size={19}/></Link>
    <Link href="/docs/node-readiness"><LuShieldCheck size={23}/><strong>Node & infrastructure</strong><p>Read-only Zcash RPC readiness checks for wallets, payments, indexers and relayers.</p><LuArrowUpRight size={19}/></Link>
    <Link href="/docs/zcash-app-recipes"><LuTerminal size={23}/><strong>Zcash app recipes</strong><p>Integration patterns for payments, private markets, cross-chain and core tooling.</p><LuArrowUpRight size={19}/></Link>
    <Link href="/docs/zk-prover-handoffs"><LuBookOpen size={23}/><strong>ZK / proving research</strong><p>Stage-structure checks today, proof integration still under research.</p><LuArrowUpRight size={19}/></Link></div>

@@ -16,6 +16,8 @@ browser = ["dep:wasm-bindgen"]
 [dependencies]
 pczt = "0.9.3"
 base64 = "0.23.1"
+zcash_address = "0.13.0"
+zcash_protocol = "0.10.6"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

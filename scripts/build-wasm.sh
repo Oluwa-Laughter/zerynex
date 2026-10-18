@@ -10,5 +10,6 @@ cargo build --release --locked --target wasm32-unknown-unknown --features browse
 mkdir -p apps/web/public/wasm apps/web/src/wasm
 wasm-bindgen --target web --out-dir apps/web/src/wasm --out-name zerynex target/wasm32-unknown-unknown/release/zerynex.wasm
 cp apps/web/src/wasm/zerynex_bg.wasm apps/web/public/wasm/zerynex_bg.wasm
+cp apps/web/src/wasm/zerynex.d.ts packages/sdk/src/wasm/zerynex.d.ts
 cargo run --locked --example generate_fixtures
 echo "Zerynex Rust WASM and synthetic fixtures ready."

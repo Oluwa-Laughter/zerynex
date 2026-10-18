@@ -177,8 +177,13 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
         <small>Run four upstream role-fixture regressions and export the results.</small>
         <ArrowUpRight size={21}/>
       </Link>
+      <Link href="/tools/payment">
+        <span>EXPERIMENT 04 / ZIP-321 PAYMENTS</span><strong>Payment Request Inspector</strong>
+        <small>Validate Zcash payment URI syntax, recipient network, memo constraints and amounts.</small>
+        <ArrowUpRight size={21}/>
+      </Link>
       <Link href="/tools/node">
-        <span>EXPERIMENT 04 / ZCASH INFRASTRUCTURE</span><strong>Node Readiness</strong>
+        <span>EXPERIMENT 05 / ZCASH INFRASTRUCTURE</span><strong>Node Readiness</strong>
         <small>Review network and sync status from a public RPC result, entirely in-browser.</small>
         <ArrowUpRight size={21}/>
       </Link>

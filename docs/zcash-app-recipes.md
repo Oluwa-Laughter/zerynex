@@ -29,7 +29,7 @@ if not node.ready:
 # Zerynex does not construct invoices, confirm deposits or authorize spends.
 ```
 
-The wallet or checkout application remains responsible for validating Unified Addresses, constructing ZIP-321 payment requests, confirming deposits and handling chain reorganizations. Don't expose the customer's payment details or an RPC cookie to the browser.
+The wallet or checkout application can additionally use [ZIP-321 request validation](payment-requests.md) to parse supported ZEC requests and exact zatoshi amounts before handing them to a trusted wallet. It remains responsible for selecting supported Unified Address receivers, constructing ZIP-321 payment requests, confirming deposits and handling chain reorganizations. Don't expose the customer's payment details or an RPC cookie to the browser.
 
 ## Private Markets: test policy boundaries before signing
 

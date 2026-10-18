@@ -122,6 +122,14 @@
       "summary": "Check local Zebra/zcashd chain/network sync and integrate a typed, read-only readiness report."
     },
     {
+      "slug": "payment-requests",
+      "title": "ZIP-321 payment requests",
+      "group": "SDKs & APIs",
+      "status": "supported",
+      "audience": "Wallet, merchant, checkout and application developers",
+      "summary": "Validate and inspect ZIP-321 ZEC payment requests locally using Rust, WebAssembly and redacted native CLI."
+    },
+    {
       "slug": "zcash-app-recipes",
       "title": "Build Zcash applications",
       "group": "SDKs & APIs",

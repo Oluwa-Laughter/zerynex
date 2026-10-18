@@ -80,6 +80,31 @@ def verify(archive: Path) -> None:
             raise AssertionError("Packaged CLI lacks privacy-safe SARIF output")
         if "transparent-v6.bin" in sarif.stdout or str(root) in sarif.stdout or '"physicalLocation"' in sarif.stdout:
             raise AssertionError("Packaged CLI SARIF disclosed local input path")
+        # Inspect a ZIP-321 URI from stdin; never expose the full request on argv.
+        payment_name = 'zerynex-payreq.exe' if is_windows else 'zerynex-payreq'
+        if is_windows:
+            with zipfile.ZipFile(archive) as contents:
+                members = [name for name in contents.namelist() if name.endswith('/' + payment_name)]
+                assert len(members) == 1
+                payment_bytes = contents.read(members[0])
+        else:
+            with tarfile.open(archive) as contents:
+                members = [item for item in contents if item.name.endswith('/' + payment_name)]
+                assert len(members) == 1
+                payment_bytes = contents.extractfile(members[0]).read()
+        pay_exec = root / payment_name
+        pay_exec.write_bytes(payment_bytes)
+        pay_exec.chmod(0o755)
+        uri = 'zcash:tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU?amount=1&message=PRIVATE_TEST_MARKER'
+        check = subprocess.run([str(pay_exec), '--network', 'test'], input=uri,
+            capture_output=True, text=True, timeout=20)
+        assert check.returncode == 0
+        assert json.loads(check.stdout)['total_zat'] == 100000000
+        assert 'PRIVATE_TEST_MARKER' not in check.stdout + check.stderr
+        reject = subprocess.run([str(pay_exec), '--network', 'main'], input=uri,
+            capture_output=True, text=True, timeout=20)
+        assert reject.returncode == 1 and not reject.stdout
+        print('PACKAGED ZIP-321 CLI PASS: offline parser and secret-free output')
         print("PACKAGED CLI CONSUMER PASS:", archive.name,
               "- clean and transparent synthetic policies, SHA-256 verified")
 

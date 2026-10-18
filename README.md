@@ -11,6 +11,8 @@ Zerynex is a local-first, composable toolkit for developers building on Zcash: i
 
 **Executable rule conformance:** The same 18 policy fixtures/scenarios and seven stage regressions run through the Rust CLI, Python SDK and independently packed TypeScript/WASM SDK. See [rule vectors](docs/rule-registry.md#executable-rule-conformance-vectors).
 
+**ZIP-321 payment tooling:** Validate Zcash payment requests offline with real address checksums/network validation, integer zatoshi amounts, redacted Rust/WASM reports and a packaged native CLI. Try [the payment workbench](https://zerynex.vercel.app/tools/payment) and read the [ZIP-321 integration guide](docs/payment-requests.md). This does not authorize or execute payments.
+
 **Zcash node integration:** Read-only, loopback-only `zerynex-node-check` checks chain/network readiness; a pure TypeScript normalizer works in browser/backend projects without exposing RPC credentials. See [Node readiness](docs/node-readiness.md) and [Zcash builder recipes](docs/zcash-app-recipes.md).
 
 **Rule registry:** `zerynex --rule-catalog` returns the public, versioned PCZT finding definitions used across SDKs, SARIF and MCP. See [rule metadata](docs/rule-registry.md).
