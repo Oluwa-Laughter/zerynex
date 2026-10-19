@@ -20,6 +20,9 @@ on:
       - 'tests/test_registry_release.py'
       - 'scripts/prepare-release-assets.py'
       - 'tests/test_release_assets.py'
+      - 'scripts/verify-registry-asset-digests.py'
+      - 'tests/test_registry_asset_digests.py'
+      - '.github/workflows/registry-publish.yml'
       - 'apps/web/src/wasm/**'
 
 permissions:
@@ -157,6 +160,14 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_release_assets.py'
       - name: Verify and flatten downloadable assets
         run: python3 scripts/prepare-release-assets.py dist release-assets
+      - name: Generate registry SHA-256 manifest for reviewed assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-assets
+          sha256sum zerynex-sdk-*.tgz zerynex_python-*.whl zerynex_python-*.tar.gz \
+            > SHA256SUMS-registry.txt
+          cd ..
       - name: Create versioned assets (no automatic npm/PyPI publish)
         env:
           GH_TOKEN: ${{ github.token }}

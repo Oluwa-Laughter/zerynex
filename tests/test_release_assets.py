@@ -16,13 +16,13 @@ class ReleaseAssetsTest(unittest.TestCase):
             root = Path(directory)
             source = root / 'downloads'
             source.mkdir()
-            artifacts = {'zerynex-v0.1.0-linux-x86_64.tar.gz': b'native', 'zerynex-sdk.tgz': b'sdk', 'zerynex.whl': b'python'}
+            artifacts = {'zerynex-v0.1.0-linux-x86_64.tar.gz': b'native', 'zerynex-sdk.tgz': b'sdk', 'zerynex.whl': b'python', 'zerynex_python-0.2.0.tar.gz': b'python source'}
             for filename, contents in artifacts.items():
                 (source / filename).write_bytes(contents)
             digest = hashlib.sha256(b'native').hexdigest()
             (source / 'SHA256SUMS-linux-x86_64.txt').write_text(f'{digest}  zerynex-v0.1.0-linux-x86_64.tar.gz\n')
             names = prepare(source, root / 'release')
-            self.assertEqual(len(names), 4)
+            self.assertEqual(len(names), 5)
             self.assertEqual((root / 'release' / 'zerynex-sdk.tgz').read_bytes(), b'sdk')
 
     def test_requires_matching_checksum_for_every_native_archive(self):
@@ -30,17 +30,34 @@ class ReleaseAssetsTest(unittest.TestCase):
             root = Path(directory)
             source = root / 'downloads'
             source.mkdir()
-            for name in ['zerynex-v0.1.0-linux-x86_64.tar.gz', 'zerynex-sdk.tgz', 'zerynex.whl']:
+            for name in ['zerynex-v0.1.0-linux-x86_64.tar.gz', 'zerynex-sdk.tgz', 'zerynex.whl', 'zerynex_python-0.2.0.tar.gz']:
                 (source / name).write_bytes(b'valid')
             with self.assertRaisesRegex(ValueError, 'missing checksum'):
                 prepare(source, root / 'release')
+
+    def test_python_sdist_is_not_misclassified_as_native_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            source=root/'downloads'
+            source.mkdir()
+            names=['zerynex-v0.2.0-linux-x86_64.tar.gz',
+                   'zerynex-sdk-0.2.0.tgz',
+                   'zerynex_python-0.2.0-py3-none-any.whl',
+                   'zerynex_python-0.2.0.tar.gz']
+            for name in names:(source/name).write_bytes(b'reviewed-public-artifact')
+            (source/'SHA256SUMS-linux-x86_64.txt').write_text(
+                hashlib.sha256(b'reviewed-public-artifact').hexdigest()+
+                '  zerynex-v0.2.0-linux-x86_64.tar.gz\n')
+            result=prepare(source,root/'release')
+            self.assertIn('zerynex_python-0.2.0.tar.gz',result)
+            self.assertEqual(len(result),5)
 
     def test_rejects_tampering_and_duplicates(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / 'downloads'
             source.mkdir()
-            for filename in ['zerynex-v0.1.0-linux-x86_64.tar.gz', 'zerynex-sdk.tgz', 'zerynex.whl']:
+            for filename in ['zerynex-v0.1.0-linux-x86_64.tar.gz', 'zerynex-sdk.tgz', 'zerynex.whl', 'zerynex_python-0.2.0.tar.gz']:
                 (source / filename).write_bytes(b'ok')
             (source / 'SHA256SUMS-linux-x86_64.txt').write_text('0'*64+'  zerynex-v0.1.0-linux-x86_64.tar.gz\n')
             with self.assertRaisesRegex(ValueError, 'checksum mismatch'):

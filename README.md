@@ -81,7 +81,7 @@ Full threat-model summary: [docs/privacy-model.md](docs/privacy-model.md).
 
 ## Integrate into your own Zcash app
 
-Start with the [copyable consumer CI workflow](examples/consumer-integration/README.md) and [ecosystem integration roadmap](docs/ecosystem-integration-roadmap.md). Zerynex currently checks selected PCZT disclosure policies; upstream wallet, node and indexer compatibility requires version-pinned integration tests. Package registries are not yet published; see the [maintainer publishing checklist](docs/publishing.md) before preparing a versioned release.
+Start with the [copyable consumer CI workflow](examples/consumer-integration/README.md) and [ecosystem integration roadmap](docs/ecosystem-integration-roadmap.md). Zerynex currently checks selected PCZT disclosure policies; upstream wallet, node and indexer compatibility requires version-pinned integration tests. Package registries are not yet published; see the [maintainer publishing checklist](docs/publishing.md) for the reviewed GitHub Release, npm scope ownership, PyPI pending publisher, protected GitHub environments, and manual OIDC registry workflow before preparing a versioned release.
 
 ## Next milestones
 

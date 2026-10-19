@@ -6,6 +6,14 @@ edition = "2021"
 rust-version = "1.85"
 license = "MIT"
 description = "Local Zcash PCZT privacy policy linting"
+# Rust library/CLI consumers need Rust sources and reviewed test fixtures,
+# not the website, Python/TypeScript package trees or maintainer tooling.
+include = [
+  "/Cargo.toml", "/Cargo.lock", "/README.md", "/LICENSE",
+  "/src/**", "/examples/*.rs", "/tests/*.rs", "/tests/fixtures/**",
+  "/rules/**", "/policies/**",
+  "/apps/web/public/examples/*.bin",
+]
 repository = "https://github.com/Oluwa-Laughter/zerynex"
 homepage = "https://zerynex.vercel.app"
 readme = "README.md"

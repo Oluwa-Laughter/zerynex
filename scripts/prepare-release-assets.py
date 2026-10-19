@@ -55,13 +55,15 @@ def prepare(source: Path, destination: Path) -> list[str]:
         if actual != parts[0]:
             raise ValueError('Release checksum mismatch')
         covered.add(filename)
-    native = {name for name in payload if name.endswith(('.zip', '.tar.gz'))}
+    native = {name for name in payload if name.startswith('zerynex-v') and name.endswith(('.zip', '.tar.gz'))}
     if native != covered:
         raise ValueError('Native archive missing checksum')
     if not any(name.endswith('.tgz') for name in payload):
         raise ValueError('npm SDK archive missing')
     if not any(name.endswith('.whl') for name in payload):
         raise ValueError('Python wheel missing')
+    if not any(name.startswith('zerynex_python-') and name.endswith('.tar.gz') for name in payload):
+        raise ValueError('Python source distribution missing')
     destination.mkdir(parents=True)
     for path in files:
         shutil.copyfile(path, destination / path.name)

@@ -1,125 +1,160 @@
 name: Publish verified SDKs to registries (manual)
 
-# Nothing publishes on push, PR or tag creation. A maintainer must review a
-# successfully built GitHub Release, configure trust and opt in explicitly.
+# Publishing is irreversible. This workflow never runs on push or tag creation.
 on:
   workflow_dispatch:
     inputs:
-      release_tag:
-        description: 'Existing reviewed GitHub Release tag (for example v0.2.0)'
-        required: true
+      version_tag:
+        description: 'Reviewed, published GitHub Release tag, e.g. v0.2.0'
         type: string
-      registry:
-        description: 'Publish exactly one registry per approved run'
         required: true
+      registry:
+        description: 'Publish only one reviewed registry distribution'
         type: choice
         options:
           - npm
           - pypi
+        required: true
+      confirmation:
+        description: 'Type PUBLISH-v0.2.0-npm (or PUBLISH-v0.2.0-pypi) to authorize this publication'
+        type: string
+        required: true
 
 permissions:
   contents: read
 
+concurrency:
+  group: zerynex-registry-${{ inputs.version_tag }}-${{ inputs.registry }}
+  cancel-in-progress: false
+
 jobs:
-  npm:
-    name: Publish @zerynex/sdk to npm (OIDC)
-    if: github.ref == 'refs/heads/main' && inputs.registry == 'npm'
+  preflight:
+    name: Verify source commit, exact tag and reviewed GitHub Release
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: npm-publish
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require deliberate, scoped publisher confirmation
+        env:
+          VERSION_TAG: ${{ inputs.version_tag }}
+          REGISTRY: ${{ inputs.registry }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VERSION_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          [[ "$REGISTRY" == npm || "$REGISTRY" == pypi ]]
+          [[ "$CONFIRMATION" == "PUBLISH-${VERSION_TAG}-${REGISTRY}" ]]
+          [[ "$(git rev-parse "refs/tags/$VERSION_TAG^{commit}")" == "$GITHUB_SHA" ]]
+          python3 scripts/check-registry-release.py --tag "$VERSION_TAG"
+      - name: Require an existing published, non-prerelease GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "$VERSION_TAG" --json isDraft,isPrerelease,tagName --jq \
+            'select(.isDraft == false and .isPrerelease == false) | .tagName' \
+            | grep -Fx "$VERSION_TAG"
+      - name: Export verified version
+        id: version
+        env:
+          VERSION_TAG: ${{ inputs.version_tag }}
+        shell: bash
+        run: echo "value=${VERSION_TAG#v}" >> "$GITHUB_OUTPUT"
+
+  npm-publish:
+    name: Publish approved existing npm tarball via OIDC
+    if: inputs.registry == 'npm'
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-publish
+      url: https://www.npmjs.com/package/@zerynex/sdk
     permissions:
       contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.release_tag }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           registry-url: https://registry.npmjs.org
-      - name: Check reviewed release tag and metadata
+          package-manager-cache: false
+      - name: Install pinned npm client supporting trusted publishing
+        run: npm install --global npm@11.6.2 --ignore-scripts --no-audit --no-fund
+      - name: Download the exact reviewed GitHub Release tarball and checksum
         env:
-          TAG: ${{ inputs.release_tag }}
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.version_tag }}
+          VERSION: ${{ needs.preflight.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          test "$(git describe --tags --exact-match HEAD)" = "$TAG"
-          python3 scripts/check-release-version.py "$TAG"
-          python3 scripts/check-registry-release.py --tag "$TAG"
-          gh release view "$TAG" --json isDraft,isPrerelease,publishedAt | python3 -c '
-          import json,sys
-          obj=json.load(sys.stdin)
-          assert obj["isDraft"] is False and obj["isPrerelease"] is False and obj["publishedAt"]'
-      - name: Download published artifact only
-        env:
-          TAG: ${{ inputs.release_tag }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p dist/registry
-          gh release download "$TAG" --pattern 'zerynex-sdk-*.tgz' --dir dist/registry
-          python3 scripts/check-registry-release.py --tag "$TAG" --registry npm --artifact-dir dist/registry
-      - name: Use an OIDC-capable npm CLI
-        run: |
-          npm install --global npm@11
-          node --version
           npm --version
-      - name: Publish precisely the verified GitHub release tarball
+          mkdir registry-assets
+          gh release download "$TAG" --dir registry-assets --pattern "zerynex-sdk-${VERSION}.tgz"
+          gh release download "$TAG" --dir registry-assets --pattern 'SHA256SUMS-registry.txt'
+      - name: Validate checksum, npm exports and CLI without uploading
         env:
-          TAG: ${{ inputs.release_tag }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+          TAG: ${{ inputs.version_tag }}
         run: |
-          set -euo pipefail
-          VERSION="${TAG#v}"
-          npm publish "dist/registry/zerynex-sdk-${VERSION}.tgz" --access public
+          python3 scripts/verify-registry-asset-digests.py --dir registry-assets --version "$VERSION" --registry npm
+          python3 scripts/check-registry-release.py --tag "$TAG" --registry npm --artifact-dir registry-assets
+      - name: Publish exact reviewed tarball to npm (protected environment)
+        env:
+          VERSION: ${{ needs.preflight.outputs.version }}
+        shell: bash
+        run: npm publish "registry-assets/zerynex-sdk-${VERSION}.tgz" --access public --provenance --ignore-scripts
 
-  pypi:
-    name: Publish zerynex-python to PyPI (OIDC)
-    if: github.ref == 'refs/heads/main' && inputs.registry == 'pypi'
+  pypi-publish:
+    name: Publish approved existing wheel and sdist via OIDC
+    if: inputs.registry == 'pypi'
+    needs: preflight
     runs-on: ubuntu-latest
-    environment: pypi-publish
+    environment:
+      name: pypi-publish
+      url: https://pypi.org/project/zerynex-python/
     permissions:
       contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.release_tag }}
+          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Check reviewed release tag and metadata
+      - name: Download exact reviewed GitHub Release wheel, sdist and checksum
         env:
-          TAG: ${{ inputs.release_tag }}
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.version_tag }}
+          VERSION: ${{ needs.preflight.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          test "$(git describe --tags --exact-match HEAD)" = "$TAG"
-          python scripts/check-release-version.py "$TAG"
-          python scripts/check-registry-release.py --tag "$TAG"
-          gh release view "$TAG" --json isDraft,isPrerelease,publishedAt | python -c '
-          import json,sys
-          obj=json.load(sys.stdin)
-          assert obj["isDraft"] is False and obj["isPrerelease"] is False and obj["publishedAt"]'
-      - name: Download published wheel and source distribution
+          mkdir registry-assets
+          gh release download "$TAG" --dir registry-assets --pattern "zerynex_python-${VERSION}-py3-none-any.whl"
+          gh release download "$TAG" --dir registry-assets --pattern "zerynex_python-${VERSION}.tar.gz"
+          gh release download "$TAG" --dir registry-assets --pattern 'SHA256SUMS-registry.txt'
+      - name: Verify exact reviewed package contents without uploading
         env:
-          TAG: ${{ inputs.release_tag }}
-          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+          TAG: ${{ inputs.version_tag }}
         run: |
-          mkdir -p dist/registry
-          gh release download "$TAG" --pattern 'zerynex_python-*' --dir dist/registry
-          python scripts/check-registry-release.py --tag "$TAG" --registry pypi --artifact-dir dist/registry
-          python - <<'PY'
-          from pathlib import Path
-          import tomllib
-          ver=tomllib.loads(Path('packages/python/pyproject.toml').read_text())['project']['version']
-          assert (Path('dist/registry') / f'zerynex_python-{ver}.tar.gz').is_file()
-          PY
-      - name: Publish verified GitHub release distributions using PyPI OIDC
+          python3 scripts/verify-registry-asset-digests.py --dir registry-assets --version "$VERSION" --registry pypi
+          python3 scripts/check-registry-release.py --tag "$TAG" --registry pypi --artifact-dir registry-assets
+      - name: Remove verification checksum from PyPI upload directory
+        run: rm registry-assets/SHA256SUMS-registry.txt
+      - name: Publish reviewed distributions to PyPI (protected environment)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/registry/
+          packages-dir: registry-assets/

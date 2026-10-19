@@ -23,6 +23,12 @@ or creating a reviewed `v0.2.0` release**. Do not download `v0.1.0` and
 assume it includes newer refund-privacy, Node CLI or integration fixes.
 
 For package maintainers, see the [registry publishing checklist](publishing.md).
+Versioned GitHub Releases created after the new publisher hardening include
+`SHA256SUMS-registry.txt`, covering the bundled npm tarball, Python wheel
+and Python source archive. The separately gated, **manual-only** registry
+workflow checks those digests before publishing either SDK. npm and PyPI
+registry accounts, permissions and protected-environment approvals remain
+maintainer responsibilities; no registry uploads happen automatically.
 Registry publication requires explicitly approved release artifacts, npm/PyPI
 account ownership and verified GitHub Actions environments.
 
