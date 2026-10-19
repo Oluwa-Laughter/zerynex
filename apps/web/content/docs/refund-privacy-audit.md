@@ -157,7 +157,51 @@ The browser workbench includes three **synthetic** samples: isolated flows,
 shared viewing scope, and an additional declaration regression. It does not
 upload, store, or discover wallet or transaction details. **Only enter
 non-secret metadata**. Actual keys, addresses, hashed addresses or wallet
-identifiers are inappropriate. JavaScript `JSON.parse` does not reject
-repeated object keys; use strict duplicate-aware parsing in any production
-integration accepting raw JSON files. Python's CLI has strict raw-file checks.
+identifiers are inappropriate. JavaScript `JSON.parse` does not reject repeated object keys. The browser
+workbench uses `parseRefundPrivacyJson`, which checks duplicate decoded keys,
+and the standalone Node and Python CLIs also reject ambiguous raw JSON.
 These checks cannot attest quantum-safe wallets or cryptographic isolation.
+
+## Node.js / TypeScript CLI — strict local metadata files
+
+The independently tested `@zerynex/sdk` **npm tarball** includes the
+`zerynex-refund-check` executable (the tarball is verified in CI but is not
+yet published to the public npm registry). Developers can install the tarball
+locally and run a real CLI **without Python, wallets, networking, Rust/WASM,
+or hosted Zerynex APIs**:
+
+```bash
+# From your trusted repository after installing the verified SDK tarball:
+./node_modules/.bin/zerynex-refund-check \
+  --manifest tests/fixtures/swap-refund/isolated.json --json
+
+# Exit 2 means new per-flow risks were found (a suitable CI failure):
+./node_modules/.bin/zerynex-refund-check \
+  --baseline tests/fixtures/swap-refund/risky.json \
+  --manifest tests/fixtures/swap-refund/regression-expanded.json \
+  --sarif
+```
+
+Exit `0`: no currently declared rules (single mode) or no newly declared
+risk occurrences (baseline mode). Exit `2`: findings or regressions. Exit `1`:
+invalid arguments, malformed JSON, unsafe/unavailable file, or unsupported
+manifest. Reports never include source filenames, flow identifiers or raw
+metadata. The CLI reads only explicitly named files and rejects symlinked
+paths (including ancestor directories), nonregular files, files over 64 KiB,
+unknown fields, invalid opaque references, and **duplicate decoded JSON
+keys—even escaped duplicates**. It doesn't scan your repository or write
+outputs unless *you* explicitly redirect sanitized stdout.
+
+### Strict browser/Node API for raw JSON strings
+
+Use `parseRefundPrivacyJson(raw)`, `auditRefundPrivacyJson(raw)`, or
+`compareRefundPrivacyJson(oldRaw, newRaw)` from `@zerynex/sdk` when the input
+is a JSON string rather than a trusted in-memory object. These functions
+reject duplicate JSON keys at every object level and enforce a 64 KiB UTF-8
+limit before the five rule checks. The browser
+[refund privacy workbench](/tools/refund) now uses this strict parser as well.
+The ordinary `auditRefundPrivacy()` and `compareRefundPrivacy()` methods
+still accept previously constructed objects, where duplicate source keys
+cannot be recovered. **No such software can infer whether a non-secret,
+application-declared viewing scope matches the wallet's actual key scope**;
+real cryptographic isolation must be tested independently.

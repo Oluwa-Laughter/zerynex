@@ -168,3 +168,26 @@ Python SDK. **Do not pass keys, addresses, hashes of real addresses, wallets,
 transaction identifiers or private data.** Review the complete schema in
 `docs/refund-privacy-audit.md`. Standard JS `JSON.parse` does not detect raw
 JSON duplicate keys; producers accepting raw files need strict parsing.
+
+### Strict input and standalone Node.js command
+
+`parseRefundPrivacyJson`, `auditRefundPrivacyJson`, and
+`compareRefundPrivacyJson` reject raw JSON duplicate keys—including escaped
+member names—before running the same TypeScript/Python-vetted metadata
+checks. Input is limited to 64 KiB in UTF-8. In contrast, ordinary
+`JSON.parse` cannot detect duplicate keys.
+
+The **verified local npm tarball** also installs the CLI
+`zerynex-refund-check` (not publicly registry-published yet):
+
+```bash
+./node_modules/.bin/zerynex-refund-check --manifest tests/refund/synthetic.json --json
+./node_modules/.bin/zerynex-refund-check --baseline tests/refund/before.json --manifest tests/refund/after.json --sarif
+```
+
+The CLI reads only explicitly selected, bounded regular files, rejects
+symlink traversal and malformed raw JSON, and returns sanitized output only.
+Exit codes: `0` no active/new findings, `2` findings, `1` rejected input.
+Never submit actual refund addresses, keys, hashed real addresses, wallet
+identities, or private transaction records; declaration checks cannot prove
+wallet isolation, PIR, or quantum security.

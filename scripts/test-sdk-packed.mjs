@@ -3,7 +3,7 @@
  * Verify the actual npm tarball in a temporary, unrelated application.
  * No monorepo aliases, mock engine, or network. Synthetic test vectors only.
  */
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -44,6 +44,25 @@ try {
     cwd: app, encoding: 'utf8', timeout: 30_000,
   })
   process.stdout.write(output)
+  // Exercise the installed CLI entry point, not the source checkout.
+  const command=join(app,'node_modules','@zerynex','sdk','bin','refund-check.mjs')
+  const run=argv=>spawnSync(process.execPath,[command,...argv],{cwd:app,encoding:'utf8',timeout:15000})
+  const safe=run(['--manifest','refund-isolated.json','--json'])
+  if(safe.status!==0||JSON.parse(safe.stdout).passed!==true)
+    throw new Error('Packed Node CLI rejected reviewed isolated metadata')
+  const flagged=run(['--manifest','refund-risky.json','--json'])
+  if(flagged.status!==2||JSON.parse(flagged.stdout).finding_count!==5)
+    throw new Error('Packed Node CLI missed synthetic risks')
+  const compared=run(['--baseline','refund-risky.json','--manifest','refund-regression-expanded.json','--sarif'])
+  if(compared.status!==2||JSON.parse(compared.stdout).runs[0].results.length!==1)
+    throw new Error('Packed Node CLI missed per-flow regression or SARIF output')
+  const duplicate=join(app,'invalid-duplicate.json')
+  await writeFile(duplicate,'{"schema_version":1,"schema_version":1,"secrets":"NEVER_LOG"}')
+  const rejected=run(['--manifest','invalid-duplicate.json','--json'])
+  if(rejected.status!==1||/NEVER_LOG|invalid-duplicate.json/.test(rejected.stderr+rejected.stdout))
+    throw new Error('Packed Node CLI leaked or accepted duplicate metadata keys')
+  console.log('PACKED REFUND CLI PASS: installed Node entry point, raw JSON safety, SARIF and exit statuses')
+
   console.log('Package installed exclusively from local tarball:', packages[0])
   console.log('Package size in bytes:', (await readFile(archive)).byteLength)
 } finally {

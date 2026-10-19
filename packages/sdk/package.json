@@ -7,12 +7,14 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "bin",
     "README.md",
     "LICENSE"
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "bin": {"zerynex-refund-check": "./bin/refund-check.mjs"},
+  "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./browser": {
@@ -21,6 +23,7 @@
     },
     "./wasm/zerynex_bg.wasm": "./dist/wasm/zerynex_bg.wasm"
   },
+  "bin": {"zerynex-refund-check": "./bin/refund-check.mjs"},
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "scripts": {

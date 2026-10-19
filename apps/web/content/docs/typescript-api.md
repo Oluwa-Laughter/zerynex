@@ -102,12 +102,41 @@ const sarif = refundSarifReport(delta) // no source locations or flow identifier
 For actual source data, use a **trusted application's own declaration layer**;
 never supply real refund addresses, viewing keys, hashes of addresses, wallet
 accounts or transaction history. Input objects have an exact, versioned schema;
-they reject unknown fields and invalid values. If reading raw JSON files,
-use a parser that rejects **duplicate JSON member names before parsing**.
-Standard JavaScript `JSON.parse` silently discards earlier duplicates, so this
-SDK cannot detect duplicates from an already parsed object. The Python CLI's
-file reader provides stricter raw JSON validation.
+they reject unknown fields and invalid values. For raw JSON strings use `parseRefundPrivacyJson` or the `zerynex-refund-check`
+Node CLI: these reject duplicate JSON member names, including escaped keys.
+Plain `JSON.parse` silently discards earlier duplicates, and the object-based
+SDK functions cannot recover them after parsing.
 
 A successful result is only an internally consistent declaration, not evidence
 of actual wallet isolation or post-quantum protection. See
 [refund privacy audit](refund-privacy-audit.md).
+
+### Strict JSON parsing and independent Node CLI
+
+For developer-provided **raw JSON text**, use:
+
+```typescript
+import { auditRefundPrivacyJson, compareRefundPrivacyJson } from '@zerynex/sdk'
+const report = auditRefundPrivacyJson(publicSafeJsonText)
+const delta = compareRefundPrivacyJson(oldPublicSafeJsonText, publicSafeJsonText)
+if (!delta.passed) throw new Error('New declared privacy exposure')
+```
+
+These reject duplicate JSON fields (including Unicode-escaped duplicate
+names), malformed or oversized UTF-8 input, unknown schema fields, and
+non-secret reference format violations. The underlying object-based APIs
+remain available for *already validated* in-memory declarations. Standard
+`JSON.parse` alone is insufficient for untrusted raw manifests.
+
+The npm tarball also ships a **fully offline Node.js CLI**:
+
+```bash
+./node_modules/.bin/zerynex-refund-check \
+  --baseline tests/refund/approved.json \
+  --manifest tests/refund/candidate.json --json
+```
+
+You must provide two actual, public-safe metadata files (not wallet data).
+Exit `0` means no newly declared risk occurrences; `2` means new risks, and
+`1` means invalid input. See [refund privacy audit](refund-privacy-audit.md)
+for the SARIF option and complete trust boundaries.

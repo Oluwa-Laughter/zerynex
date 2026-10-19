@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import {useState} from 'react'
 import {LuArrowLeft,LuArrowUpRight,LuShieldCheck,LuLockKeyhole,LuCircleAlert,LuCheck,LuCopy} from 'react-icons/lu'
-import {auditRefundPrivacy,compareRefundPrivacy,refundSarifReport,type RefundAuditReport,type RefundRegressionReport} from '@zerynex/sdk'
+import {auditRefundPrivacy,compareRefundPrivacy,parseRefundPrivacyJson,refundSarifReport,type RefundAuditReport,type RefundRegressionReport} from '@zerynex/sdk'
 import styles from './NodeWorkbench.module.css'
 
 const isolated={schema_version:1,flows:[
@@ -38,10 +38,10 @@ export default function RefundWorkbench(){
   setError(null);setReport(null);setCopyState('idle')
   try{
    if(!current.trim()||current.length>MAX_INPUT|| (mode==='compare'&&(!baseline.trim()||baseline.length>MAX_INPUT)))throw new Error()
-   const candidate:unknown=JSON.parse(current)
-   const result=mode==='compare'?compareRefundPrivacy(JSON.parse(baseline) as unknown,candidate):auditRefundPrivacy(candidate)
+   const candidate:unknown=parseRefundPrivacyJson(current)
+   const result=mode==='compare'?compareRefundPrivacy(parseRefundPrivacyJson(baseline),candidate):auditRefundPrivacy(candidate)
    setReport(result)
-  }catch{setError('Cannot evaluate this metadata. Use a strict version-1 manifest with 1–100 non-secret flows and opaque 128-bit references. Do not paste actual addresses or keys.')}
+  }catch{setError('Cannot evaluate this metadata. Use a strict version-1 manifest without duplicate keys and with 1–100 non-secret flows and opaque 128-bit references. Do not paste actual addresses or keys.')}
  }
  async function copySarif(){
   if(!report)return

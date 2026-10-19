@@ -1,3 +1,4 @@
+export {parseRefundPrivacyJson,auditRefundPrivacyJson,compareRefundPrivacyJson} from './refund-json.js'
 export { auditRefundPrivacy, compareRefundPrivacy, refundSarifReport, REFUND_RULE_IDS } from './refund-privacy.js'
 export type { RefundManifest, RefundFlow, RefundAuditReport, RefundRegressionReport, RefundRuleId, RefundLookupMode, RefundCustody } from './refund-privacy.js'
 export { evaluateZcashTransaction, createZcashTransactionObserver } from './transaction.js'

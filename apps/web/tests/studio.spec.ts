@@ -921,3 +921,16 @@ test('refund workbench stays within a 320px developer viewport',async({page})=>{
  expect(layout.body).toBeLessThanOrEqual(layout.viewport+2)
  await expect(page.getByText('SWAP-VIEWING-SCOPE-REUSE')).toBeVisible()
 })
+
+
+test('refund browser rejects duplicate keys even if JavaScript JSON.parse would accept them',async({page})=>{
+  await page.goto('/tools/refund')
+  const duplicated=JSON.stringify({schema_version:1,flows:[{
+    flow_ref:'1'.repeat(32),refund_address_ref:'2'.repeat(32),viewing_scope_ref:'3'.repeat(32),
+    published_publicly:true,lookup_mode:'private_claimed',spending_key_custody:'wallet_claimed',
+  }]}).replace('"schema_version":1','"schema_version":1,"\\u0073chema_version":1')
+  await page.locator('#refund-current').fill(duplicated)
+  await page.getByRole('button',{name:'Audit declared exposure'}).click()
+  await expect(page.locator('main').getByRole('alert')).toContainText('without duplicate keys')
+  await expect(page.getByText('NO DECLARED RISKS')).toHaveCount(0)
+})
