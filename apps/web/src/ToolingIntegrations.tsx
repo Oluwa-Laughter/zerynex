@@ -5,7 +5,7 @@ import { gsap } from 'gsap'
 import Link from 'next/link'
 import { LuArrowUpRight, LuCheck, LuCode, LuCopy, LuNetwork, LuTerminal, LuWorkflow, LuGitPullRequest, LuGitBranch, LuGitMerge, LuPackage, LuFileJson, LuShieldCheck } from 'react-icons/lu'
 
-type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'node' | 'transaction' | 'payment' | 'github' | 'stages' | 'handoff' | 'go' | 'rpc' | 'zk'
+type Integration = 'rust' | 'typescript' | 'python' | 'agent' | 'z3' | 'node' | 'transaction' | 'payment' | 'github' | 'stages' | 'handoff' | 'go' | 'rpc' | 'zk' | 'refund'
 const integrations: {key:Integration,label:string,title:string,kind:string,description:string,code:string,documentation:string,icon:typeof LuCode}[] = [
   {
     key:'rust',label:'Rust / CLI',title:'Use the canonical Rust engine',kind:'CLI + CI',
@@ -72,6 +72,12 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
     description:'Parse Zcash payment URIs and verify network, recipient encoding, memo constraints and integer amounts. No signing, custody or broadcast.',
     code:"printf '%s' 'zcash:tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU?amount=1' | zerynex-payreq --network test\n\n# Or: inspectZip321Uri(uri, 'test', { wasm: trustedWasmBytes })",
     documentation:'/docs/payment-requests',icon:LuShieldCheck,
+  },
+  {
+    key:'refund',label:'Refund Privacy',title:'Audit swap refund privacy declarations',kind:'ZCASH / SWAPS / TYPESCRIPT',
+    description:'Catch declared viewing-scope reuse and refund-address linkability in your app with a pure, offline SDK. No real wallet data or claims of quantum resistance.',
+    code:"import {auditRefundPrivacy,compareRefundPrivacy} from '@zerynex/sdk'\n\nconst report = auditRefundPrivacy(metadata)\nconst delta = compareRefundPrivacy(previousMetadata, metadata)\nif (!delta.passed) throw new Error('Privacy risk regression')\n// Inputs must contain NON-SECRET opaque identifiers only.",
+    documentation:'/docs/refund-privacy-audit',icon:LuShieldCheck,
   },
   {
     key:'transaction',label:'TX Confirmation',title:'Inspect transaction confirmations and reorg hints',kind:'ZCASH / RPC / READ-ONLY',
@@ -143,6 +149,7 @@ export default function ToolingIntegrations() {
           {active==='payment'&&<Link className="dev-integration-try" href="/tools/payment">INSPECT ZIP-321 URI <LuArrowUpRight size={15}/></Link>}
           {active==='transaction'&&<Link className="dev-integration-try" href="/tools/transaction">TRY TX OBSERVER <LuArrowUpRight size={15}/></Link>}
           {active==='node'&&<Link className="dev-integration-try" href="/tools/node">TRY NODE READINESS <LuArrowUpRight size={15}/></Link>}
+          {active==='refund'&&<Link className="dev-integration-try" href="/tools/refund">TRY REFUND PRIVACY AUDIT <LuArrowUpRight size={15}/></Link>}
           {active==='handoff'&&<Link className="dev-integration-try" href="/tools/handoff">RUN ROLE HARNESS <LuArrowUpRight size={15}/></Link>}
         </div>
       </div>

@@ -143,3 +143,21 @@ Review whether public refund addresses are reused and whether the underlying inc
 The October 19, 2026 [Zakura / NEAR Intents reporting](https://www.coindesk.com/tech/2026/10/19/zcash-developers-plan-a-fix-to-keep-zec-swaps-private-from-future-quantum-computers) describes the proposed per-swap viewing-key mitigation. Zakura's [transparent-wallet PIR engineering write-up](https://zakura.com/engineering/transparent-pir-rotating-addresses/) covers a distinct but related private lookup problem. [ZIP 2005, Ironwood Quantum Recoverability](https://zips.z.cash/zip-2005) concerns recovery of Ironwood funds under a future recovery protocol; **quantum recoverability does not imply quantum-resistant shielded privacy or that Zerynex implements it**. Changes in protocol design should be followed through the canonical Zcash ZIPs and implementation sources, not inferred from a news headline.
 
 See also [Zcash application integration recipes](zcash-app-recipes.md), [ZIP-321 payment inspection](payment-requests.md), [Wallet handoffs](wallet-handoffs.md) and [Privacy model](privacy-model.md).
+
+## Browser and TypeScript SDK integration
+
+Zerynex now exposes the **same declared-risk model** through the independent
+`@zerynex/sdk` tarball with `auditRefundPrivacy`, `compareRefundPrivacy` and
+`refundSarifReport`. See [TypeScript API](typescript-api.md) and the
+[local refund workbench](/tools/refund). All evaluation happens inside the
+browser tab or the developer's own Node.js process; the functions neither
+connect to Zcash nor require Rust/WASM for this metadata-only check.
+
+The browser workbench includes three **synthetic** samples: isolated flows,
+shared viewing scope, and an additional declaration regression. It does not
+upload, store, or discover wallet or transaction details. **Only enter
+non-secret metadata**. Actual keys, addresses, hashed addresses or wallet
+identifiers are inappropriate. JavaScript `JSON.parse` does not reject
+repeated object keys; use strict duplicate-aware parsing in any production
+integration accepting raw JSON files. Python's CLI has strict raw-file checks.
+These checks cannot attest quantum-safe wallets or cryptographic isolation.

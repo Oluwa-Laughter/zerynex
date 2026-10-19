@@ -76,3 +76,38 @@ See [Zcash node readiness](node-readiness.md) for a backend integration pattern 
 See [Wallet provider handoffs](wallet-handoffs.md) for typed capabilities, policy matching and mandatory host-side user consent.
 
 See [Transaction observations](transaction-observations.md) for the integration contract and confirmation/finality limitations.
+
+## Refund privacy metadata and per-flow regressions
+
+The TypeScript SDK includes `auditRefundPrivacy(manifest)`,
+`compareRefundPrivacy(baseline, current)` and `refundSarifReport(report)`.
+These functions are **offline and do not require Rust/WASM initialization**.
+They perform the same five declared-risk checks as the Python SDK against
+shared repository test vectors, including a regression on a newly affected
+flow when the rule was already seen in another flow.
+
+```typescript
+import { auditRefundPrivacy, compareRefundPrivacy, refundSarifReport } from '@zerynex/sdk'
+
+// publicSafeManifest and previousPublicSafeManifest must contain only
+// developer-generated opaque, non-secret logical references.
+const checked = auditRefundPrivacy(publicSafeManifest)
+const delta = compareRefundPrivacy(previousPublicSafeManifest, publicSafeManifest)
+if (!delta.passed) {
+  console.warn(delta.new_rule_ids, delta.new_risk_events)
+}
+const sarif = refundSarifReport(delta) // no source locations or flow identifiers
+```
+
+For actual source data, use a **trusted application's own declaration layer**;
+never supply real refund addresses, viewing keys, hashes of addresses, wallet
+accounts or transaction history. Input objects have an exact, versioned schema;
+they reject unknown fields and invalid values. If reading raw JSON files,
+use a parser that rejects **duplicate JSON member names before parsing**.
+Standard JavaScript `JSON.parse` silently discards earlier duplicates, so this
+SDK cannot detect duplicates from an already parsed object. The Python CLI's
+file reader provides stricter raw JSON validation.
+
+A successful result is only an internally consistent declaration, not evidence
+of actual wallet isolation or post-quantum protection. See
+[refund privacy audit](refund-privacy-audit.md).

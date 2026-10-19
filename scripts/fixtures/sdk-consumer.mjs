@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createBrowserZerynexClient, inspectZip321Uri, createBrowserWalletHandoff, createZip321UriProvider } from '@zerynex/sdk/browser'
-import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateZcashTransaction, createZcashTransactionObserver } from '@zerynex/sdk'
+import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateZcashTransaction, createZcashTransactionObserver, auditRefundPrivacy, compareRefundPrivacy, refundSarifReport } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
 assert.equal(RULE_CATALOG.schema_version, 1)
@@ -74,6 +74,20 @@ for (const vector of nodeVectors.cases) {
   assert.deepEqual(readiness.checks.map(x => x.status), vector.codes, vector.name)
   assert.doesNotMatch(JSON.stringify(readiness), /DO_NOT_LEAK_PRIVATE_MARKER|bestblockhash|valuePools/)
 }
+const refundSafe=JSON.parse(await readFile('refund-isolated.json','utf8'))
+const refundRisky=JSON.parse(await readFile('refund-risky.json','utf8'))
+const refundExpanded=JSON.parse(await readFile('refund-regression-expanded.json','utf8'))
+assert.equal(auditRefundPrivacy(refundSafe).passed,true)
+assert.equal(auditRefundPrivacy(refundRisky).finding_count,5)
+const refundDelta=compareRefundPrivacy(refundSafe,refundRisky)
+assert.equal(refundDelta.new_risk_events,8)
+assert.equal(compareRefundPrivacy(refundRisky,refundExpanded).new_risk_events,1)
+assert.equal(compareRefundPrivacy(refundRisky,refundSafe).passed,true)
+const refundSarif=refundSarifReport(refundDelta)
+assert.equal(refundSarif.version,'2.1.0')
+assert.equal(refundSarif.runs[0].results.length,5)
+assert.doesNotMatch(JSON.stringify(refundDelta)+JSON.stringify(refundSarif),/22222222222222222222222222222222|flow_ref|viewing_scope_ref/)
+console.log('PACKED REFUND PRIVACY PASS: same three audited metadata fixtures, per-flow regression and sanitized SARIF')
 console.log('PACKED NODE READINESS PASS: all 9 Zebra/zcashd readiness vectors in a clean npm consumer')
 const txVectors = JSON.parse(await readFile('transaction-observations.json','utf8'))
 assert.equal(txVectors.schema_version,1)

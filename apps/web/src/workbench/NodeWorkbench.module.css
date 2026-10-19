@@ -50,3 +50,6 @@
 .apiLink{display:inline-flex;align-items:center;gap:10px;margin-top:10px;border-bottom:1px solid var(--zn-accent);padding-bottom:10px;color:var(--zn-accent);font-size:12px}
 @media(max-width:950px){.layout{grid-template-columns:1fr}.panel{min-height:0}}
 @media(max-width:550px){.page{padding:125px 5% 75px}.hero{padding:45px 0}.hero h1{font-size:52px}.panel{padding:19px}.controls{grid-template-columns:1fr}.metrics strong{font-size:20px}}
+
+/* Long fixed policy identifiers in offline diagnostics wrap on narrow screens. */
+.checks strong{overflow-wrap:anywhere;min-width:0}

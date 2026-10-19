@@ -37,6 +37,8 @@ try {
   await copyFile(join(vectors, 'expectations.json'), join(app, 'rule-expectations.json'))
   await copyFile(join(repo, 'tests/fixtures/node/chain-readiness.json'), join(app, 'node-readiness.json'))
   await copyFile(join(repo, 'tests/fixtures/transactions/rpc-observations.json'), join(app, 'transaction-observations.json'))
+  for (const name of ['isolated','risky','regression-expanded'])
+    await copyFile(join(repo, 'tests/fixtures/swap-refund', name + '.json'), join(app, 'refund-' + name + '.json'))
   await copyFile(join(repo, 'scripts/fixtures/sdk-consumer.mjs'), join(app, 'check.mjs'))
   const output = execFileSync(process.execPath, ['check.mjs'], {
     cwd: app, encoding: 'utf8', timeout: 30_000,

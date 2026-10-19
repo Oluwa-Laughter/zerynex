@@ -155,3 +155,16 @@ The `createZip321UriProvider` adapter accepts a host-supplied `openUri` callback
 ## Read-only Zcash transaction confirmation and reorg observations
 
 Use `evaluateZcashTransaction(txResult, chainState, {expectedNetwork, expectedTxid, requiredConfirmations})` from `@zerynex/sdk` on trusted `getrawtransaction(txid,1)` and `getblockchaininfo` results. `createZcashTransactionObserver(policy).observe(...)` tracks possible reorganizations in memory without exposing transaction IDs, block hashes, wallet data or complete RPC responses. No network requests, signing, confirmation receipts or payment settlement is performed. See `docs/transaction-observations.md`.
+
+## Refund linkability and viewing-scope declarations
+
+`auditRefundPrivacy(manifest)`, `compareRefundPrivacy(previous, current)` and
+`refundSarifReport(report)` are pure TypeScript helpers with no WASM, network,
+file access or wallet permissions. They detect declared refund address/scope
+reuse, public refund exposure, nonprivate lookups and unknown key custody.
+Comparisons count **per-flow** regressions and emit aggregate fixed rule IDs
+only. The same synthetic fixtures are tested across this npm tarball and the
+Python SDK. **Do not pass keys, addresses, hashes of real addresses, wallets,
+transaction identifiers or private data.** Review the complete schema in
+`docs/refund-privacy-audit.md`. Standard JS `JSON.parse` does not detect raw
+JSON duplicate keys; producers accepting raw files need strict parsing.
