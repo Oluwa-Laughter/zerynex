@@ -39,7 +39,11 @@ cargo run --locked -- \
 
 Expected: `PCZT-TRANSPARENT-OUTPUTS`, exit code `2`. Exit `1` instead means the CLI could not evaluate the input, and the caller must **not** treat it as a clean transaction.
 
-## 4. Choose your next integration
+## 4. Connect Zerynex to your own codebase
+
+The homepage example uses a bundled fixture, **not** an automatic scan of your project. Use the [interactive integration guide](/integrate) to choose the CLI, TypeScript/WASM, Python, GitHub Actions, or local MCP, and then supply your own files explicitly.
+
+## 5. Choose your next integration
 
 - **Rust or shell**: [CLI reference](cli-reference.md) and [Rust API](rust-api.md)
 - **React/TypeScript**: [TypeScript and browser API](typescript-api.md)

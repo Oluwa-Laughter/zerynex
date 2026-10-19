@@ -12,7 +12,7 @@ const privateSlugs = [
   'ecosystem-integration-roadmap', 'integration-contracts',
   'sdk-distribution', 'package-managers',
 ]
-const mandatory = ['quickstart', 'installation', 'cli-reference', 'rust-api', 'typescript-api',
+const mandatory = ['quickstart', 'installation', 'project-integration', 'cli-reference', 'rust-api', 'typescript-api',
   'python-api', 'report-reference', 'rule-registry', 'sarif', 'node-readiness', 'transaction-observations', 'payment-requests', 'wallet-handoffs', 'zcash-app-recipes', 'github-action', 'agents', 'privacy-model']
 if (catalog.version !== 1 || !Array.isArray(catalog.entries)) throw Error('Invalid docs catalog')
 const publicSlugs = new Set()

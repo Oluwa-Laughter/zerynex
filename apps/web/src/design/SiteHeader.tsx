@@ -87,6 +87,8 @@ export default function SiteHeader() {
         onClick={() => setOpenOnPath(null)}>Overview</Link>
       <Link href="/ecosystem" className={pathname === '/ecosystem' ? 'nav-active' : ''}
         onClick={() => setOpenOnPath(null)}>SDKs</Link>
+      <Link href="/integrate" className={pathname === '/integrate' ? 'nav-active' : ''}
+        onClick={() => setOpenOnPath(null)}>Integrate</Link>
       <Link href="/agents" className={pathname === '/agents' ? 'nav-active' : ''}
         onClick={() => setOpenOnPath(null)}>Agents</Link>
       <Link href="/docs" className={pathname?.startsWith('/docs') ? 'nav-active' : ''}

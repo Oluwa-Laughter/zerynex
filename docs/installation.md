@@ -1,7 +1,7 @@
 # Install and integrate Zerynex
 
-**Try Zerynex without installing anything:** [Open the browser workbench](/tools).
-For release archives and the SDK tarball/wheel, see [Downloads](releases.md). For application integration, see [language API guides](typescript-api.md) and confirm publication status before copying registry commands.
+**Choose a path:** [Try the bundled demo](/#synthetic-demo), [analyze your own local PCZT](/tools), or [integrate Zerynex into your project](/integrate).
+For a guided CLI, SDK, policy, CI and MCP workflow, see [Project integration](project-integration.md). For release archives and the SDK tarball/wheel, see [Downloads](releases.md). For application integration, see [language API guides](typescript-api.md) and confirm publication status before copying registry commands.
 
 Zerynex is a **local-first Rust privacy policy engine** for Zcash PCZT workflows.
 A node, wallet, hosted account or API token is not needed for synthetic PCZT

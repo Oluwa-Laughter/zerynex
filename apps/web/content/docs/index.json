@@ -18,6 +18,14 @@
       "summary": "Pick a standalone CLI, SDK, CI Action or agent integration."
     },
     {
+      "slug": "project-integration",
+      "title": "Integrate Zerynex into your project",
+      "group": "Start here",
+      "status": "supported",
+      "audience": "Zcash app, wallet, CI and agent developers",
+      "summary": "Go from a bundled demo to your own PCZT, local CLI/SDK, policy configuration and repeatable CI or MCP workflows."
+    },
+    {
       "slug": "privacy-model",
       "title": "Privacy and trust model",
       "group": "Start here",

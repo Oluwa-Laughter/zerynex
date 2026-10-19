@@ -684,3 +684,53 @@ a:focus-visible,button:focus-visible,input:focus-visible,[role=button]:focus-vis
   #main-content :is(input,textarea,select) { max-width: 100%; }
   #main-content :is(.docs-markdown,.wb-panel,.studio-box,.dev-integration-content) { overflow-wrap: anywhere; }
 }
+
+
+/* Three independently usable paths: bundled demo, local file and project SDK. */
+.zn-entryways {
+  width: 100%; max-width: var(--zn-container,1600px);
+  padding: clamp(65px, 7vw, 112px) var(--zn-gutter,5%);
+  margin: 0 auto;
+  border-bottom: 1px solid var(--zn-border);
+}
+.zn-entryways-heading { max-width: 1000px; margin-bottom: 35px; }
+.zn-entryways-heading h2 {
+  font-size: clamp(45px, 5.5vw, 86px); letter-spacing: -.065em;
+  line-height: 1.08; font-weight: 500; margin: 16px 0 17px;
+}
+.zn-entryways-heading h2 em { font-family: var(--serif); color: var(--zn-acid); }
+.zn-entryways-heading p { color: var(--zn-muted); line-height: 1.8; font-size: 15px; max-width: 840px; }
+.zn-entryways-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; }
+.zn-entryway-card {
+  display: flex; flex-direction: column; align-items: flex-start;
+  min-width: 0; min-height: 350px; padding: 28px;
+  border: 1px solid var(--zn-border); border-radius: 13px;
+  background: var(--zn-surface); color: var(--zn-ink);
+  transition: transform .24s, border-color .24s, background .24s;
+}
+.zn-entryway-card:hover { border-color: var(--zn-accent); transform: translateY(-3px); background: var(--zn-soft); }
+.zn-entryway-card:focus-visible { outline: 2px solid var(--zn-accent); outline-offset: 4px; }
+.zn-entryway-card > span { color: var(--zn-accent); font: 10px var(--mono); letter-spacing: .05em; }
+.zn-entryway-card > svg { margin: 30px 0 18px; color: var(--zn-acid); }
+.zn-entryway-card h3 { font-size: clamp(24px, 2.4vw, 34px); letter-spacing: -.05em; font-weight: 500; margin: 0 0 14px; }
+.zn-entryway-card p { color: var(--zn-muted); font-size: 13px; line-height: 1.75; margin: 0 0 22px; }
+.zn-entryway-card strong {
+  margin-top: auto; display: inline-flex; align-items: center; gap: 10px;
+  color: var(--zn-accent); font-size: 12px; font-weight: 500;
+}
+.zn-preview-source {
+  padding: 10px 17px; margin: 0;
+  color: var(--zn-muted); font: 10px var(--mono);
+  border-top: 1px solid var(--zn-border); text-align: left;
+}
+#synthetic-demo { scroll-margin-top: 110px; }
+@media (max-width: 880px) { .zn-entryways-grid { grid-template-columns: minmax(0,1fr); } .zn-entryway-card { min-height: 0; } .zn-entryway-card > svg { margin-top: 18px; } }
+@media (max-width: 620px) {
+ .zn-entryways { padding: 58px var(--zn-gutter,5%); }
+ .zn-entryways-heading h2 { font-size: clamp(40px, 9vw, 56px); }
+ .zn-entryway-card { padding: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .zn-entryway-card { transition: none; }
+ .zn-entryway-card:hover { transform: none; }
+}

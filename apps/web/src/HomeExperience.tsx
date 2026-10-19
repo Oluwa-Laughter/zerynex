@@ -81,8 +81,8 @@ function LivePreview() {
     <div className="zn-preview-body">
       <div className="zn-preview-label"><LuFileCode2 size={16}/> SHIELDED-ONLY POLICY <span>v6 PCZT</span></div>
       <div className="zn-preview-track">
-        <span><LuCheck size={14}/> Input decoded</span>
-        <span><LuShieldCheck size={14}/> Policy loaded</span>
+        <span><LuCheck size={14}/> {state==='complete'?'Input decoded':'Input queued'}</span>
+        <span><LuShieldCheck size={14}/> {state==='complete'?'Policy loaded':'Policy selected'}</span>
         <span className={state==='complete'?'zn-preview-hot':''}><LuScanLine size={14}/> Findings</span>
       </div>
       <div className="zn-preview-rule"><span>policy.deny_transparent</span><strong>true</strong></div>
@@ -96,6 +96,7 @@ function LivePreview() {
         </motion.div>
       </AnimatePresence>
     </div>
+    <p className="zn-preview-source">BUNDLED TEST VECTOR / NOT CONNECTED TO YOUR DEVICE</p>
     <div className="zn-preview-footer"><button type="button" disabled={!ready||state==='loading'} onClick={()=>void run()}><LuPlay size={16}/>{!ready?'Preparing local engine':state==='complete'?'Run again':'Run synthetic check'}</button><span><LuLockKeyhole size={14}/> Zero private uploads</span></div>
   </div>
 }
@@ -142,6 +143,36 @@ export default function HomeExperience() {
       </div>
     </section>
     <section className="zn-proof-strip" aria-label="Zcash development workflows"><span>DEVELOPMENT SURFACES</span><div><strong>PCZT</strong><i/><strong>Wallet handoffs</strong><i/><strong>Regression CI</strong><i/><strong>RPC tooling</strong><i/><strong>Node readiness</strong><i/><strong>Local MCP</strong></div><Link href="/ecosystem">SDK interfaces <LuArrowUpRight size={17}/></Link></section>
+    <section className="zn-entryways" aria-labelledby="zn-entryways-title">
+      <div className="zn-entryways-heading">
+        <span className="zn-section-tag">CHOOSE HOW TO START</span>
+        <h2 id="zn-entryways-title">A demo is not <em>your project.</em></h2>
+        <p>Explore a shipped synthetic fixture, choose a PCZT from your own device, or install the toolkit into your development workflow. Nothing automatically connects to your machine.</p>
+      </div>
+      <div className="zn-entryways-grid">
+        <Link href="/#synthetic-demo" className="zn-entryway-card">
+          <span>01 / NO INSTALLATION</span>
+          <LuPlay size={27}/>
+          <h3>Try demo</h3>
+          <p>Run the actual Rust/WASM analyzer on a bundled, nonspendable PCZT. These results are deliberately reproducible, not from your computer.</p>
+          <strong>Use example data <LuArrowUpRight size={17}/></strong>
+        </Link>
+        <Link href="/tools" className="zn-entryway-card">
+          <span>02 / YOUR FILE · YOUR BROWSER</span>
+          <LuFileCode2 size={27}/>
+          <h3>Analyze your PCZT</h3>
+          <p>Choose a local PCZT and policy in the web workbench. Your browser runs the analysis; the site does not automatically inspect your filesystem.</p>
+          <strong>Open file workbench <LuArrowUpRight size={17}/></strong>
+        </Link>
+        <Link href="/integrate" className="zn-entryway-card">
+          <span>03 / YOUR CODEBASE · YOUR TOOLCHAIN</span>
+          <LuTerminal size={27}/>
+          <h3>Integrate into your project</h3>
+          <p>Install the CLI or SDK, configure policies, and connect reproducible CI or restricted MCP workflows in your own trusted environment.</p>
+          <strong>Choose an integration <LuArrowUpRight size={17}/></strong>
+        </Link>
+      </div>
+    </section>
     <section className="zn-ecosystem-workflows" aria-labelledby="zn-ecosystem-title">
       <div className="zn-workflows-heading zn-scroll-reveal">
         <span className="zn-section-tag">01 / BUILT FOR ZCASH DEVELOPMENT</span>
@@ -156,17 +187,17 @@ export default function HomeExperience() {
         </Link>)}
       </div>
     </section>
-    <section className="zn-demonstration">
+    <section className="zn-demonstration" id="synthetic-demo">
       <div className="zn-section-copy zn-scroll-reveal">
-        <span className="zn-section-tag">02 / TEST A REAL PCZT</span>
+        <span className="zn-section-tag">02 / BUNDLED SYNTHETIC DEMO</span>
         <h2>From a question <em>to a finding.</em></h2>
-        <p>Run an actual PCZT policy check here. We ship reproducible, harmless fixtures so you can test Zerynex before adding it to any application.</p>
+        <p>This runs the real Rust/WebAssembly engine against a <strong>preloaded, nonspendable PCZT fixture</strong> shipped with the website. It is a demo—not a scan of your computer or Zcash project.</p>
         <div className="zn-signal-list">
           <div><LuCheck size={16}/> Parsed by the Rust PCZT engine</div>
           <div><LuCheck size={16}/> Clear rule IDs and component paths</div>
           <div><LuCheck size={16}/> No backend transaction processing</div>
         </div>
-        <Link className="zn-inline-link" href="/tools/stages">Try stage comparisons <LuArrowUpRight size={17}/></Link>
+        <Link className="zn-inline-link" href="/tools">Analyze your own PCZT instead <LuArrowUpRight size={17}/></Link>
       </div>
       <div className="zn-scroll-reveal"><LivePreview/></div>
     </section>
@@ -179,7 +210,7 @@ export default function HomeExperience() {
         <span className="zn-section-tag">04 / SDKs AND DEVELOPER AUTOMATION</span>
         <h2>Integrate checks <em>where you build.</em></h2>
         <p>The hosted workbench needs no installation. For Zcash applications, wallet software and CI, choose a language adapter, a bundled WebAssembly SDK or the standalone Rust CLI. Cloning the entire product repository is optional.</p>
-        <div className="zn-adoption-actions"><Link className="zn-primary" href="/ecosystem">Choose a language <LuArrowUpRight size={17}/></Link><Link href="/docs/installation" className="zn-secondary">Integration guide <LuBookOpen size={17}/></Link></div>
+        <div className="zn-adoption-actions"><Link className="zn-primary" href="/ecosystem">Choose a language <LuArrowUpRight size={17}/></Link><Link href="/integrate" className="zn-secondary">Integrate your project <LuBookOpen size={17}/></Link></div>
       </div>
       <div className="zn-code-surface zn-scroll-reveal">
         <div><span>TypeScript / packaged Rust WASM SDK</span><LuTerminal size={17}/></div>

@@ -1,0 +1,99 @@
+.page {
+  max-width: 1550px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 142px max(4%,24px) 90px;
+  color: var(--zn-ink);
+  background: var(--zn-bg);
+}
+.top {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 14px; border-bottom: 1px solid var(--zn-border);
+  padding-bottom: 23px; font: 10px var(--mono); letter-spacing: .06em;
+  color: var(--zn-muted);
+}
+.top a { display: inline-flex; align-items: center; gap: 9px; color: var(--zn-accent); }
+.hero { padding: 81px 0 58px; max-width: 1260px; }
+.eyebrow, .label { font: 10px var(--mono); letter-spacing: .10em; color: var(--zn-accent); }
+.eyebrow { display: flex; align-items: center; gap: 10px; }
+.hero h1 {
+  font-size: clamp(56px, 7.8vw, 116px);
+  line-height: 1.03; letter-spacing: -.075em;
+  font-weight: 500; margin: 21px 0 23px; max-width: 1200px;
+}
+.hero h1 em { color: var(--zn-acid); font-family: var(--serif); }
+.hero > p { max-width: 850px; font-size: 16px; line-height: 1.8; color: var(--zn-muted); margin: 0; }
+.shortcuts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+.shortcuts a, .shortcuts span {
+  display: inline-flex; gap: 9px; align-items: center;
+  padding: 13px 16px; border: 1px solid var(--zn-border);
+  border-radius: 50px; font: 10px var(--mono); color: var(--zn-ink);
+}
+.shortcuts span { border-color: var(--zn-accent); color: var(--zn-accent); }
+.shortcuts a:hover { border-color: var(--zn-accent); color: var(--zn-accent); }
+.layout { display: grid; grid-template-columns: minmax(240px,.35fr) minmax(0,1fr); gap: 18px; align-items: start; }
+.sidebar, .content { border: 1px solid var(--zn-border); background: var(--zn-surface); border-radius: 17px; }
+.sidebar { padding: 27px; position: sticky; top: 99px; }
+.picker { display: flex; flex-direction: column; margin-top: 20px; border-top: 1px solid var(--zn-border); }
+.picker button {
+  display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 8px;
+  background: transparent; border: 0; border-bottom: 1px solid var(--zn-border);
+  padding: 18px 5px; color: var(--zn-muted); cursor: pointer; text-align: left;
+}
+.picker button span { font: 10px var(--mono); }
+.picker button strong { font-size: 13px; font-weight: 500; color: var(--zn-ink); }
+.picker button[aria-pressed=true] { color: var(--zn-accent); }
+.picker button[aria-pressed=true] strong { color: var(--zn-accent); }
+.picker button:focus-visible { outline: 2px solid var(--zn-accent); outline-offset: -2px; }
+.trust { display: flex; align-items: start; gap: 12px; border-top: 1px solid var(--zn-border); margin-top: 27px; padding-top: 23px; }
+.trust svg { color: var(--zn-accent); flex: none; }
+.trust p { font-size: 11px; line-height: 1.8; color: var(--zn-muted); margin: 0; }
+.trust strong { color: var(--zn-ink); }
+.content { min-width: 0; padding: 32px clamp(20px,3vw,44px) 38px; }
+.contentHead { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 17px; }
+.contentHead h2 { font-weight: 500; font-size: clamp(28px,3.1vw,48px); letter-spacing: -.058em; line-height: 1.12; margin: 16px 0 0; }
+.mode { display: flex; align-items: center; gap: 8px; font: 9px var(--mono); color: var(--zn-accent); }
+.audience { color: var(--zn-muted); font-size: 13px; line-height: 1.7; margin: 18px 0 30px; }
+.requirements { border: 1px solid var(--zn-border); background: var(--zn-soft); padding: 20px; border-radius: 10px; margin-bottom: 15px; }
+.requirements strong { color: var(--zn-accent); font: 10px var(--mono); letter-spacing: .06em; }
+.requirements p { color: var(--zn-ink); margin: 11px 0 0; font-size: 13px; line-height: 1.7; }
+.steps { display: flex; flex-direction: column; gap: 15px; }
+.step { border: 1px solid var(--zn-border); border-radius: 12px; overflow: hidden; min-width: 0; }
+.stepTitle { display: flex; gap: 13px; align-items: center; padding: 23px 22px 0; }
+.stepTitle span { font: 10px var(--mono); color: var(--zn-accent); }
+.stepTitle h3 { font-size: 20px; font-weight: 500; letter-spacing: -.025em; margin: 0; }
+.step > p { font-size: 12px; line-height: 1.8; color: var(--zn-muted); margin: 13px 22px 23px; }
+.codeHead { display: flex; justify-content: space-between; align-items: center; background: var(--zn-code); border-top: 1px solid var(--zn-border); padding: 10px 16px; }
+.codeHead > span { font: 9px var(--mono); color: var(--zn-muted); }
+.codeHead button { display: inline-flex; align-items: center; gap: 7px; font: 10px var(--mono); background: transparent; border: 1px solid var(--zn-border); border-radius: 7px; color: var(--zn-ink); padding: 8px 11px; cursor: pointer; }
+.codeHead button:hover { border-color: var(--zn-accent); }
+.step pre { margin: 0; padding: 21px; background: var(--zn-code); overflow-x: auto; max-width: 100%; }
+.step pre code { white-space: pre; font: 12px/1.85 var(--mono); color: var(--zn-ink); }
+.copyError { font-size: 12px; color: var(--zn-error); }
+.expected { display: flex; gap: 13px; background: var(--zn-soft); border: 1px solid var(--zn-border); border-radius: 12px; margin-top: 20px; padding: 20px; }
+.expected svg { color: var(--zn-accent); flex: none; }
+.expected strong { font-size: 13px; }
+.expected p { color: var(--zn-muted); font-size: 12px; line-height: 1.75; margin: 9px 0 0; }
+.links { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-top: 24px; }
+.links a { display: inline-flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--zn-border); padding-bottom: 11px; font-size: 12px; color: var(--zn-accent); }
+.footer { margin-top: 65px; border-top: 1px solid var(--zn-border); padding-top: 25px; font: 10px var(--mono); color: var(--zn-muted); letter-spacing: .06em; }
+@media(max-width:920px) {
+  .layout { grid-template-columns: minmax(0,1fr); }
+  .sidebar { position: static; }
+  .picker { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .picker button:nth-child(odd) { border-right: 1px solid var(--zn-border); }
+}
+@media(max-width:540px) {
+  .page { padding: 118px 5% 74px; }
+  .hero { padding: 50px 0 37px; }
+  .hero h1 { font-size: clamp(45px, 11vw, 65px); }
+  .hero > p { font-size: 14px; }
+  .content,.sidebar { padding: 21px 17px; }
+  .stepTitle { padding: 20px 14px 0; }
+  .step > p { margin: 12px 14px 17px; }
+  .step pre { padding: 15px; }
+  .step pre code { font-size: 11px; }
+  .picker button { padding: 15px 7px; }
+  .picker button strong { font-size: 12px; }
+  .shortcuts a,.shortcuts span { width: 100%; }
+}
