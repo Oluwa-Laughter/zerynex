@@ -1,0 +1,125 @@
+name: Publish verified SDKs to registries (manual)
+
+# Nothing publishes on push, PR or tag creation. A maintainer must review a
+# successfully built GitHub Release, configure trust and opt in explicitly.
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing reviewed GitHub Release tag (for example v0.2.0)'
+        required: true
+        type: string
+      registry:
+        description: 'Publish exactly one registry per approved run'
+        required: true
+        type: choice
+        options:
+          - npm
+          - pypi
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    name: Publish @zerynex/sdk to npm (OIDC)
+    if: github.ref == 'refs/heads/main' && inputs.registry == 'npm'
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+      - name: Check reviewed release tag and metadata
+        env:
+          TAG: ${{ inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(git describe --tags --exact-match HEAD)" = "$TAG"
+          python3 scripts/check-release-version.py "$TAG"
+          python3 scripts/check-registry-release.py --tag "$TAG"
+          gh release view "$TAG" --json isDraft,isPrerelease,publishedAt | python3 -c '
+          import json,sys
+          obj=json.load(sys.stdin)
+          assert obj["isDraft"] is False and obj["isPrerelease"] is False and obj["publishedAt"]'
+      - name: Download published artifact only
+        env:
+          TAG: ${{ inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/registry
+          gh release download "$TAG" --pattern 'zerynex-sdk-*.tgz' --dir dist/registry
+          python3 scripts/check-registry-release.py --tag "$TAG" --registry npm --artifact-dir dist/registry
+      - name: Use an OIDC-capable npm CLI
+        run: |
+          npm install --global npm@11
+          node --version
+          npm --version
+      - name: Publish precisely the verified GitHub release tarball
+        env:
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          npm publish "dist/registry/zerynex-sdk-${VERSION}.tgz" --access public
+
+  pypi:
+    name: Publish zerynex-python to PyPI (OIDC)
+    if: github.ref == 'refs/heads/main' && inputs.registry == 'pypi'
+    runs-on: ubuntu-latest
+    environment: pypi-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check reviewed release tag and metadata
+        env:
+          TAG: ${{ inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(git describe --tags --exact-match HEAD)" = "$TAG"
+          python scripts/check-release-version.py "$TAG"
+          python scripts/check-registry-release.py --tag "$TAG"
+          gh release view "$TAG" --json isDraft,isPrerelease,publishedAt | python -c '
+          import json,sys
+          obj=json.load(sys.stdin)
+          assert obj["isDraft"] is False and obj["isPrerelease"] is False and obj["publishedAt"]'
+      - name: Download published wheel and source distribution
+        env:
+          TAG: ${{ inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/registry
+          gh release download "$TAG" --pattern 'zerynex_python-*' --dir dist/registry
+          python scripts/check-registry-release.py --tag "$TAG" --registry pypi --artifact-dir dist/registry
+          python - <<'PY'
+          from pathlib import Path
+          import tomllib
+          ver=tomllib.loads(Path('packages/python/pyproject.toml').read_text())['project']['version']
+          assert (Path('dist/registry') / f'zerynex_python-{ver}.tar.gz').is_file()
+          PY
+      - name: Publish verified GitHub release distributions using PyPI OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/registry/

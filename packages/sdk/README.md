@@ -17,7 +17,7 @@ self-contained tarball containing the actual Rust/WebAssembly runtime.
 A consuming application does not need to compile Rust or clone the
 monorepo. Install a downloaded archive with your package manager:
 
-    npm install ./zerynex-sdk-0.1.0.tgz
+    npm install ./zerynex-sdk-0.2.0.tgz
 
 The new browser entry point initializes the engine shipped inside the archive:
 

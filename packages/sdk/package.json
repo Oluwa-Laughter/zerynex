@@ -1,7 +1,7 @@
 {
   "name": "@zerynex/sdk",
-  "version": "0.1.0",
-  "description": "Local-first Zcash PCZT disclosure policy SDK backed by Zerynex Rust/WebAssembly",
+  "version": "0.2.0",
+  "description": "Local-first Zcash developer toolkit: PCZT policy checks, offline Rust/WASM, refund privacy regressions and wallet integration interfaces",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -13,8 +13,7 @@
   ],
   "exports": {
     ".": {
-      "bin": {"zerynex-refund-check": "./bin/refund-check.mjs"},
-  "types": "./dist/index.d.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./browser": {
@@ -23,7 +22,9 @@
     },
     "./wasm/zerynex_bg.wasm": "./dist/wasm/zerynex_bg.wasm"
   },
-  "bin": {"zerynex-refund-check": "./bin/refund-check.mjs"},
+  "bin": {
+    "zerynex-refund-check": "./bin/refund-check.mjs"
+  },
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "scripts": {
@@ -37,5 +38,26 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Oluwa-Laughter/zerynex",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://zerynex.vercel.app/docs",
+  "bugs": {
+    "url": "https://github.com/Oluwa-Laughter/zerynex/issues"
+  },
+  "keywords": [
+    "zcash",
+    "pczt",
+    "privacy",
+    "webassembly",
+    "blockchain",
+    "wallet",
+    "devtools"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }

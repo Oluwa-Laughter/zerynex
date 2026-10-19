@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zerynex-python"
-version = "0.1.0"
-description = "Local Zcash PCZT privacy-policy analysis with the Zerynex Rust CLI"
+version = "0.2.0"
+description = "Local Zcash PCZT developer toolkit: privacy policy analysis, synthetic MCP integrations, refund risk checks and infrastructure adapters"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -16,6 +16,12 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Topic :: Software Development :: Libraries :: Python Modules"
 ]
+
+[project.urls]
+Homepage = "https://zerynex.vercel.app"
+Documentation = "https://zerynex.vercel.app/docs"
+Repository = "https://github.com/Oluwa-Laughter/zerynex"
+Issues = "https://github.com/Oluwa-Laughter/zerynex/issues"
 
 [project.optional-dependencies]
 mcp = ["mcp>=2,<3"]

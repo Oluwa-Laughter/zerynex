@@ -16,6 +16,8 @@ on:
       - 'scripts/test-sdk-packed.mjs'
       - 'scripts/test-python-wheel.py'
       - 'scripts/check-release-version.py'
+      - 'scripts/check-registry-release.py'
+      - 'tests/test_registry_release.py'
       - 'scripts/prepare-release-assets.py'
       - 'tests/test_release_assets.py'
       - 'apps/web/src/wasm/**'
@@ -83,6 +85,8 @@ jobs:
           node-version: 24
       - name: Ensure all package versions match
         run: python3 scripts/check-release-version.py
+      - name: Check npm publishing metadata and executable mapping
+        run: python3 scripts/check-registry-release.py
       - name: Compile canonical Rust WASM, do not trust stale committed build
         run: bash scripts/build-wasm.sh
       - name: Build TypeScript SDK with matching WASM
@@ -116,6 +120,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Ensure all package versions match
         run: python scripts/check-release-version.py
+      - name: Check PyPI metadata and package versions
+        run: python scripts/check-registry-release.py
       - name: Compile trusted Rust CLI
         run: cargo build --locked --bin zerynex
       - name: Build wheel and source distribution

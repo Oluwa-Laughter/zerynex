@@ -16,6 +16,16 @@ hosted PCZT workbenches** at [/tools](/tools).
 These are independently consumer-tested **build formats**, not claims that
 npm, PyPI or crates.io publication is finished.
 
+**Release status:** The last public GitHub Release is `v0.1.0`. The source
+now prepares **v0.2.0**, which is not yet tagged or published. Commands
+using `0.2.0` below apply **only after building these artifacts from source
+or creating a reviewed `v0.2.0` release**. Do not download `v0.1.0` and
+assume it includes newer refund-privacy, Node CLI or integration fixes.
+
+For package maintainers, see the [registry publishing checklist](publishing.md).
+Registry publication requires explicitly approved release artifacts, npm/PyPI
+account ownership and verified GitHub Actions environments.
+
 ## GitHub distribution workflow
 
 The [distribution workflow](https://github.com/Oluwa-Laughter/zerynex/actions/workflows/distributions.yml)
@@ -47,9 +57,9 @@ The npm tarball carries the **same compiled Rust/WASM engine** as the
 hosted workbenches. Developers do not have to compile Rust. Install a
 downloaded tarball with a supported package manager:
 
-    npm install ./zerynex-sdk-0.1.0.tgz
-    yarn add ./zerynex-sdk-0.1.0.tgz
-    pnpm add ./zerynex-sdk-0.1.0.tgz
+    npm install ./zerynex-sdk-0.2.0.tgz
+    yarn add ./zerynex-sdk-0.2.0.tgz
+    pnpm add ./zerynex-sdk-0.2.0.tgz
 
 The runtime entry point is `@zerynex/sdk/browser`. It exports
 `createBrowserZerynexClient`, which initializes the packaged WASM.
@@ -86,11 +96,11 @@ real Rust/WASM scanning and stage comparison, not a fake engine.
 Download the Python wheel and matching OS-native CLI archive.
 After installing the verified CLI:
 
-    python -m pip install ./zerynex_python-0.1.0-py3-none-any.whl
+    python -m pip install ./zerynex_python-0.2.0-py3-none-any.whl
 
 The MCP integration uses an optional dependency:
 
-    python -m pip install './zerynex_python-0.1.0-py3-none-any.whl[mcp]'
+    python -m pip install './zerynex_python-0.2.0-py3-none-any.whl[mcp]'
 
 Set ZERYNEX_CLI to the installed Rust executable. Configure a dedicated
 approved synthetic fixture directory through ZERYNEX_AGENT_ALLOWED_ROOT,

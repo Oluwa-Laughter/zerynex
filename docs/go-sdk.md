@@ -58,3 +58,7 @@ provides the protocol logic and determines the supported PCZT version/rules.
 
 This does not implement proof generation, sign transactions or prove
 cryptographic equivalence. Do not store real user transactions in CI.
+
+## Go module version tags
+
+Go module tags for this nested module must have the prefix `packages/go/`, e.g. `packages/go/v0.2.0` after a reviewed release commit. The main Rust/Python/npm `v0.2.0` tag does **not** publish the Go module. Run `go test ./...` from `packages/go` and verify a fresh external Go module can fetch the exact tagged version before announcing support. No Go module tag is created by this documentation. See [publishing guide](publishing.md).

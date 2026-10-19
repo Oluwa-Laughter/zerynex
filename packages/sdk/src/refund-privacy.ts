@@ -142,7 +142,7 @@ export function refundSarifReport(report: RefundAuditReport | RefundRegressionRe
   return {
     '$schema':'https://json.schemastore.org/sarif-2.1.0.json',version:'2.1.0',
     runs:[{
-      tool:{driver:{name:'Zerynex Refund Privacy Audit',informationUri:doc,semanticVersion:'0.1.0',
+      tool:{driver:{name:'Zerynex Refund Privacy Audit',informationUri:doc,semanticVersion:'0.2.0',
         rules:REFUND_RULE_IDS.map(id=>({id,shortDescription:{text:'Review declared Zcash swap refund privacy exposure'},helpUri:doc}))}},
       results:[...new Set(selected)].sort().map(ruleId=>({ruleId,level:'warning',message:{text:'Application-declared refund privacy risk requires review.'}})),
       properties:{declarationOnly:true,mode:isDelta?'regression':'full_audit',warningCount:new Set(selected).size,noInputLocations:true},

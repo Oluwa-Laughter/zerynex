@@ -23,7 +23,7 @@ const tracks: Record<Track, TrackInfo> = {
       {
         title: 'Install the Python wheel locally',
         explanation: 'Download the actual wheel from a reviewed release artifact. PyPI publication is not complete; no hosted account or wallet connection is required.',
-        code: 'python3 -m venv .venv\n.venv/bin/python -m pip install ./zerynex_python-0.1.0-py3-none-any.whl',
+        code: 'python3 -m venv .venv\n.venv/bin/python -m pip install ./zerynex_python-0.2.0-py3-none-any.whl',
       },
       {
         title: 'Create nonspendable checks in your repository',
