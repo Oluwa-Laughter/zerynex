@@ -70,6 +70,16 @@ const tracks: Record<Track, TrackInfo> = {
         code: 'zerynex-refund-audit --manifest /path/to/nonsecret-refund-metadata.json --json',
       },
       {
+        title: 'Compare a baseline and candidate revision',
+        explanation: 'Detect newly introduced privacy exposure on specific declared swap flows—even if the warning already existed for another flow. Only fixed rule IDs and counts are returned.',
+        code: 'zerynex-refund-audit --baseline tests/refund/before.json --manifest tests/refund/after.json --json',
+      },
+      {
+        title: 'Export a sanitized SARIF summary',
+        explanation: 'Export fixed rule identifiers for code-quality pipelines. Deliberately no source locations or swap identifiers are present.',
+        code: 'zerynex-refund-audit --baseline tests/refund/before.json --manifest tests/refund/after.json --sarif',
+      },
+      {
         title: 'Independently verify wallet isolation',
         explanation: 'Review whether your wallet really creates separate viewing scopes and provides private refund lookups. A clean metadata report cannot prove either.',
         code: '# Exit 0: no declared issues\n# Exit 2: declared privacy risks\n# Exit 1: invalid metadata input',

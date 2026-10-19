@@ -17,7 +17,7 @@ Zerynex is a local-first, composable toolkit for developers building on Zcash: i
 
 **ZIP-321 payment tooling:** Validate Zcash payment requests offline with real address checksums/network validation, integer zatoshi amounts, redacted Rust/WASM reports and a packaged native CLI. Try [the payment workbench](https://zerynex.vercel.app/tools/payment) and read the [ZIP-321 integration guide](docs/payment-requests.md). This does not authorize or execute payments.
 
-**Refund privacy risk modeling:** The offline `zerynex-refund-audit` checks developer-declared, non-secret swap refund identifiers for reuse, shared viewing scope and revealing lookup patterns. No keys, addresses, PIR service or post-quantum cryptography are handled. See [refund privacy exposure audit](docs/refund-privacy-audit.md).
+**Refund privacy risk modeling:** The offline `zerynex-refund-audit` checks developer-declared, non-secret swap refund identifiers for reuse, shared viewing scope and revealing lookup patterns. No keys, addresses, PIR service or post-quantum cryptography are handled. The `--baseline` mode detects per-flow privacy-risk regressions between safe metadata manifests; `--sarif` exports location-free warnings for CI. See [refund privacy exposure audit](docs/refund-privacy-audit.md).
 
 **Zcash node integration:** Read-only, loopback-only `zerynex-node-check` checks chain/network readiness; a pure TypeScript normalizer works in browser/backend projects without exposing RPC credentials. See [Node readiness](docs/node-readiness.md) and [Zcash builder recipes](docs/zcash-app-recipes.md).
 

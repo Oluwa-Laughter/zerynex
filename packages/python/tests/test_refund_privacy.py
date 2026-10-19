@@ -94,3 +94,124 @@ class RefundPrivacyTests(unittest.TestCase):
             self.assertNotIn('private_material',bad.stdout+bad.stderr)
 
 if __name__=='__main__':unittest.main()
+
+class RefundRegressionTests(unittest.TestCase):
+    def test_forward_regression_counts_events_without_leaking_refs(self):
+        from zerynex_py.refund_privacy import compare_manifests
+        before=read_manifest(str(FIXTURES/'isolated.json'))
+        after=read_manifest(str(FIXTURES/'risky.json'))
+        diff=compare_manifests(before,after)
+        self.assertFalse(diff['passed'])
+        self.assertEqual(diff['baseline_risk_events'],0)
+        self.assertEqual(diff['current_risk_events'],8)
+        self.assertEqual(diff['new_risk_events'],8)
+        self.assertEqual(len(diff['new_rule_ids']),5)
+        self.assertEqual(diff['resolved_risk_events'],0)
+        output=json.dumps(diff)
+        for marker in ('11111111111111111111111111111111',
+                       '22222222222222222222222222222222','33333333333333333333333333333333'):
+            self.assertNotIn(marker,output)
+
+    def test_fixes_are_not_new_regressions(self):
+        from zerynex_py.refund_privacy import compare_manifests
+        result=compare_manifests(read_manifest(str(FIXTURES/'risky.json')),
+                                 read_manifest(str(FIXTURES/'isolated.json')))
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['new_risk_events'],0)
+        self.assertEqual(result['resolved_risk_events'],8)
+        self.assertEqual(len(result['resolved_rule_ids']),5)
+
+    def test_new_flow_fails_even_when_same_rule_category_was_already_present(self):
+        from zerynex_py.refund_privacy import compare_manifests
+        before=read_manifest(str(FIXTURES/'risky.json'))
+        after=read_manifest(str(FIXTURES/'regression-expanded.json'))
+        report=compare_manifests(before,after)
+        self.assertEqual(report['baseline_risk_events'],8)
+        self.assertEqual(report['current_risk_events'],9)
+        self.assertEqual(report['new_risk_events'],1)
+        self.assertEqual(report['new_rule_ids'],['SWAP-REFUND-LOOKUP-DISCLOSURE'])
+        self.assertFalse(report['passed'])
+
+    def test_manifest_reordering_does_not_create_false_findings(self):
+        from zerynex_py.refund_privacy import compare_manifests
+        before=read_manifest(str(FIXTURES/'risky.json'))
+        after=json.loads(json.dumps(before))
+        after['flows'].reverse()
+        self.assertTrue(compare_manifests(before,after)['passed'])
+        self.assertEqual(compare_manifests(before,after)['new_risk_events'],0)
+
+    def test_invalid_baseline_still_rejected(self):
+        from zerynex_py.refund_privacy import compare_manifests
+        with self.assertRaises(RefundAuditInputError):
+            compare_manifests({'schema_version':1,'flows':[]},
+                              read_manifest(str(FIXTURES/'risky.json')))
+
+    def test_cli_compare_exit_codes_and_opaque_outputs(self):
+        command=[sys.executable,'-m','zerynex_py.refund_privacy','--baseline']
+        safe=str(FIXTURES/'isolated.json')
+        bad=str(FIXTURES/'risky.json')
+        more=str(FIXTURES/'regression-expanded.json')
+        forward=subprocess.run(command+[safe,'--manifest',bad,'--json'],
+                               text=True,capture_output=True,timeout=15)
+        self.assertEqual(forward.returncode,2,forward.stderr)
+        self.assertEqual(json.loads(forward.stdout)['new_risk_events'],8)
+        reverse=subprocess.run(command+[bad,'--manifest',safe,'--json'],
+                               text=True,capture_output=True,timeout=15)
+        self.assertEqual(reverse.returncode,0,reverse.stderr)
+        expanded=subprocess.run(command+[bad,'--manifest',more,'--json'],
+                                text=True,capture_output=True,timeout=15)
+        self.assertEqual(expanded.returncode,2,expanded.stderr)
+        self.assertEqual(json.loads(expanded.stdout)['new_risk_events'],1)
+        same=subprocess.run(command+[bad,'--manifest',bad,'--json'],
+                            text=True,capture_output=True,timeout=15)
+        self.assertEqual(same.returncode,1)
+        self.assertNotIn(bad,same.stderr)
+        missing=subprocess.run(command+['/tmp/THIS_IS_PRIVATE_NOT_FOUND_FILE',
+                                          '--manifest',bad,'--json'],
+                               text=True,capture_output=True,timeout=15)
+        self.assertEqual(missing.returncode,1)
+        self.assertNotIn('PRIVATE',missing.stderr)
+
+class RefundSarifTests(unittest.TestCase):
+    def test_full_audit_sarif_has_no_artifact_or_identifying_locations(self):
+        from zerynex_py.refund_privacy import sarif_report
+        report=audit_manifest(read_manifest(str(FIXTURES/'risky.json')))
+        sarif=sarif_report(report)
+        self.assertEqual(sarif['version'],'2.1.0')
+        run=sarif['runs'][0]
+        self.assertEqual(len(run['results']),5)
+        self.assertEqual(len(run['tool']['driver']['rules']),5)
+        self.assertTrue(run['properties']['noInputLocations'])
+        self.assertTrue(all('locations' not in result for result in run['results']))
+        text=json.dumps(sarif)
+        self.assertNotIn('11111111111111111111111111111111',text)
+        self.assertNotIn('22222222222222222222222222222222',text)
+        self.assertNotIn('risky.json',text)
+
+    def test_regression_sarif_only_contains_newly_introduced_rule_ids(self):
+        from zerynex_py.refund_privacy import compare_manifests, sarif_report
+        report=compare_manifests(
+            read_manifest(str(FIXTURES/'risky.json')),
+            read_manifest(str(FIXTURES/'regression-expanded.json')))
+        sarif=sarif_report(report)
+        self.assertEqual(sarif['runs'][0]['properties']['mode'],'regression')
+        self.assertEqual([x['ruleId'] for x in sarif['runs'][0]['results']],
+                         ['SWAP-REFUND-LOOKUP-DISCLOSURE'])
+        self.assertEqual(sarif['runs'][0]['properties']['warningCount'],1)
+
+    def test_clean_regression_has_empty_sarif_results(self):
+        from zerynex_py.refund_privacy import compare_manifests, sarif_report
+        report=compare_manifests(
+            read_manifest(str(FIXTURES/'risky.json')),
+            read_manifest(str(FIXTURES/'isolated.json')))
+        sarif=sarif_report(report)
+        self.assertEqual(sarif['runs'][0]['results'],[])
+
+    def test_sarif_cli_retains_findings_exit_codes(self):
+        result=subprocess.run([sys.executable,'-m','zerynex_py.refund_privacy',
+                               '--manifest',str(FIXTURES/'risky.json'),
+                               '--baseline',str(FIXTURES/'isolated.json'),'--sarif'],
+                              text=True,capture_output=True,timeout=20)
+        self.assertEqual(result.returncode,2,result.stderr)
+        self.assertEqual(json.loads(result.stdout)['version'],'2.1.0')
+        self.assertNotIn('22222222222222222222222222222222',result.stdout)

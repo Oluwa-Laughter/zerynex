@@ -135,6 +135,45 @@ def check_wheel(folder: Path, cli: Path) -> None:
             "11111111111111111111111111111111" in flagged.stdout):
             raise AssertionError("Packaged refund privacy audit failed safe and risky fixture expectations")
         print("PACKED REFUND PRIVACY AUDIT PASS: standalone wheel runs metadata-only checks")
+        expanded = ROOT / "tests/fixtures/swap-refund/regression-expanded.json"
+        newer = subprocess.run([str(audit_cli), "--baseline", str(risky),
+                                "--manifest", str(expanded), "--json"],
+                               capture_output=True, text=True, timeout=15)
+        if newer.returncode != 2 or json.loads(newer.stdout).get("new_risk_events") != 1:
+            raise AssertionError("Packaged refund auditor missed a new flow with an already-known rule")
+        improvement = subprocess.run([str(audit_cli), "--baseline", str(risky),
+                                      "--manifest", str(isolated), "--json"],
+                                     capture_output=True, text=True, timeout=15)
+        if improvement.returncode != 0 or json.loads(improvement.stdout).get("resolved_risk_events") != 8:
+            raise AssertionError("Packaged refund auditor failed the resolution path")
+        for output in (newer.stdout, improvement.stdout):
+            if "11111111111111111111111111111111" in output:
+                raise AssertionError("Raw opaque reference leaked in packaged refund regression")
+        print("PACKED REFUND REGRESSION PASS: per-flow risk deltas, fixes and sanitized JSON")
+        sarif = subprocess.run([str(audit_cli), "--baseline", str(risky),
+                                "--manifest", str(expanded), "--sarif"],
+                               capture_output=True, text=True, timeout=15)
+        if sarif.returncode != 2:
+            raise AssertionError("SARIF export did not preserve regression exit code")
+        parsed_sarif = json.loads(sarif.stdout)
+        if (parsed_sarif.get("version") != "2.1.0" or
+                len(parsed_sarif["runs"][0]["results"]) != 1 or
+                parsed_sarif["runs"][0]["results"][0]["ruleId"] != "SWAP-REFUND-LOOKUP-DISCLOSURE" or
+                "11111111111111111111111111111111" in sarif.stdout):
+            raise AssertionError("Installed SARIF export is malformed or includes opaque references")
+        check_api = (
+            "import json,sys;from zerynex_py import audit_manifest,compare_manifests,sarif_report;"
+            "a=json.load(open(sys.argv[1]));b=json.load(open(sys.argv[2]));"
+            "r=compare_manifests(a,b);"
+            "assert r['new_risk_events']==8;"
+            "assert sarif_report(r)['version']=='2.1.0';"
+            "assert audit_manifest(a)['passed'] is True"
+        )
+        subprocess.run([str(python), "-c", check_api, str(isolated), str(risky)],
+                       capture_output=True, text=True, timeout=15, check=True)
+        print("PACKED REFUND SARIF & API PASS: no locations, installed Python API and CI-safe report")
+
+
         print('PACKED LOCAL PCZT PASS: explicit external-project file analysis and stage regression')
 
         print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT and RPC components")

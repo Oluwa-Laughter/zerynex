@@ -53,6 +53,77 @@ The parser rejects duplicate flow records, unknown/duplicate JSON fields, raw re
 
 Exit `0` means **no *declared* issues in these five checks**. Exit `2` means findings; exit `1` means malformed/unsupported manifest. The sanitized output contains only the five fixed rule IDs, flow counts, and limitations. It contains no references or original manifest values. Nothing is uploaded or persisted by Zerynex. This static tool cannot distinguish an honest declaration from a fraudulent one and does not perform a live wallet security audit.
 
+## Compare integration revisions without exposing flow references
+
+Use the optional **`--baseline`** with an earlier manifest and **`--manifest`** with the candidate configuration. Both inputs must be explicit, locally accessible JSON files containing only non-secret declared identifiers.
+
+```bash
+# New exposures: exits 2; returns counts and fixed rule IDs only
+zerynex-refund-audit \
+  --baseline tests/fixtures/swap-refund/isolated.json \
+  --manifest tests/fixtures/swap-refund/risky.json --json
+
+# Added flow carrying an already-known lookup-disclosure rule: still exits 2
+zerynex-refund-audit \
+  --baseline tests/fixtures/swap-refund/risky.json \
+  --manifest tests/fixtures/swap-refund/regression-expanded.json --json
+
+# Resolved findings: exits 0 if no *new* declared risk was introduced
+zerynex-refund-audit \
+  --baseline tests/fixtures/swap-refund/risky.json \
+  --manifest tests/fixtures/swap-refund/isolated.json --json
+```
+
+The comparator tracks risk occurrences **per declared `flow_ref` and rule**, then returns only aggregate counts and fixed rule IDs: `baseline_risk_events`, `current_risk_events`, `new_risk_events`, `resolved_risk_events`, `new_rule_ids`, and `resolved_rule_ids`. No references, addresses, wallet identities, or raw JSON entries appear in the result. **A new occurrence of an existing rule is still a regression.** Reordering flows is not a regression.
+
+For comparisons to be meaningful, use stable, independently generated **non-secret logical flow references** across revisions. Do not hash actual addresses or viewing keys to obtain reference IDs. Changing all flow IDs between revisions may make existing risks appear new, and a dishonest metadata declaration can hide risks. The tool cannot establish true on-chain or wallet identity.
+
+### CI integration for Zcash applications
+
+This comparison can be used as a local development gate or in a reviewable CI job. Only commit synthetic or deliberately non-secret sample manifests; never export real Zcash addresses, viewing keys, wallet identifiers, or private transaction details to a GitHub runner.
+
+```yaml
+# Example workflow fragment. Provide the vetted Zerynex Python wheel to the
+# runner from a pinned, reviewed source revision or trusted release asset.
+- name: Compare public-safe refund metadata
+  run: |
+    zerynex-refund-audit \
+      --baseline tests/refund/expected.json \
+      --manifest tests/refund/candidate.json \
+      --json
+```
+
+Exit codes in comparison mode: `0` means **no newly declared risk events**, even if earlier findings remain; `2` means one or more new risks; `1` means malformed/unsupported input. A “pass” is **not certification of post-quantum privacy**. If all existing declared risks must also fail, run the ordinary single-manifest audit on the candidate as a separate step. Both modes reject duplicate JSON keys and files that fail the input-safety checks.
+
+### Export sanitizer-only SARIF for security tooling
+
+Pass `--sarif` instead of `--json` to emit SARIF 2.1.0 with one result per unique **new** rule ID in comparison mode (or per active rule ID for a single audit):
+
+```bash
+zerynex-refund-audit \
+  --baseline tests/fixtures/swap-refund/risky.json \
+  --manifest tests/fixtures/swap-refund/regression-expanded.json \
+  --sarif > refund-regression.sarif
+```
+
+**Note:** the shell redirects output even if the program exits with `2`; a CI runner configured to stop on errors will still fail the step, as intended. The SARIF intentionally has **no source locations, artifacts, flow references, addresses or manifests**, so it cannot annotate individual code lines. It identifies categories of risk only; follow up in a trusted application environment. `--json` and `--sarif` are mutually exclusive.
+
+### Python SDK surface
+
+The wheel also exports `audit_manifest()`, `compare_manifests()`, and `sarif_report()` for controlled in-process integration:
+
+```python
+from zerynex_py import audit_manifest, compare_manifests, sarif_report
+
+# Use only strict parsed metadata created in your own trusted integration.
+report = compare_manifests(old_metadata, new_metadata)
+if not report['passed']:
+    raise RuntimeError('Newly declared swap privacy risks need review')
+sarif = sarif_report(report)
+```
+
+Those functions do not perform network calls or read files. The CLI is preferred for strict duplicate-key, symlink and file-size checks of **untrusted JSON file inputs**.
+
 ## What application engineers should implement independently
 
 Review whether public refund addresses are reused and whether the underlying incoming viewing key is isolated **per exposed flow**, rather than relying only on visually different receiver strings. Consider how wallet restore and refund lookup may disclose address grouping; a `private_claimed` flag alone is not evidence that private information retrieval works. Keep spending authority within the actual end-user wallet unless the user explicitly authorizes a separate custody design.

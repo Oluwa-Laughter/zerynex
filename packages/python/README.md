@@ -223,3 +223,11 @@ public CI, browser demos, external MCP hosts, or logs.
 ## Swap refund and viewing-key privacy metadata audit
 
 The installed `zerynex-refund-audit` command checks a strict, local JSON manifest of **opaque non-secret identifiers**, not Zcash addresses or keys. Its static findings cover refund-address reuse, shared viewing-key scope, public refund exposure, refund query disclosure and unsupported custody assertions. This is a threat-model integration aid, not a post-quantum cryptography implementation or real wallet inspection. See `docs/refund-privacy-audit.md` for schema, examples and limitations.
+
+
+### Compare refund integration revisions
+
+Use `zerynex-refund-audit --baseline /path/to/before.json --manifest /path/to/after.json --json` to detect **new per-flow** exposure declarations. A newly affected flow triggers a regression even if the same rule ID already applied to another flow. Exit `0` means no *new* declared risk events, exit `2` means new events, and exit `1` is invalid input. No private values or flow references are returned. Source manifests must contain **non-secret metadata only**. This does not attest wallet isolation or quantum safety. See `docs/refund-privacy-audit.md`.
+
+
+The packaged refund-audit SDK also exports `audit_manifest`, `compare_manifests`, `sarif_report` and `RefundAuditInputError`. Add `--sarif` instead of `--json` when integrating with SARIF-capable tooling. The exported SARIF contains no source locations or opaque references and only covers **declared** risk categories.
