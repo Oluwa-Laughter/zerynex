@@ -179,3 +179,22 @@ Python applications may use `inspect_node_local()` or pass an already obtained
 response to `evaluate_blockchain_info()`. The pure `evaluate_blockchain_info()`
 function has no network dependency. A lack of sync/status fields fails closed.
 See `docs/node-readiness.md` for API examples and limitations.
+
+## Project bootstrap (offline)
+
+The wheel installs `zerynex-project`. This command creates an integration
+inside an existing Zcash application rather than connecting this website to
+a developer machine:
+
+```bash
+zerynex-project init --project /absolute/path/to/my-zcash-app --ci --json
+zerynex-project verify --project /absolute/path/to/my-zcash-app --cli /absolute/path/to/zerynex --json
+```
+
+Initialization refuses existing files and symlinked destination directories,
+and creates only a reviewed policy, manifest, bundled nonspendable synthetic
+PCZT fixtures and optional GitHub Action pinned to an immutable commit.
+Verification checks those bytes and executes the **actual local Rust CLI**
+against both fixtures. Passing proves only the local toolchain's expected
+synthetic behavior, not wallet connectivity, chain consensus or anonymity.
+No private PCZT, signing key, RPC endpoint or wallet connection is accessed.

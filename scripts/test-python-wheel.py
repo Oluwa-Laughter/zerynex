@@ -95,6 +95,18 @@ def check_wheel(folder: Path, cli: Path) -> None:
         if (result.get("passed") is not True or result.get("synthetic_only") is not True or
                 result.get("checks", {}).get("synthetic_pczt_suite", {}).get("matched") != 4):
             raise AssertionError("Installed developer preflight did not validate Rust-backed synthetic fixtures")
+        project_cli = venv_dir / ("Scripts/zerynex-project.exe" if sys.platform == "win32" else "bin/zerynex-project")
+        if not project_cli.is_file():
+            raise AssertionError("Project bootstrap missing from wheel")
+        external = Path(directory) / "third-party-zcash-project"
+        external.mkdir()
+        created = subprocess.run([str(project_cli), "init", "--project", str(external), "--ci", "--json"], capture_output=True, text=True, timeout=20, check=True)
+        assert json.loads(created.stdout)["ci_configured"] is True
+        assert "Oluwa-Laughter/zerynex@8dcbbba" in (external / ".github/workflows/zerynex-privacy.yml").read_text()
+        checked = subprocess.run([str(project_cli), "verify", "--project", str(external), "--cli", str(cli.resolve()), "--json"], capture_output=True, text=True, timeout=30, check=True)
+        actual = json.loads(checked.stdout)
+        assert actual["passed"] is True and actual["checks"]["transparent_detection"] is True
+        print("PACKED PROJECT BOOTSTRAP PASS: separate app, bundled nonspendable fixtures, real Rust engine")
         print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT and RPC components")
 
 

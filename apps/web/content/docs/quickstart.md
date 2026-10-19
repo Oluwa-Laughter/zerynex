@@ -54,3 +54,7 @@ The homepage example uses a bundled fixture, **not** an automatic scan of your p
 ## What a passing check means
 
 Only the selected, implemented policy rules found no violations in the given intermediate PCZT. It **does not** verify proofs, signatures, transaction equivalence, wallet authorization, Zcash consensus correctness or complete anonymity. Never paste confidential PCZT bytes, wallet addresses or keys into public CI, issue reports, or AI conversations. Read the [privacy and trust model](privacy-model.md) before working with real wallet data locally.
+
+## Offline integration check in your own project
+
+Use `zerynex-project init --project /path/to/app --ci` and `zerynex-project verify --project /path/to/app --cli /path/to/zerynex --json` from a trusted installed Python wheel and Rust CLI. Both runs use reviewed nonspendable fixtures; see [integration instructions](project-integration.md).

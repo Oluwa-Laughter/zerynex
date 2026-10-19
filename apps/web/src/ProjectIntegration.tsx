@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { LuArrowLeft, LuArrowUpRight, LuCheck, LuCopy, LuLockKeyhole, LuTerminal, LuWorkflow } from 'react-icons/lu'
 import styles from './ProjectIntegration.module.css'
 
-type Track = 'cli' | 'typescript' | 'python' | 'ci' | 'mcp'
+type Track = 'setup' | 'cli' | 'typescript' | 'python' | 'ci' | 'mcp'
 type Step = { title: string, explanation: string, code: string }
 type TrackInfo = {
   label: string, tagline: string, audience: string, prerequisites: string,
@@ -13,6 +13,31 @@ type TrackInfo = {
 }
 
 const tracks: Record<Track, TrackInfo> = {
+  setup: {
+    label: 'Project bootstrap',
+    tagline: 'Verify Zerynex in your own codebase',
+    audience: 'Zcash developers adopting local PCZT privacy checks and CI',
+    prerequisites: 'An existing project directory, a verified Zerynex Python wheel, Python 3.11+, and a trusted Rust CLI executable',
+    docs: '/docs/project-integration',
+    steps: [
+      {
+        title: 'Install the Python wheel locally',
+        explanation: 'Download the actual wheel from a reviewed release artifact. PyPI publication is not complete; no hosted account or wallet connection is required.',
+        code: 'python3 -m venv .venv\n.venv/bin/python -m pip install ./zerynex_python-0.1.0-py3-none-any.whl',
+      },
+      {
+        title: 'Create nonspendable checks in your repository',
+        explanation: 'Only two reviewed synthetic PCZTs, a policy, manifest and an optional immutable-pin CI workflow are created. Existing files are never overwritten.',
+        code: 'zerynex-project init --project /absolute/path/to/my-zcash-app --ci --json',
+      },
+      {
+        title: 'Verify the actual local Rust installation',
+        explanation: 'Runs the real CLI against both bundled fixtures. One passes cleanly; the transparent example must produce the expected policy finding.',
+        code: 'zerynex-project verify --project /absolute/path/to/my-zcash-app --cli /absolute/path/to/zerynex --json',
+      },
+    ],
+    expected: 'The local CLI is installed and passes real tests on bundled synthetic files. This does not connect to private code or wallets, execute a payment, or prove wallet integration.',
+  },
   cli: {
     label: 'Rust CLI', tagline: 'Analyze a PCZT stored on your machine',
     audience: 'Wallet engineers, Rust developers and protocol teams',
@@ -135,10 +160,10 @@ const tracks: Record<Track, TrackInfo> = {
   },
 }
 
-const keys: Track[] = ['cli','typescript','python','ci','mcp']
+const keys: Track[] = ['setup','cli','typescript','python','ci','mcp']
 
 export default function ProjectIntegration() {
-  const [selected,setSelected] = useState<Track>('cli')
+  const [selected,setSelected] = useState<Track>('setup')
   const [copied,setCopied] = useState<number | null>(null)
   const [copyError,setCopyError] = useState(false)
   const active = tracks[selected]

@@ -775,6 +775,9 @@ test('homepage offers distinct demo, local-file, and project integration paths',
 
 test('project onboarding switches between real CLI, SDK, CI and MCP instructions',async({page})=>{
   await page.goto('/integrate')
+  await expect(page.getByText('zerynex-project init',{exact:false})).toBeVisible()
+  await expect(page.getByText('zerynex-project verify',{exact:false})).toBeVisible()
+  await page.getByRole('button',{name:/Rust CLI/}).click()
   await expect(page.getByText('cargo install --git',{exact:false})).toBeVisible()
   await expect(page.getByText('zerynex --capabilities',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/TypeScript \/ WASM/}).click()
@@ -782,7 +785,7 @@ test('project onboarding switches between real CLI, SDK, CI and MCP instructions
   await expect(page.getByText('createBrowserZerynexClient',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/GitHub Actions/}).click()
   await expect(page.getByText('Oluwa-Laughter/zerynex@main',{exact:false})).toBeVisible()
-  await expect(page.getByText('Never commit real user PCZTs',{exact:false})).toHaveCount(0)
+  await expect(page.getByText('Never commit real user PCZTs',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/MCP \/ agents/}).click()
   await expect(page.getByText('ZERYNEX_AGENT_ALLOWED_ROOT',{exact:false})).toBeVisible()
   await expect(page.getByText('zerynex-mcp-doctor',{exact:false})).toBeVisible()

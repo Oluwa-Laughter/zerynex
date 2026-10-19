@@ -46,6 +46,8 @@ Check a synthetic fixture:
 
 Exit codes: 0 selected checks passed, 2 findings, 1 input error.
 
+See [project bootstrap and verification](project-integration.md) for the offline `zerynex-project` scaffolder, synthetic fixture checks and optional pinned GitHub Action.
+
 ## Python SDK
 
 Requires Python 3.11+ and local Rust CLI.

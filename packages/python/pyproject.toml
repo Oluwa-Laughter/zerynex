@@ -28,6 +28,7 @@ zerynex-z3-check = "zerynex_py.z3:main"
 zerynex-node-check = "zerynex_py.node:main"
 zerynex-rpc-check = "zerynex_py.rpc_contract:main"
 zerynex-agent-preflight = "zerynex_py.preflight:main"
+zerynex-project = "zerynex_py.project:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -36,4 +37,4 @@ where = ["src"]
 testpaths = ["tests"]
 
 [tool.setuptools.package-data]
-zerynex_py = ["fixtures/*.json"]
+zerynex_py = ["fixtures/*.json", "fixtures/*.bin"]

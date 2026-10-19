@@ -148,3 +148,20 @@ The allowed directory is a **synthetic-fixture root**, not an entire home direct
 - Passing a rule check does **not** prove privacy, proof validity, safe signing, transaction equivalence or Zcash consensus correctness.
 
 Continue with the [privacy policy schema](policy-format.md), [CLI reference](cli-reference.md), [TypeScript SDK](typescript-api.md), [GitHub Action](github-action.md), and [privacy/trust model](privacy-model.md).
+
+## Bootstrap and verify your Zcash project
+
+The independently tested Python wheel includes `zerynex-project`, an **offline, non-destructive** setup command. Obtain and verify the wheel and a trusted separately installed Rust CLI from [release artifacts](releases.md). Public PyPI publication is not complete.
+
+```bash
+# Run from the environment where you installed the verified Python wheel:
+zerynex-project init --project /absolute/path/to/my-zcash-app --ci --json
+zerynex-project verify --project /absolute/path/to/my-zcash-app \
+  --cli /absolute/path/to/zerynex --json
+```
+
+`init` writes `.zerynex/project.json`, `.zerynex/policy.json` and two **bundled, nonspendable synthetic PCZT fixtures**. With `--ci`, it also creates `.github/workflows/zerynex-privacy.yml`, pinned to a reviewed immutable Zerynex commit and checking only the clean synthetic fixture. Existing files and symlink destinations are rejected rather than overwritten.
+
+`verify` checks fixture integrity, discovers local Rust CLI capabilities, and executes two **real** Rust policy scans: a clean example with zero findings and an intentionally transparent example reporting `PCZT-TRANSPARENT-OUTPUTS`. The sanitized result never contains original PCZT bytes, wallet data or project paths.
+
+This does **not** connect to any real wallet, node, private PCZT or agent host. A passing check verifies the local toolchain against reviewed synthetic vectors, not wallet safety, valid payments or complete privacy. Review the generated CI workflow before enabling it; never add real intermediate transactions or keys to public CI.
