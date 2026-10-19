@@ -7,6 +7,7 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { LuArrowLeft, LuArrowUpRight } from 'react-icons/lu'
 import DocsLayout, { Status } from '../../../src/docs/DocsLayout'
+import DocsCodeBlock from '../../../src/docs/DocsCodeBlock'
 import { docsHref, getGuide, guides } from '../../../src/docs/catalog'
 
 export function generateStaticParams() {
@@ -54,6 +55,22 @@ export default async function DocumentationArticle({params}: {params: Promise<{ 
               <a href={resolved} rel="noopener noreferrer" target="_blank">{children}</a>
           },
           h1: ({ children }) => <h2>{children}</h2>,
+          pre: ({ node, children }) => {
+            // Markdown already owns the code bytes; extract from its AST so
+            // copying doesn't accidentally include HTML, buttons or labels.
+            const codeNode = node?.children.find(
+              child => child.type === 'element' && child.tagName === 'code'
+            )
+            if (!codeNode || codeNode.type !== 'element') return <pre>{children}</pre>
+            const source = codeNode.children.map(child =>
+              child.type === 'text' ? child.value : ''
+            ).join('')
+            const classes = codeNode.properties?.className
+            const language = Array.isArray(classes)
+              ? classes.find((entry): entry is string => typeof entry === 'string' && entry.startsWith('language-'))?.slice(9)
+              : undefined
+            return <DocsCodeBlock code={source} language={language}/>
+          },
         }}>{content}</Markdown>
       </div>
       <nav className="docs-article-pagination" aria-label="Adjacent documentation">

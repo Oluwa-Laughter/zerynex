@@ -132,3 +132,102 @@
 @media(max-width:1120px){.docs-entry-grid{grid-template-columns:1fr}.docs-entry-card{min-height:0}}
 @media(max-width:580px){.docs-group-heading h2{font-size:30px}.docs-article-pagination{grid-template-columns:1fr}.docs-entry-card{padding:20px}.docs-group-label h3{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.docs-entry-card{transition:none}.docs-entry-card:hover{transform:none}}
+
+/* Documentation reading scale: prose first, headings retain their hierarchy. */
+.docs-markdown {
+  font-size: 17px;
+  line-height: 1.82;
+  max-width: 960px;
+}
+.docs-markdown p { margin: 17px 0 20px; }
+.docs-markdown li { margin: 9px 0; }
+.docs-markdown ul, .docs-markdown ol { padding-left: 30px; margin: 22px 0; }
+.docs-markdown h4 { font-size: 20px; }
+.docs-markdown table { font-size: 15px; line-height: 1.65; }
+.docs-markdown th, .docs-markdown td { padding: 13px 15px; vertical-align: top; }
+.docs-markdown blockquote { line-height: 1.75; }
+.docs-article-heading > p { font-size: 17px; line-height: 1.75; }
+.docs-sidebar-group a { font-size: 13px; line-height: 1.5; }
+.docs-entry-card p, .docs-library .docs-card-content p { font-size: 14px; line-height: 1.7; }
+.docs-card-content p { font-size: 14px; }
+.docs-intro p { font-size: 16px; }
+.docs-article-end span { font-size: 14px; }
+
+/* Every fenced AND indented Markdown code block receives the same copy UI. */
+.docs-markdown .docs-code-block {
+  border: 1px solid var(--zn-border, #47374d);
+  border-radius: 12px;
+  background: var(--zn-code, #100d13);
+  overflow: hidden;
+  max-width: 100%;
+  margin: 26px 0;
+  min-width: 0;
+}
+.docs-markdown .docs-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--zn-border, #47374d);
+  background: var(--zn-surface-2, #21182a);
+}
+.docs-markdown .docs-code-language {
+  font: 600 11px/1.4 var(--mono);
+  color: var(--zn-muted, #b7b0bd);
+  letter-spacing: .07em;
+}
+.docs-markdown .docs-code-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--zn-ink, #f4f0f8);
+  background: var(--zn-surface, #22192a);
+  border: 1px solid var(--zn-border, #594765);
+  border-radius: 8px;
+  font: 600 12px/1.2 "DM Sans", sans-serif;
+}
+.docs-markdown .docs-code-copy:hover { border-color: var(--zn-accent, #c8aaff); }
+.docs-markdown .docs-code-copy:focus-visible {
+  outline: 2px solid var(--zn-accent, #c8aaff);
+  outline-offset: 3px;
+}
+.docs-markdown .docs-code-block pre {
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  padding: 21px;
+  background: var(--zn-code, #100d13);
+  font: 14px/1.8 var(--mono);
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+}
+.docs-markdown .docs-code-block pre code {
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+  font: inherit;
+  color: var(--zn-ink, #f4f0f8);
+}
+.docs-markdown .docs-code-feedback {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--zn-muted, #b7b0bd);
+}
+.docs-markdown .docs-code-feedback:empty { display: none; }
+.docs-markdown .docs-code-feedback:not(:empty) { padding: 8px 17px 12px; }
+@media (max-width: 580px) {
+  .docs-markdown { font-size: 16px; line-height: 1.8; }
+  .docs-markdown table { font-size: 14px; }
+  .docs-markdown th, .docs-markdown td { padding: 11px 12px; }
+  .docs-markdown .docs-code-block pre { font-size: 13px; padding: 16px; }
+  .docs-article-heading > p { font-size: 16px; }
+  .docs-sidebar-group a { font-size: 13px; }
+}

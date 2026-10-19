@@ -809,3 +809,67 @@ test('mobile project onboarding stays readable without horizontal overflow',asyn
   const widths=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}))
   expect(widths.content).toBeLessThanOrEqual(widths.viewport+1)
 })
+
+// Documentation is a developer interface. Every displayed command must copy
+// exactly the Markdown source, including newlines, indentation and quoting.
+test('every Markdown command uses accessible, exact-copy controls', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  for (const route of ['/docs/installation', '/docs/typescript-api', '/docs/refund-privacy-audit']) {
+    await page.goto(route)
+    const blocks = page.locator('.docs-markdown figure.docs-code-block')
+    expect(await blocks.count(), route + ' should contain actual Markdown code blocks').toBeGreaterThan(1)
+    for (const index of [0, (await blocks.count()) - 1]) {
+      const block = blocks.nth(index)
+      const source = await block.locator('pre code').textContent()
+      expect(source?.trim().length).toBeGreaterThan(8)
+      const copy = block.getByRole('button', { name: /^Copy .* code to clipboard$/ })
+      await expect(copy).toBeVisible()
+      await copy.click()
+      await expect(block.getByRole('status')).toHaveText('Code copied to clipboard.')
+      await expect(copy).toContainText('Copied')
+      const clipboard = await page.evaluate(() => navigator.clipboard.readText())
+      expect(clipboard).toEqual(source)
+    }
+  }
+})
+
+test('docs paragraphs and code remain comfortably readable on phones and desktop', async ({ page }) => {
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 850 })
+    await page.goto('/docs/installation')
+    const styles = await page.evaluate(() => {
+      const paragraph = document.querySelector<HTMLElement>('.docs-markdown > p')!
+      const snippet = document.querySelector<HTMLElement>('.docs-code-block pre')!
+      return {
+        text: parseFloat(getComputedStyle(paragraph).fontSize),
+        lineHeight: parseFloat(getComputedStyle(paragraph).lineHeight),
+        code: parseFloat(getComputedStyle(snippet).fontSize),
+        viewport: document.documentElement.clientWidth,
+        document: document.documentElement.scrollWidth,
+        codeScroll: snippet.scrollWidth,
+        codeViewport: snippet.clientWidth,
+      }
+    })
+    expect(styles.text).toBeGreaterThanOrEqual(width < 580 ? 16 : 17)
+    expect(styles.lineHeight).toBeGreaterThanOrEqual(styles.text * 1.6)
+    expect(styles.code).toBeGreaterThanOrEqual(width < 580 ? 13 : 14)
+    expect(styles.document).toBeLessThanOrEqual(styles.viewport + 2)
+    expect(styles.codeScroll).toBeGreaterThanOrEqual(styles.codeViewport)
+  }
+})
+
+test('clipboard failures show a non-destructive manual-copy fallback', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async () => { throw new Error('Permission denied') } },
+    })
+  })
+  await page.goto('/docs/quickstart')
+  const first = page.locator('.docs-code-block').first()
+  const source = await first.locator('pre code').textContent()
+  await first.getByRole('button', { name: /^Copy .* code to clipboard$/ }).click()
+  await expect(first.getByRole('status')).toHaveText(/Select the code and copy manually/)
+  await expect(first.locator('pre code')).toHaveText(source ?? '')
+  await expect(first.getByRole('button', { name: /^Copy .* code to clipboard$/ })).toBeEnabled()
+})
