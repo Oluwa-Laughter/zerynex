@@ -154,6 +154,14 @@
       "summary": "Integrate ZIP-321 wallet handoffs with capability negotiation, one-use tickets, exact-amount policies and explicit host consent."
     },
     {
+      "slug": "refund-privacy-audit",
+      "title": "Swap refund privacy exposure audit",
+      "group": "SDKs & APIs",
+      "status": "partial",
+      "audience": "Zcash wallet, swap, bridge and privacy engineers",
+      "summary": "Offline, metadata-only checks for reused refund identifiers, shared viewing-key scope and privacy-sensitive lookups; no cryptographic attestations."
+    },
+    {
       "slug": "zcash-app-recipes",
       "title": "Build Zcash applications",
       "group": "SDKs & APIs",

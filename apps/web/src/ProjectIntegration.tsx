@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { LuArrowLeft, LuArrowUpRight, LuCheck, LuCopy, LuLockKeyhole, LuTerminal, LuWorkflow } from 'react-icons/lu'
 import styles from './ProjectIntegration.module.css'
 
-type Track = 'setup' | 'local' | 'cli' | 'typescript' | 'python' | 'ci' | 'mcp'
+type Track = 'setup' | 'local' | 'refund' | 'cli' | 'typescript' | 'python' | 'ci' | 'mcp'
 type Step = { title: string, explanation: string, code: string }
 type TrackInfo = {
   label: string, tagline: string, audience: string, prerequisites: string,
@@ -52,6 +52,30 @@ const tracks: Record<Track, TrackInfo> = {
        code: '# No background scan. No PCZT upload.\n# Check only files you explicitly selected.\n# Never upload real PCZT artifacts to public CI or agents.'},
     ],
     expected: 'An offline policy finding count and known rule IDs returned by the local Rust engine, with stage-regression classification when requested. No wallet operation, signing or consensus verification.',
+  },
+  refund: {
+    label: 'Refund privacy audit', tagline: 'Model swap refund linkability risks',
+    audience: 'Wallet, cross-chain, swap and privacy engineers',
+    prerequisites: 'Locally installed Zerynex Python wheel and JSON manifest of non-secret opaque 128-bit references',
+    docs: '/docs/refund-privacy-audit',
+    steps: [
+      {
+        title: 'Prepare public-safe configuration metadata',
+        explanation: 'Declare logical reuse of refund identifiers and viewing-key scopes. Never put real addresses, keys, transaction history or wallet identities in this manifest.',
+        code: '{\n  "schema_version":1,\n  "flows":[{\n    "flow_ref":"11111111111111111111111111111111",\n    "refund_address_ref":"22222222222222222222222222222222",\n    "viewing_scope_ref":"33333333333333333333333333333333",\n    "published_publicly":true,\n    "lookup_mode":"private_claimed",\n    "spending_key_custody":"wallet_claimed"\n  }]\n}',
+      },
+      {
+        title: 'Run the offline metadata auditor',
+        explanation: 'Checks declarations about address reuse, scope reuse, sensitive refund queries and custody assumptions. No RPC, wallet or cryptographic verification is performed.',
+        code: 'zerynex-refund-audit --manifest /path/to/nonsecret-refund-metadata.json --json',
+      },
+      {
+        title: 'Independently verify wallet isolation',
+        explanation: 'Review whether your wallet really creates separate viewing scopes and provides private refund lookups. A clean metadata report cannot prove either.',
+        code: '# Exit 0: no declared issues\n# Exit 2: declared privacy risks\n# Exit 1: invalid metadata input',
+      },
+    ],
+    expected: 'An offline count of application-declared privacy concerns and fixed rule IDs. This does not prove post-quantum security, correct viewing keys or private information retrieval.',
   },
   cli: {
     label: 'Rust CLI', tagline: 'Analyze a PCZT stored on your machine',
@@ -175,7 +199,7 @@ const tracks: Record<Track, TrackInfo> = {
   },
 }
 
-const keys: Track[] = ['setup','local','cli','typescript','python','ci','mcp']
+const keys: Track[] = ['setup','local','refund','cli','typescript','python','ci','mcp']
 
 export default function ProjectIntegration() {
   const [selected,setSelected] = useState<Track>('setup')

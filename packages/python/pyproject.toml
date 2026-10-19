@@ -29,6 +29,7 @@ zerynex-node-check = "zerynex_py.node:main"
 zerynex-rpc-check = "zerynex_py.rpc_contract:main"
 zerynex-agent-preflight = "zerynex_py.preflight:main"
 zerynex-project = "zerynex_py.project:main"
+zerynex-refund-audit = "zerynex_py.refund_privacy:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

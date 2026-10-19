@@ -122,6 +122,19 @@ def check_wheel(folder: Path, cli: Path) -> None:
                                     capture_output=True, text=True, timeout=25)
         assert regression.returncode == 2 and json.loads(regression.stdout)['added_rule_ids'] == ['PCZT-TRANSPARENT-OUTPUTS']
         assert str(external) not in regression.stdout + regression.stderr
+        audit_cli = venv_dir / ("Scripts/zerynex-refund-audit.exe" if sys.platform == "win32" else "bin/zerynex-refund-audit")
+        if not audit_cli.is_file():
+            raise AssertionError("Refund privacy audit command missing from Python wheel")
+        isolated = ROOT / "tests/fixtures/swap-refund/isolated.json"
+        risky = ROOT / "tests/fixtures/swap-refund/risky.json"
+        good = subprocess.run([str(audit_cli), "--manifest", str(isolated), "--json"], capture_output=True, text=True, timeout=15)
+        flagged = subprocess.run([str(audit_cli), "--manifest", str(risky), "--json"], capture_output=True, text=True, timeout=15)
+        if (good.returncode != 0 or flagged.returncode != 2 or
+            json.loads(good.stdout)["passed"] is not True or
+            "SWAP-VIEWING-SCOPE-REUSE" not in json.loads(flagged.stdout)["rule_ids"] or
+            "11111111111111111111111111111111" in flagged.stdout):
+            raise AssertionError("Packaged refund privacy audit failed safe and risky fixture expectations")
+        print("PACKED REFUND PRIVACY AUDIT PASS: standalone wheel runs metadata-only checks")
         print('PACKED LOCAL PCZT PASS: explicit external-project file analysis and stage regression')
 
         print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT and RPC components")

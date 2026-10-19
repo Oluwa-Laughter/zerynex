@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Guard the boundary between published API docs and internal repository notes.
 import { readFile, access, readdir } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -13,7 +14,7 @@ const privateSlugs = [
   'sdk-distribution', 'package-managers',
 ]
 const mandatory = ['quickstart', 'installation', 'project-integration', 'cli-reference', 'rust-api', 'typescript-api',
-  'python-api', 'report-reference', 'rule-registry', 'sarif', 'node-readiness', 'transaction-observations', 'payment-requests', 'wallet-handoffs', 'zcash-app-recipes', 'github-action', 'agents', 'privacy-model']
+  'python-api', 'report-reference', 'rule-registry', 'sarif', 'node-readiness', 'transaction-observations', 'payment-requests', 'wallet-handoffs', 'refund-privacy-audit', 'zcash-app-recipes', 'github-action', 'agents', 'privacy-model']
 if (catalog.version !== 1 || !Array.isArray(catalog.entries)) throw Error('Invalid docs catalog')
 const publicSlugs = new Set()
 let lastGroup = -1
@@ -40,3 +41,14 @@ const markdown = output.filter(name => name.endsWith('.md')).map(name => name.sl
 if (markdown.length !== publicSlugs.size || markdown.some(slug => !publicSlugs.has(slug)))
   throw Error('Generated content includes an internal or missing public guide')
 console.log('Validated curated public docs:', publicSlugs.size, 'guides;', privateSlugs.length, 'internal notes excluded')
+
+// Ensure the public identity remains a reusable Zcash ecosystem product.
+const forbiddenBranding = ['zec' + 'athon', 'hack' + 'athon']
+const tracked = execFileSync('git', ['ls-files', '-z'], {cwd: root, encoding: 'utf8'}).split('\0').filter(Boolean)
+for (const file of tracked) {
+  if (!/\.(?:md|mdx|rst|txt|tsx|ts|jsx|js|py|rs|json|ya?ml|toml|html|css)$/.test(file)) continue
+  const source = await readFile(path.join(root, file), 'utf8')
+  if (forbiddenBranding.some(term => source.toLowerCase().includes(term)))
+    throw Error('Event-specific terminology in Zcash developer product source: ' + file)
+}
+console.log('Product-positioning guard checked', tracked.length, 'tracked paths')

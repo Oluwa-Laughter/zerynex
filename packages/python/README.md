@@ -219,3 +219,7 @@ Exit code `0` means no selected policy findings/regressions,
 `2` means findings, and `1` means invalid input or execution failure.
 Use a trusted local workspace and CLI. Do not put real private PCZTs into
 public CI, browser demos, external MCP hosts, or logs.
+
+## Swap refund and viewing-key privacy metadata audit
+
+The installed `zerynex-refund-audit` command checks a strict, local JSON manifest of **opaque non-secret identifiers**, not Zcash addresses or keys. Its static findings cover refund-address reuse, shared viewing-key scope, public refund exposure, refund query disclosure and unsupported custody assertions. This is a threat-model integration aid, not a post-quantum cryptography implementation or real wallet inspection. See `docs/refund-privacy-audit.md` for schema, examples and limitations.

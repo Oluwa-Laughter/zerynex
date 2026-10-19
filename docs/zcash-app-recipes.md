@@ -1,6 +1,6 @@
 # Zcash application integration recipes
 
-Zerynex is a **developer integration toolkit**, not a single-purpose website or a replacement wallet. These patterns show how to use the tested, composable building blocks in real Zcash products. They map to Zecathon's **Shielded Payments, Private Markets, Cross-Chain, Core & Tooling, and Wildcard** categories, but work for projects outside hackathons too.
+Zerynex is a **developer integration toolkit**, not a single-purpose website or a replacement wallet. These patterns show how to use the tested, composable building blocks in real Zcash products. They address reusable needs across the Zcash ecosystem, including wallet infrastructure, private payments, cross-chain integrations, policy tooling, and automated testing.
 
 ## Building blocks you can use now
 
@@ -63,7 +63,7 @@ Use the Node.js-compatible normalizer and Python loopback probe in indexers, exp
 
 For a runnable integration contract and security model, see [Node readiness](node-readiness.md), [TypeScript SDK](typescript-api.md), [Python SDK](python-api.md), [GitHub Action](github-action.md), and [Privacy rule registry](rule-registry.md).
 
-## Wildcard: compose, don't trust blindly
+## Composable developer workflows: verify boundaries independently
 
 Prototype merchant tooling, privacy monitors, AI-assisted development or wallet workflow automation by combining **offline structural checks**, **read-only node state**, and **application-owned signing/payment systems**. Keep MCP agents restricted to approved synthetic fixtures. A passed preflight or rule report must never become an unconditional wallet-signing instruction.
 
@@ -76,3 +76,7 @@ Use the [wallet handoff coordinator](wallet-handoffs.md) to combine local ZIP-32
 ## Read-only transaction confirmations for checkout and relayers
 
 Use [Transaction observations](transaction-observations.md) to normalize an existing trusted backend’s `getrawtransaction(txid, 1)` and `getblockchaininfo` results. Your app chooses the expected network, expected transaction ID, and confirmation threshold. The SDK reports whether the node's own confirmation values are internally consistent and can flag possible reorganizations across observations. This **does not verify who received funds, wallet ownership, finality or cross-chain settlement**.
+
+## Cross-chain refund and viewing-key isolation metadata
+
+Use the offline [swap refund privacy auditor](refund-privacy-audit.md) to check explicitly declared refund-address and viewing-scope reuse across exchange flows and flag direct lookup/custody concerns. A public refund identifier and a reused viewing scope can be a long-term privacy concern; this tool does not obtain keys, verify cryptographic isolation or implement quantum resistance. No Zcash address, memo or wallet secret belongs in audit manifests.

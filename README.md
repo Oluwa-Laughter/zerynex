@@ -2,7 +2,7 @@
 
 **Local-first Zcash developer tooling for privacy policies, PCZT testing, node readiness, RPC compatibility, SDK integration, and CI.**
 
-Zerynex is a local-first, composable toolkit for developers building on Zcash: inspect Partially Created Zcash Transaction (PCZT) disclosures, compare privacy policies across transaction stages, validate synthetic wallet role handoffs, and integrate reproducible checks into application CI. Rust, TypeScript, Python, Go and MCP are interfaces into that foundation—not the limits of the product. Originally created for Zecathon 2026's **Core & Tooling** track.
+Zerynex is a local-first, composable toolkit for developers building on Zcash: inspect Partially Created Zcash Transaction (PCZT) disclosures, compare privacy policies across transaction stages, validate synthetic wallet role handoffs, and integrate reproducible checks into application CI. Rust, TypeScript, Python, Go and MCP are interfaces into that foundation—not the limits of the product. Built as reusable Zcash ecosystem infrastructure for wallets, applications, node operators, integrators, cryptographers and tooling maintainers.
 
 **Try it without installing anything:** https://zerynex.vercel.app/tools
 
@@ -13,7 +13,11 @@ Zerynex is a local-first, composable toolkit for developers building on Zcash: i
 
 **Read-only transaction observations:** Zcash confirmation consistency and possible chain reorganizations for trusted backend RPC results, with no txids or block hashes in returned SDK reports. See [Transaction observations](docs/transaction-observations.md). This is not payment settlement verification.
 
-**Three ways to start:** [Try the bundled synthetic demo](https://zerynex.vercel.app/#synthetic-demo), [analyze a PCZT in your browser](https://zerynex.vercel.app/tools), or [integrate into your local project](https://zerynex.vercel.app/integrate). The homepage does not connect to developers' machines. See [Project integration](docs/project-integration.md).\n\n**ZIP-321 payment tooling:** Validate Zcash payment requests offline with real address checksums/network validation, integer zatoshi amounts, redacted Rust/WASM reports and a packaged native CLI. Try [the payment workbench](https://zerynex.vercel.app/tools/payment) and read the [ZIP-321 integration guide](docs/payment-requests.md). This does not authorize or execute payments.
+**Three ways to start:** [Try the bundled synthetic demo](https://zerynex.vercel.app/#synthetic-demo), [analyze a PCZT in your browser](https://zerynex.vercel.app/tools), or [integrate into your local project](https://zerynex.vercel.app/integrate). The homepage does not connect to developers' machines. See [Project integration](docs/project-integration.md).
+
+**ZIP-321 payment tooling:** Validate Zcash payment requests offline with real address checksums/network validation, integer zatoshi amounts, redacted Rust/WASM reports and a packaged native CLI. Try [the payment workbench](https://zerynex.vercel.app/tools/payment) and read the [ZIP-321 integration guide](docs/payment-requests.md). This does not authorize or execute payments.
+
+**Refund privacy risk modeling:** The offline `zerynex-refund-audit` checks developer-declared, non-secret swap refund identifiers for reuse, shared viewing scope and revealing lookup patterns. No keys, addresses, PIR service or post-quantum cryptography are handled. See [refund privacy exposure audit](docs/refund-privacy-audit.md).
 
 **Zcash node integration:** Read-only, loopback-only `zerynex-node-check` checks chain/network readiness; a pure TypeScript normalizer works in browser/backend projects without exposing RPC credentials. See [Node readiness](docs/node-readiness.md) and [Zcash builder recipes](docs/zcash-app-recipes.md).
 

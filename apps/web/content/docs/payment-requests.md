@@ -43,13 +43,15 @@ printf '%s' 'zcash:tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU?amount=1' \
 
 The inspector takes the URI only via **standard input**, not command-line arguments, and prints a redacted JSON summary. It doesn't echo memo values, labels, messages or recipient addresses in either success or error output. Exit `0` means a supported request parsed, `1` means invalid input or an unsupported feature. Treat valid structure as **format acceptance only**, never proof of payment completion, receiver ownership or wallet compatibility.
 
-## Integrate across Zecathon tracks
+## Integration patterns across Zcash applications
 
 - **Shielded payments:** Parse a merchant's `zcash:` invoice request locally, verify network and exact amount, and hand the original URI to a separately trusted wallet for consent.
 - **Private markets:** Inspect multi-recipient requests and distinguish optional memo presence, without returning memo text to dashboards or agent tooling.
 - **Cross-chain:** Verify the Zcash leg's recipient network and expected amount; this does not verify remote-chain deposits or finality.
 - **Core & tooling:** Use the same Rust parser through WebAssembly and independently packaged CLI binaries with synthetic conformance tests.
-- **Wildcard:** Combine request-format checks with [node readiness](node-readiness.md), [PCZT policy checks](policy-format.md), and agent-safe development preflight. Do not give an LLM wallet signing authority.
+- **Developer workflow automation:** Combine request-format checks with [node readiness](node-readiness.md), [PCZT policy checks](policy-format.md), and agent-safe development preflight. Do not give an LLM wallet signing authority.
+
+For cross-chain refund-address disclosure concerns and application-declared viewing-key isolation, see the [refund privacy exposure audit](refund-privacy-audit.md). It operates only on opaque metadata and does not create keys or certify quantum resistance.
 
 ## Trust and compatibility limits
 
