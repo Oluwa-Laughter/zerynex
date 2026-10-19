@@ -168,7 +168,7 @@ export default function ProjectIntegration() {
     <header className={styles.hero}>
       <span className={styles.eyebrow}><LuWorkflow size={17}/> CONNECT YOUR OWN TOOLCHAIN</span>
       <h1>From a demo to <em>your project.</em></h1>
-      <p>Zerynex does not automatically connect to a developer's computer or Zcash wallet. Choose an interface, install it into your trusted environment, then run checks against files your application explicitly supplies.</p>
+      <p>Zerynex does not automatically connect to a developer&apos;s computer or Zcash wallet. Choose an interface, install it into your trusted environment, then run checks against files your application explicitly supplies.</p>
       <div className={styles.shortcuts}>
         <Link href="/#synthetic-demo">01 / Try bundled demo <LuArrowUpRight size={15}/></Link>
         <Link href="/tools">02 / Analyze a local PCZT <LuArrowUpRight size={15}/></Link>
