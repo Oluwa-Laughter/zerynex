@@ -107,6 +107,23 @@ def check_wheel(folder: Path, cli: Path) -> None:
         actual = json.loads(checked.stdout)
         assert actual["passed"] is True and actual["checks"]["transparent_detection"] is True
         print("PACKED PROJECT BOOTSTRAP PASS: separate app, bundled nonspendable fixtures, real Rust engine")
+        # Exercise the new developer-supplied PCZT paths in a completely
+        # unrelated app and confirm that no private paths are returned.
+        from shutil import copyfile
+        copyfile(external / '.zerynex/fixtures/clean-v6.bin', external / 'baseline.pczt')
+        copyfile(external / '.zerynex/fixtures/transparent-v6.bin', external / 'candidate.pczt')
+        base_args = ['--project', str(external), '--cli', str(cli.resolve()), '--json']
+        observed = subprocess.run([str(project_cli), 'check', *base_args, '--pczt', 'candidate.pczt'],
+                                  capture_output=True, text=True, timeout=20)
+        assert observed.returncode == 2 and json.loads(observed.stdout)['rule_ids'] == ['PCZT-TRANSPARENT-OUTPUTS']
+        assert str(external) not in observed.stdout + observed.stderr
+        regression = subprocess.run([str(project_cli), 'compare', *base_args,
+                                    '--before', 'baseline.pczt', '--after', 'candidate.pczt'],
+                                    capture_output=True, text=True, timeout=25)
+        assert regression.returncode == 2 and json.loads(regression.stdout)['added_rule_ids'] == ['PCZT-TRANSPARENT-OUTPUTS']
+        assert str(external) not in regression.stdout + regression.stderr
+        print('PACKED LOCAL PCZT PASS: explicit external-project file analysis and stage regression')
+
         print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT and RPC components")
 
 

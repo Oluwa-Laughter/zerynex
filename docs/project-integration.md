@@ -165,3 +165,57 @@ zerynex-project verify --project /absolute/path/to/my-zcash-app \
 `verify` checks fixture integrity, discovers local Rust CLI capabilities, and executes two **real** Rust policy scans: a clean example with zero findings and an intentionally transparent example reporting `PCZT-TRANSPARENT-OUTPUTS`. The sanitized result never contains original PCZT bytes, wallet data or project paths.
 
 This does **not** connect to any real wallet, node, private PCZT or agent host. A passing check verifies the local toolchain against reviewed synthetic vectors, not wallet safety, valid payments or complete privacy. Review the generated CI workflow before enabling it; never add real intermediate transactions or keys to public CI.
+
+## Check an actual PCZT in a trusted local project
+
+After `zerynex-project init`, you can inspect a PCZT that **you explicitly
+select** from the project directory. This does not use a homepage fixture
+unless you deliberately pass one. Neither this command nor Zerynex's
+website scans your filesystem, talks to your wallet, requests Zcash RPC,
+uploads PCZT bytes, or makes payments.
+
+```bash
+zerynex-project check \
+  --project /absolute/path/to/my-zcash-app \
+  --pczt data/my-local.pczt \
+  --cli /absolute/path/to/zerynex --json
+```
+
+The `--pczt` value must name one existing, regular PCZT file **inside**
+the selected project and below 8 MiB. Symlink traversal and paths outside
+the project are rejected. The checker reads the strict
+`.zerynex/policy.json` in that project, allowing deliberate changes to
+the profile, `deny_transparent`, and `deny_sapling` settings. It accepts
+no additional or duplicate keys. Do not use folders writable by untrusted
+processes during a scan.
+
+The exit codes are `0` for zero implemented policy findings, `2` for
+findings and `1` for invalid policy, paths, formats or runtime errors.
+Machine-readable output contains only the result, finding count and
+**known rule IDs**. It does not print PCZT bytes, sensitive metadata,
+transaction IDs, amounts, filenames or paths.
+
+## Detect policy regressions between actual PCZT stages
+
+Explicitly select both PCZT files under your project directory:
+
+```bash
+zerynex-project compare \
+  --project /absolute/path/to/my-zcash-app \
+  --before data/unsigned.pczt \
+  --after data/processed.pczt \
+  --cli /absolute/path/to/zerynex --json
+```
+
+The Rust stage engine identifies **newly introduced** selected policy
+findings. Its sanitized JSON includes before/after counts and recognized
+added/resolved rule IDs, without copying field paths or raw PCZT data into
+output. An introduced finding results in exit code `2`; malformed or
+unavailable files result in exit code `1`. The commands do not write to
+your source PCZTs or project configuration.
+
+These checks are useful for local wallet-development integration and
+review gates. They are **not** transaction equivalence, privacy,
+cryptographic proof, signing, settlement or Zcash consensus verification.
+Never place real intermediate PCZTs in public CI, shared agent prompts or
+repository history. The generated GitHub Action remains synthetic-only.

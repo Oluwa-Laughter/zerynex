@@ -198,3 +198,24 @@ Verification checks those bytes and executes the **actual local Rust CLI**
 against both fixtures. Passing proves only the local toolchain's expected
 synthetic behavior, not wallet connectivity, chain consensus or anonymity.
 No private PCZT, signing key, RPC endpoint or wallet connection is accessed.
+
+### Explicit project PCZT policy checks
+
+After `init`, developers can opt in to analyzing an actual local PCZT.
+These commands **never discover** private files, use the network, or
+automatically change a wallet transaction. `--pczt`, `--before` and
+`--after` must be existing, regular files **inside** the selected project.
+
+```bash
+zerynex-project check --project /path/to/app --pczt data/my.pczt --cli /path/to/zerynex --json
+zerynex-project compare --project /path/to/app --before data/unsigned.pczt --after data/signed.pczt --cli /path/to/zerynex --json
+```
+
+`check` uses the project's strict `.zerynex/policy.json`, which the
+developer may customize, and returns only a result, finding count and
+recognized rule IDs. `compare` returns before/after counts and added or
+resolved known rule IDs, without exporting PCZT field contents.
+Exit code `0` means no selected policy findings/regressions,
+`2` means findings, and `1` means invalid input or execution failure.
+Use a trusted local workspace and CLI. Do not put real private PCZTs into
+public CI, browser demos, external MCP hosts, or logs.

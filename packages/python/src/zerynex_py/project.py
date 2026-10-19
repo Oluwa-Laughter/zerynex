@@ -10,6 +10,7 @@ from importlib import resources
 import hashlib
 import json
 import os
+import stat
 from pathlib import Path
 import sys
 
@@ -152,10 +153,122 @@ def verify(root: Path, cli: str | None) -> dict[str, object]:
             }, 'limitation': 'Only known nonspendable vectors. Does not certify integration with a real wallet, node or transaction.'}
 
 
+
+# Local source policy: opt-in per PCZT. Never discover, enumerate, or upload
+# user-controlled transaction files. The trusted developer controls this tree.
+def _project_file(root: Path, raw: str) -> Path:
+    if not isinstance(raw, str) or not raw or "\x00" in raw:
+        raise ProjectError('Explicit PCZT path is required.')
+    candidate = Path(raw).expanduser()
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    lexical = Path(os.path.abspath(candidate))
+    try:
+        relative = lexical.relative_to(root)
+    except ValueError:
+        raise ProjectError('PCZT must reside inside the selected project.') from None
+    if not relative.parts:
+        raise ProjectError('Select a PCZT file, not a directory.')
+    # Reject symlink traversal, even if it eventually resolves back inside
+    # the project. The file itself must be regular and bounded.
+    for i in range(1, len(relative.parts) + 1):
+        segment = root.joinpath(*relative.parts[:i])
+        if segment.is_symlink():
+            raise ProjectError('PCZT symlinks are not permitted.')
+    try:
+        fd = os.open(lexical, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) |
+                     getattr(os, 'O_NONBLOCK', 0))
+        try:
+            meta = os.fstat(fd)
+            if not stat.S_ISREG(meta.st_mode) or not 0 < meta.st_size <= 8 * 1024 * 1024:
+                raise ProjectError('PCZT must be a regular file of at most 8 MiB.')
+        finally:
+            os.close(fd)
+    except (OSError, ValueError):
+        raise ProjectError('Selected PCZT file is unavailable.') from None
+    return lexical
+
+
+def _policy_from_project(root: Path) -> Policy:
+    policy_path = _guard(root, POLICY, must_exist=True)
+    try:
+        fd = os.open(policy_path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) |
+                     getattr(os, 'O_NONBLOCK', 0))
+        try:
+            metadata = os.fstat(fd)
+            if not stat.S_ISREG(metadata.st_mode) or not 0 < metadata.st_size <= MAX_POLICY_BYTES:
+                raise ProjectError('Project policy must be a bounded regular file.')
+            with os.fdopen(fd, 'rb', closefd=False) as stream:
+                raw = stream.read(MAX_POLICY_BYTES + 1)
+        finally:
+            os.close(fd)
+        def unique(entries: list[tuple[str, object]]) -> dict[str, object]:
+            parsed: dict[str, object] = {}
+            for key, value in entries:
+                if key in parsed:
+                    raise ValueError('duplicate')
+                parsed[key] = value
+            return parsed
+        data = json.loads(raw, object_pairs_hook=unique,
+                          parse_constant=lambda _: (_ for _ in ()).throw(ValueError('constant')))
+        if (not isinstance(data, dict) or set(data) != {'profile', 'deny_transparent', 'deny_sapling'}
+                or data['profile'] not in ('external_signer', 'restricted_handoff')
+                or type(data['deny_transparent']) is not bool
+                or type(data['deny_sapling']) is not bool):
+            raise ValueError('policy')
+        return Policy(profile=data['profile'], deny_transparent=data['deny_transparent'],
+                      deny_sapling=data['deny_sapling'])
+    except (OSError, ValueError, TypeError, UnicodeError, ZerynexError):
+        raise ProjectError('Project policy is invalid or cannot be read.') from None
+
+
+def _safe_summary(rule_ids: list[str]) -> list[str]:
+    # Field paths, arbitrary report explanations and RPC metadata must never
+    # escape into terminal output or agent logs. Output only known rule IDs.
+    from .rules import bundled_rule_catalog
+    catalog = bundled_rule_catalog()
+    known = {entry['id'] for entry in catalog['rules']}
+    if any(rule not in known for rule in rule_ids):
+        raise ProjectError('Rust engine returned an unsupported policy rule.')
+    return sorted(set(rule_ids))
+
+
+def check_project(root: Path, cli: str | None, pczt: str) -> dict[str, object]:
+    """Run one explicitly supplied PCZT through the real local Rust engine."""
+    _guard(root, MANIFEST, must_exist=True)
+    policy = _policy_from_project(root)
+    candidate = _project_file(root, pczt)
+    report = ZerynexClient(cli=cli).analyze_file(candidate, policy)
+    return {'schema_version': SCHEMA, 'passed': report.passed,
+            'input': 'explicit_local_file', 'engine': 'local_rust_cli',
+            'finding_count': len(report.findings),
+            'rule_ids': _safe_summary([item.rule for item in report.findings]),
+            'limitation': 'Structural policy findings only; not a signature, proof, anonymity or payment verification. No raw PCZT fields are returned.'}
+
+
+def compare_project(root: Path, cli: str | None, before: str, after: str) -> dict[str, object]:
+    """Check explicit stage regression; does not assume equivalent transactions."""
+    _guard(root, MANIFEST, must_exist=True)
+    policy = _policy_from_project(root)
+    baseline = _project_file(root, before)
+    candidate = _project_file(root, after)
+    if baseline == candidate:
+        raise ProjectError('Before and after PCZT files must be distinct.')
+    result = ZerynexClient(cli=cli).compare_files(baseline, candidate, policy)
+    return {'schema_version': SCHEMA, 'passed': result.passed,
+            'input': 'two_explicit_local_files',
+            'engine': 'local_rust_cli', 'no_new_findings': result.no_new_findings,
+            'before_findings_count': result.before_findings_count,
+            'after_findings_count': result.after_findings_count,
+            'added_rule_ids': _safe_summary([rule for rule, _ in result.added_findings]),
+            'resolved_rule_ids': _safe_summary([rule for rule, _ in result.resolved_findings]),
+            'limitation': 'Only selected policy regressions; not equivalent payments, proof validity or safe signing. No raw PCZT fields are returned.'}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description='Initialize and verify offline Zerynex integration in another project.')
     actions = parser.add_subparsers(dest='action', required=True)
-    for name in ('init', 'verify'):
+    for name in ('init', 'verify', 'check', 'compare'):
         sub = actions.add_parser(name)
         sub.add_argument('--project', required=True, help='Existing developer project directory')
         sub.add_argument('--json', action='store_true', help='Sanitized machine-readable summary')
@@ -164,11 +277,23 @@ def main() -> None:
         else:
             sub.add_argument('--cli', default=os.environ.get('ZERYNEX_CLI'),
                              help='Locally installed trusted Rust CLI path')
+        if name == 'check':
+            sub.add_argument('--pczt', required=True, help='Explicit PCZT path inside this project')
+        elif name == 'compare':
+            sub.add_argument('--before', required=True, help='Explicit earlier PCZT file')
+            sub.add_argument('--after', required=True, help='Explicit later PCZT file')
     args = parser.parse_args()
     try:
         root = _root(args.project)
-        result = initialize(root, ci=args.ci) if args.action == 'init' else verify(root, args.cli)
-    except (ProjectError, ZerynexError, OSError, ValueError) as exc:
+        if args.action == 'init':
+            result = initialize(root, ci=args.ci)
+        elif args.action == 'verify':
+            result = verify(root, args.cli)
+        elif args.action == 'check':
+            result = check_project(root, args.cli, args.pczt)
+        else:
+            result = compare_project(root, args.cli, args.before, args.after)
+    except (ProjectError, ZerynexError, OSError, ValueError):
         # Never echo CLI output, selected PCZT bytes or private workspace paths.
         print('Zerynex project setup or local verification was rejected.', file=sys.stderr)
         raise SystemExit(1) from None
@@ -178,8 +303,10 @@ def main() -> None:
         print('Zerynex project', args.action, 'PASS' if result.get('passed', result.get('initialized')) else 'FAIL')
         if args.action == 'init':
             print('Synthetic-only integration created. Use verify with your trusted Rust CLI.')
-        else:
+        elif args.action == 'verify':
             print('Local Rust CLI, synthetic fixture integrity and expected rule behavior checked.')
+        else:
+            print('Explicit local PCZT policy report: no sensitive transaction content included.')
     raise SystemExit(0 if result.get('passed', result.get('initialized')) else 2)
 
 if __name__ == '__main__':

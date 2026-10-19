@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { LuArrowLeft, LuArrowUpRight, LuCheck, LuCopy, LuLockKeyhole, LuTerminal, LuWorkflow } from 'react-icons/lu'
 import styles from './ProjectIntegration.module.css'
 
-type Track = 'setup' | 'cli' | 'typescript' | 'python' | 'ci' | 'mcp'
+type Track = 'setup' | 'local' | 'cli' | 'typescript' | 'python' | 'ci' | 'mcp'
 type Step = { title: string, explanation: string, code: string }
 type TrackInfo = {
   label: string, tagline: string, audience: string, prerequisites: string,
@@ -37,6 +37,21 @@ const tracks: Record<Track, TrackInfo> = {
       },
     ],
     expected: 'The local CLI is installed and passes real tests on bundled synthetic files. This does not connect to private code or wallets, execute a payment, or prove wallet integration.',
+  },
+  local: {
+    label: 'Local PCZT checks', tagline: 'Inspect your actual PCZT, explicitly',
+    audience: 'Wallet, Zcash app and protocol developers with real local PCZT stages',
+    prerequisites: 'An initialized Zerynex project, its installed Python wheel and Rust CLI; PCZT files inside that project that you explicitly select',
+    docs: '/docs/project-integration',
+    steps: [
+      {title: 'Choose a PCZT in your application', explanation: 'Zerynex never searches the workstation for PCZT files. Supply an existing local path inside your project, from a trusted private environment.',
+       code: 'zerynex-project check --project /path/to/my-zcash-app --pczt data/my-payment.pczt --cli /path/to/zerynex --json'},
+      {title: 'Compare an earlier and a later stage', explanation: 'Run the real Rust stage-comparison engine on two explicitly selected files to detect newly introduced policy findings. This is not a transaction-equivalence proof.',
+       code: 'zerynex-project compare --project /path/to/my-zcash-app --before data/before.pczt --after data/after.pczt --cli /path/to/zerynex --json'},
+      {title: 'Review the local-only result', explanation: 'Exit 0 means no findings for selected rules; exit 2 means policy findings/regressions; exit 1 indicates an invalid path, input or engine failure. No private PCZT data or source paths are printed.',
+       code: '# No background scan. No PCZT upload.\n# Check only files you explicitly selected.\n# Never upload real PCZT artifacts to public CI or agents.'},
+    ],
+    expected: 'An offline policy finding count and known rule IDs returned by the local Rust engine, with stage-regression classification when requested. No wallet operation, signing or consensus verification.',
   },
   cli: {
     label: 'Rust CLI', tagline: 'Analyze a PCZT stored on your machine',
@@ -160,7 +175,7 @@ const tracks: Record<Track, TrackInfo> = {
   },
 }
 
-const keys: Track[] = ['setup','cli','typescript','python','ci','mcp']
+const keys: Track[] = ['setup','local','cli','typescript','python','ci','mcp']
 
 export default function ProjectIntegration() {
   const [selected,setSelected] = useState<Track>('setup')
