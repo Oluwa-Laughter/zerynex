@@ -33,6 +33,8 @@ def main() -> None:
         print("Zerynex developer preflight:", "PASS" if report["passed"] else "FAIL")
         print("Synthetic PCZT suite:", report["checks"]["synthetic_pczt_suite"]["matched"], "/", report["checks"]["synthetic_pczt_suite"]["total"])
         print("Synthetic RPC contract:", "PASS" if report["checks"]["synthetic_rpc_contract"]["passed"] else "FAIL")
+        print("Synthetic refund privacy:", report["checks"]["synthetic_refund_privacy"]["matched"], "/",
+              report["checks"]["synthetic_refund_privacy"]["total"])
     raise SystemExit(0 if report["passed"] else 2)
 
 

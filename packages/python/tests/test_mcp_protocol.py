@@ -29,9 +29,27 @@ class McpProtocolTests(unittest.TestCase):
                 self.assertIn("deny_transparent", str(response))
                 tools = await client.list_tools()
                 discovered = {item.name for item in tools.tools}
-                self.assertEqual(len(discovered), 10)
+                self.assertEqual(len(discovered), 12)
                 self.assertIn("run_synthetic_smoke_suite", discovered)
                 self.assertIn("list_synthetic_fixtures", discovered)
+                self.assertIn("audit_synthetic_refund_privacy", discovered)
+                self.assertIn("compare_synthetic_refund_privacy", discovered)
+                refund_safe = await client.call_tool("audit_synthetic_refund_privacy", {"scenario": "isolated"})
+                self.assertIn('"passed": true', str(refund_safe))
+                refund_risky = await client.call_tool("audit_synthetic_refund_privacy", {"scenario": "risky"})
+                self.assertIn("SWAP-REFUND-ADDRESS-REUSE", str(refund_risky))
+                privacy_delta = await client.call_tool(
+                    "compare_synthetic_refund_privacy",
+                    {"baseline": "risky", "candidate": "regression-expanded"},
+                )
+                self.assertIn('"new_risk_events": 1', str(privacy_delta))
+                self.assertNotIn('"flow_ref":', str(privacy_delta))
+                refused = await client.call_tool(
+                    "audit_synthetic_refund_privacy", {"scenario": "../../wallet.json"}
+                )
+                self.assertIn("rejected", str(refused))
+                self.assertNotIn("wallet.json", str(refused))
+
                 listed = await client.call_tool("list_synthetic_fixtures", {})
                 self.assertIn("transparent-v6.bin", str(listed))
                 self.assertNotIn("scenario.json", str(listed))
@@ -56,6 +74,8 @@ class McpProtocolTests(unittest.TestCase):
                 ready = await client.call_tool("run_zerynex_developer_preflight", {})
                 self.assertIn('"passed": true', str(ready))
                 self.assertIn('"synthetic_only": true', str(ready))
+                self.assertIn('"synthetic_refund_privacy"', str(ready))
+                self.assertIn('"matched": 6', str(ready))
                 suite = await client.call_tool("run_synthetic_smoke_suite", {})
                 self.assertIn('"passed": true', str(suite))
                 self.assertIn('"matched": 4', str(suite))
@@ -107,7 +127,7 @@ class McpStdioSubprocessTests(unittest.TestCase):
             )
             async with Client(params, raise_exceptions=True, read_timeout_seconds=25) as client:
                 tools = await client.list_tools()
-                self.assertEqual(len(tools.tools), 10)
+                self.assertEqual(len(tools.tools), 12)
                 ready = await client.call_tool("run_zerynex_developer_preflight", {})
                 self.assertIn('"passed": true', str(ready))
                 regression = await client.call_tool("check_synthetic_zallet_rpc_contract", {"scenario": "missing_method"})
@@ -118,4 +138,10 @@ class McpStdioSubprocessTests(unittest.TestCase):
                 self.assertIn("rejected", str(bad))
                 discovery = await client.call_tool("list_synthetic_fixtures", {})
                 self.assertIn("clean-v6.bin", str(discovery))
+                swap = await client.call_tool("compare_synthetic_refund_privacy")
+                self.assertIn('"new_risk_events": 1', str(swap))
+                rejected_swap = await client.call_tool(
+                    "compare_synthetic_refund_privacy", {"baseline": "../../wallet.json"}
+                )
+                self.assertIn("rejected", str(rejected_swap))
         asyncio.run(check())

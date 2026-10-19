@@ -93,7 +93,8 @@ def check_wheel(folder: Path, cli: Path) -> None:
         ], capture_output=True, text=True, timeout=30, check=True)
         result = json.loads(completed.stdout)
         if (result.get("passed") is not True or result.get("synthetic_only") is not True or
-                result.get("checks", {}).get("synthetic_pczt_suite", {}).get("matched") != 4):
+                result.get("checks", {}).get("synthetic_pczt_suite", {}).get("matched") != 4 or
+                result.get("checks", {}).get("synthetic_refund_privacy", {}).get("matched") != 6):
             raise AssertionError("Installed developer preflight did not validate Rust-backed synthetic fixtures")
         project_cli = venv_dir / ("Scripts/zerynex-project.exe" if sys.platform == "win32" else "bin/zerynex-project")
         if not project_cli.is_file():
@@ -176,7 +177,18 @@ def check_wheel(folder: Path, cli: Path) -> None:
 
         print('PACKED LOCAL PCZT PASS: explicit external-project file analysis and stage regression')
 
-        print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT and RPC components")
+        # New MCP/refund workflow must remain bundled in a source-free wheel.
+        probe = (
+            "from zerynex_py.refund_workflows import "
+            "synthetic_refund_audit,synthetic_refund_regression,synthetic_refund_smoke_suite;"
+            "assert synthetic_refund_audit('isolated')['report']['passed'] is True;"
+            "assert synthetic_refund_audit('risky')['report']['finding_count']==5;"
+            "assert synthetic_refund_regression('risky','regression-expanded')['report']['new_risk_events']==1;"
+            "assert synthetic_refund_smoke_suite()['matched']==6"
+        )
+        subprocess.run([str(python), "-c", probe], check=True, capture_output=True, text=True, timeout=15)
+        print("PACKED SYNTHETIC REFUND AGENTS PASS: isolated bundle, scenarios and six preflight checks")
+        print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT, RPC and refund privacy")
 
 
 

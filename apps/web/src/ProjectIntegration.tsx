@@ -80,6 +80,11 @@ const tracks: Record<Track, TrackInfo> = {
         code: 'zerynex-refund-audit --baseline tests/refund/before.json --manifest tests/refund/after.json --sarif',
       },
       {
+        title: 'Validate synthetic agent integration',
+        explanation: 'The separately configured local MCP host exposes only pre-reviewed refund scenarios and runs six fixture expectations. It never reads actual wallet JSON or addresses.',
+        code: 'zerynex-agent-preflight --cli /path/to/zerynex --fixtures /path/to/approved-synthetic-pczt-fixtures --json',
+      },
+      {
         title: 'Independently verify wallet isolation',
         explanation: 'Review whether your wallet really creates separate viewing scopes and provides private refund lookups. A clean metadata report cannot prove either.',
         code: '# Exit 0: no declared issues\n# Exit 2: declared privacy risks\n# Exit 1: invalid metadata input',

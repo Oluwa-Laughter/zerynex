@@ -69,7 +69,7 @@ Run a real local stdio MCP diagnostic before connecting an AI assistant:
 
     zerynex-mcp-doctor --server /abs/path/to/zerynex-mcp --cli /abs/path/to/zerynex --fixtures /abs/path/to/synthetic-fixtures
 
-It discovers ten tools, checks four Rust-backed synthetic expectations, and verifies the unified developer preflight and an expected RPC regression.
+It discovers twelve tools, checks four Rust-backed synthetic PCZT expectations, and verifies the unified developer preflight, bundled refund scenarios, and an expected RPC regression.
 Exit 0 means all matched, 1 means setup failed, 2 means a test mismatched.
 The public /agents frontend also generates client-specific configuration
 for common MCP hosts; it does not execute the MCP process in-browser.
@@ -231,3 +231,18 @@ Use `zerynex-refund-audit --baseline /path/to/before.json --manifest /path/to/af
 
 
 The packaged refund-audit SDK also exports `audit_manifest`, `compare_manifests`, `sarif_report` and `RefundAuditInputError`. Add `--sarif` instead of `--json` when integrating with SARIF-capable tooling. The exported SARIF contains no source locations or opaque references and only covers **declared** risk categories.
+
+
+## Refund privacy checks for local MCP agents
+
+The optional read-only MCP server exposes
+`audit_synthetic_refund_privacy(scenario)` and
+`compare_synthetic_refund_privacy(baseline, candidate)`. Only the three
+bundled scenario names `isolated`, `risky` and `regression-expanded`
+are accepted; arbitrary paths and JSON are denied. The packaged
+`zerynex-agent-preflight` verifies six offline, synthetic refund-privacy
+expectations and the MCP doctor checks these tools via a real stdio host.
+Agents never receive viewing keys, wallet data, refund addresses or flow
+identifiers, and a passing synthetic declaration is **not** a post-quantum
+privacy certification. For actual application-owned, public-safe metadata
+use the standalone `zerynex-refund-audit` CLI in a trusted environment.

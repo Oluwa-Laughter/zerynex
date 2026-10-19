@@ -52,3 +52,22 @@ The wheel also installs `zerynex-rpc-check` for offline schema drift, `zerynex-a
 See [MCP and agents](agents.md), [RPC compatibility](rpc-contracts.md), and [Report reference](report-reference.md).
 
 For real Zcash infrastructure integrations, see [Node readiness](node-readiness.md) and [Zcash application recipes](zcash-app-recipes.md).
+
+## Offline synthetic refund privacy for agent-safe workflows
+
+The installed Python wheel includes three fixed, nonspendable manifest
+scenarios and the read-only helpers
+`synthetic_refund_audit(scenario)`,
+`synthetic_refund_regression(baseline, candidate)` and
+`synthetic_refund_smoke_suite()` in
+`zerynex_py.refund_workflows`. Only `isolated`, `risky` and
+`regression-expanded` scenario names are accepted; no arbitrary
+files, wallet keys or real address data are read.
+
+The wheel's `zerynex-agent-preflight` checks six expected refund
+cases in addition to Rust PCZT and synthetic RPC diagnostics.
+`zerynex-mcp` offers `audit_synthetic_refund_privacy` and
+`compare_synthetic_refund_privacy` for explicitly configured
+local stdio hosts. No MCP tools can operate on private or external
+refund metadata; use the [local refund auditor](refund-privacy-audit.md)
+in your trusted application instead.

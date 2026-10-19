@@ -29,7 +29,8 @@ prove network anonymity, consensus validity, or signing safety.
 ## Workflow
 
 1. Identify the risk: signer disclosure, proprietary metadata,
-   shielded-only workflow, Sapling restriction, or restrictive handoff.
+   shielded-only workflow, Sapling restriction, restrictive handoff,
+   or swap-refund metadata linkability (synthetic cases only).
 2. Consult references/policies.md for available checks.
 3. Analyze an approved synthetic fixture through MCP or local Rust CLI.
 4. Report policy findings with field paths, NEVER raw transaction values.
@@ -48,13 +49,15 @@ The read-only local server exposes analyze_synthetic_pczt,
 compare_synthetic_pczt_stages, list_synthetic_fixtures,
 explain_zerynex_rule, run_synthetic_smoke_suite,
 zerynex_policy_schema, zerynex_core_capabilities,
-check_synthetic_zallet_rpc_contract, run_zerynex_developer_preflight, and
-zerynex_rule_catalog. The tools use the canonical Rust CLI.
+check_synthetic_zallet_rpc_contract, run_zerynex_developer_preflight,
+zerynex_rule_catalog, audit_synthetic_refund_privacy, and
+compare_synthetic_refund_privacy. The tools use the canonical Rust CLI.
 
 Before enabling a host, run zerynex-mcp-doctor with explicit --server,
 --cli and --fixtures paths to verify a genuine stdio connection and
 4/4 expected synthetic PCZT results, CLI capabilities, and a deliberate
-RPC contract regression. No hosted MCP connection exists.
+RPC contract regression, and six synthetic refund metadata checks.
+No hosted MCP connection exists.
 See docs/agents.md for opt-in setup.
 ZERYNEX_AGENT_ALLOWED_ROOT should designate synthetic fixtures only.
 
@@ -82,8 +85,8 @@ Separate policy findings from proven vulnerabilities and untested hypotheses.
    stop rather than advising based on stale definitions.
 2. Invoke zerynex_core_capabilities; report supported local operations and
    input limits. This metadata is not permission to open wallet files.
-3. Invoke run_zerynex_developer_preflight; report which of the three
-   synthetic-only checks passed, without confusing fixture expectations
+3. Invoke run_zerynex_developer_preflight; report which of the four
+   synthetic-only check families passed, without confusing fixture expectations
    with actual transaction safety.
 4. Invoke check_synthetic_zallet_rpc_contract with scenario
    new_required_parameter and explain the RPC-NEW-REQUIRED-PARAMETER finding
@@ -93,3 +96,17 @@ Separate policy findings from proven vulnerabilities and untested hypotheses.
    standalone zerynex-rpc-check themselves for pinned upstream schemas.
 6. If any check fails, report the failure instead of fabricating successful
    compatibility or security certification.
+
+## Refund privacy scenarios
+
+Use audit_synthetic_refund_privacy with only isolated, risky, or
+regression-expanded; and compare_synthetic_refund_privacy with two of
+those exact scenario names. This is a six-case synthetic regression
+exercise in the installed Python wheel, NOT a connection to wallet or
+swap data. The result may warn about viewing-scope reuse, public
+refund identifiers, lookup disclosure, or custody uncertainty, but
+does not prove real key isolation, PIR, or post-quantum protection.
+Never accept keys, Zcash addresses, account data, arbitrary JSON,
+filesystem paths or wallet RPC connections via agent tools. Real
+app-owned non-secret metadata must be audited locally by its developer
+using zerynex-refund-audit, outside the agent context.

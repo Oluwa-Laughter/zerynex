@@ -43,6 +43,8 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
             "zerynex_rule_catalog",
             "check_synthetic_zallet_rpc_contract",
             "run_zerynex_developer_preflight",
+            "audit_synthetic_refund_privacy",
+            "compare_synthetic_refund_privacy",
         }
         if not needed.issubset(names):
             raise RuntimeError("Local server does not expose all expected MCP capabilities.")
@@ -82,6 +84,21 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
             drift = json.loads(blocks[0].text) if len(blocks) == 1 else None
         if not isinstance(drift, dict):
             raise RuntimeError("Invalid regression response.")
+        safe_case = await agent.call_tool("audit_synthetic_refund_privacy", {"scenario": "isolated"})
+        unsafe_case = await agent.call_tool("audit_synthetic_refund_privacy", {"scenario": "risky"})
+        delta = await agent.call_tool("compare_synthetic_refund_privacy",
+                                      {"baseline": "risky", "candidate": "regression-expanded"})
+        def content_data(value):
+            data = value.structured_content
+            if not isinstance(data, dict):
+                from mcp.types import TextContent
+                blocks = [item for item in value.content if isinstance(item, TextContent)]
+                data = json.loads(blocks[0].text) if len(blocks) == 1 else None
+            return data if isinstance(data, dict) else {}
+        refund_ready = (content_data(safe_case).get("report", {}).get("passed") is True
+                        and content_data(unsafe_case).get("report", {}).get("finding_count") == 5
+                        and content_data(delta).get("report", {}).get("new_risk_events") == 1
+                        and preflight.get("checks", {}).get("synthetic_refund_privacy", {}).get("matched") == 6)
         ready = preflight.get("passed") is True and preflight.get("synthetic_only") is True
         negative = (drift.get("contract_passed") is False and drift.get("matched_expectation") is True
                     and drift.get("finding_count") == 1)
@@ -94,6 +111,7 @@ async def check(server: Path, cli: Path, fixtures: Path) -> dict[str, object]:
             "suite_total": result.get("total", 4),
             "preflight_passed": ready,
             "rpc_regression_detected": negative,
+            "refund_privacy_verified": refund_ready,
             "note": "MCP stdio subprocess and real Rust CLI. Synthetic inputs only.",
         }
 
@@ -125,8 +143,9 @@ def main() -> None:
         print("Synthetic Rust checks:", str(report["suite_matched"]) + "/" + str(report["suite_total"]))
         print("Developer preflight:", "PASS" if report["preflight_passed"] else "FAIL")
         print("Synthetic RPC drift detected:", "YES" if report["rpc_regression_detected"] else "NO")
-        print("Result:", "PASS" if report["suite_passed"] and report["preflight_passed"] and report["rpc_regression_detected"] else "FAIL")
-    raise SystemExit(0 if report["suite_passed"] and report["preflight_passed"] and report["rpc_regression_detected"] else 2)
+        print("Synthetic refund privacy:", "PASS" if report["refund_privacy_verified"] else "FAIL")
+        print("Result:", "PASS" if report["suite_passed"] and report["preflight_passed"] and report["rpc_regression_detected"] and report["refund_privacy_verified"] else "FAIL")
+    raise SystemExit(0 if report["suite_passed"] and report["preflight_passed"] and report["rpc_regression_detected"] and report["refund_privacy_verified"] else 2)
 
 
 if __name__ == "__main__":

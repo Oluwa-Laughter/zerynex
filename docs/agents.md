@@ -3,7 +3,7 @@
 Zerynex supplies a portable Agent Skill and an optional local MCP server
 for Zcash privacy engineering. Agents work with sanitized policy findings,
 never raw intermediate transactions. The current implementation uses a real
-MCP 2.x stdio server with the canonical Rust CLI and **ten verified tools**.
+MCP 2.x stdio server with the canonical Rust CLI and **twelve verified tools**.
 
 You can start at [the Agent Tools page](/agents): choose Cursor, Claude
 Desktop or VS Code, enter three local absolute paths, and copy the
@@ -42,7 +42,7 @@ diagnostic:
 
     /absolute/path/to/zerynex/.venv/bin/zerynex-mcp-doctor       --server /absolute/path/to/zerynex/.venv/bin/zerynex-mcp       --cli /absolute/path/to/zerynex/target/release/zerynex       --fixtures /absolute/path/to/zerynex/apps/web/public/examples
 
-It launches an independent stdio MCP server process, discovers all ten
+It launches an independent stdio MCP server process, discovers all twelve
 tools, executes three real Rust scans plus a stage comparison against
 approved synthetic fixtures, and reports how many of four expectations
 matched. Exit 0 = connected and all expectations matched; 1 = connection/
@@ -81,11 +81,38 @@ is missing, its case fails closed.
 zerynex_policy_schema returns documentation about the currently supported
 rules, with no file access.
 
+## Synthetic refund privacy scenarios for agents
+
+Two additional read-only MCP tools expose Zerynex's **metadata-only refund
+privacy analysis** without granting an agent access to your application data:
+
+- `audit_synthetic_refund_privacy(scenario)` accepts only `isolated`,
+  `risky`, or `regression-expanded`. It returns the reviewed manifest's
+  sanitized declared findings; no refund addresses, viewing keys, flow
+  references, raw JSON, or filenames are returned.
+- `compare_synthetic_refund_privacy(baseline, candidate)` accepts only
+  those three fixed scenario names. It reports new/resolved *per-flow*
+  declaration risks by rule ID and count, never flow identities.
+
+The six expected fixture results (three audits, three comparisons) are
+also part of the installable `zerynex-agent-preflight` command and the
+independent MCP doctor. The reviewed nonspendable metadata JSON is
+**bundled in the installed Python wheel** and compared byte-for-byte
+against canonical repository fixtures in CI. These tools do *not* enable
+arbitrary JSON reads or remote wallets; for actual local metadata use
+`zerynex-refund-audit` yourself outside the agent host. See
+[Refund privacy exposure audits](refund-privacy-audit.md).
+
+**Important:** A pass only shows expected behavior on synthetic declarations;
+it does not prove viewing-key separation, private refund discovery,
+post-quantum cryptography, or user transaction privacy.
+
 ## Unified developer preflight and offline RPC regressions
 
 The installed Python wheel also ships `zerynex-agent-preflight`, which joins
 **Rust CLI capability discovery**, four real Rust-backed synthetic PCZT checks,
-and a bundled **seven-method synthetic Zallet OpenRPC contract** into one
+a bundled **seven-method synthetic Zallet OpenRPC contract**, and six
+synthetic refund-risk scenarios into one
 sanitized result. This is usable from CI without an MCP host or network
 service:
 
@@ -100,7 +127,7 @@ Exit status: `0` all checks matched; `2` a synthetic check failed; `1`
 configuration or execution error. The check does **not** prove compatibility
 with any Zallet release or confirm real wallet transaction safety.
 
-Four additional read-only MCP tools expose reviewed registry metadata and the same verified components:
+Four other read-only MCP tools expose reviewed registry metadata and the same verified components:
 
 - `zerynex_rule_catalog`: validates the live local Rust rule registry against the bundled Python metadata and returns only public IDs, descriptions, severity and scope; mismatched versions fail closed
 - `zerynex_core_capabilities`: validated Rust CLI operations and limits,
@@ -120,7 +147,7 @@ schemas should run the standalone `zerynex-rpc-check` **themselves** on
 protected local files, rather than sending the schema to an agent.
 
 The MCP doctor verifies these tools against a genuine stdio subprocess,
-including one negative RPC regression. See the [RPC contract guide](rpc-contracts.md)
+including one negative RPC regression and the bundled refund-risk delta. See the [RPC contract guide](rpc-contracts.md)
 and [CLI capability contract](cli-capabilities.md).
 
 Use a dedicated synthetic-fixture directory and keep actual wallet files,

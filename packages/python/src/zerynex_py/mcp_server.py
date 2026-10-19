@@ -307,8 +307,29 @@ def create_server(client: ZerynexClient, root: Path):
             return {"error": "Synthetic RPC regression scenario was rejected."}
 
     @server.tool()
+    def audit_synthetic_refund_privacy(scenario: str = "isolated") -> dict:
+        """Audit reviewed metadata-only swap refund scenarios: isolated, risky, regression-expanded. No external paths, addresses or viewing keys."""
+        from .refund_workflows import synthetic_refund_audit
+        try:
+            return synthetic_refund_audit(scenario)
+        except ZerynexError:
+            return {"error": "Synthetic refund privacy scenario was rejected or unavailable."}
+
+    @server.tool()
+    def compare_synthetic_refund_privacy(
+        baseline: str = "risky",
+        candidate: str = "regression-expanded",
+    ) -> dict:
+        """Compare two bundled refund configurations and return only sanitized per-flow risk counts and rule IDs. No secret data."""
+        from .refund_workflows import synthetic_refund_regression
+        try:
+            return synthetic_refund_regression(baseline, candidate)
+        except ZerynexError:
+            return {"error": "Synthetic refund privacy regression was rejected or unavailable."}
+
+    @server.tool()
     def run_zerynex_developer_preflight() -> dict:
-        """Verify local CLI capabilities, four Rust synthetic PCZT checks and bundled synthetic RPC contract. No wallet access."""
+        """Verify local Rust/PCZT checks, bundled RPC contract and six offline synthetic refund-privacy scenarios. No wallet access."""
         from .agent_workflows import developer_preflight
         try:
             return developer_preflight(client, root)

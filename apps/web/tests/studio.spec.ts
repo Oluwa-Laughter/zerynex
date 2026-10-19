@@ -782,6 +782,7 @@ test('project onboarding switches between real CLI, SDK, CI and MCP instructions
   await expect(page.getByText('zerynex-project compare',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/Refund privacy audit/}).click()
   await expect(page.getByText('zerynex-refund-audit',{exact:false}).first()).toBeVisible()
+  await expect(page.getByText('zerynex-agent-preflight',{exact:false})).toBeVisible()
   await expect(page.getByText('--baseline tests/refund/before.json',{exact:false}).first()).toBeVisible()
   await expect(page.getByText('--sarif',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/Rust CLI/}).click()

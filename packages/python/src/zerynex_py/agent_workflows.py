@@ -105,16 +105,21 @@ def developer_preflight(client: ZerynexClient, root: Path) -> dict[str, object]:
     caps = core_capabilities(client)
     suite = evaluate_synthetic_smoke_suite(client, root)
     rpc = synthetic_zallet_rpc_contract("baseline")
+    from .refund_workflows import synthetic_refund_smoke_suite
+    refund = synthetic_refund_smoke_suite()
     rust_ready = ("analyze_pczt" in caps["operations"] and
                   "compare_pczt_stages" in caps["operations"])
-    passed = rust_ready and suite["passed"] is True and rpc["matched_expectation"] is True
+    passed = (rust_ready and suite["passed"] is True and rpc["matched_expectation"] is True
+              and refund["passed"] is True)
     return {
         "passed": passed,
         "checks": {
             "rust_capabilities": {"passed": rust_ready, "version": caps["cli_version"]},
             "synthetic_pczt_suite": {"passed": suite["passed"], "matched": suite["matched"], "total": suite["total"]},
             "synthetic_rpc_contract": {"passed": rpc["matched_expectation"], "checked_methods": rpc["checked_methods"]},
+            "synthetic_refund_privacy": {"passed": refund["passed"], "matched": refund["matched"],
+                                          "total": refund["total"]},
         },
         "synthetic_only": True,
-        "limitation": "Developer tooling smoke test only. No live wallet, private PCZT, signing, consensus or proof guarantees.",
+        "limitation": "Developer tooling smoke test only. Refund privacy checks are declarations; no wallet, viewing keys, private PCZT, signing, quantum resistance, consensus or proof guarantees.",
     }

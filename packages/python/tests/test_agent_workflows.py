@@ -23,6 +23,13 @@ class AgentWorkflowContracts(unittest.TestCase):
             self.assertEqual(packaged, source)
             self.assertLess(len(packaged), 64 * 1024)
 
+    def test_bundled_synthetic_refund_metadata_matches_canonical_vectors(self):
+        from importlib.resources import files
+        for name in ("isolated", "risky", "regression-expanded"):
+            packaged = files("zerynex_py").joinpath("fixtures", "refund-" + name + ".json").read_bytes()
+            source = (ROOT / "tests/fixtures/swap-refund" / (name + ".json")).read_bytes()
+            self.assertEqual(packaged, source)
+
     def test_synthetic_rpc_expected_passes_and_regressions(self):
         for scenario in SCENARIOS:
             with self.subTest(scenario=scenario):
@@ -55,11 +62,24 @@ class AgentWorkflowContracts(unittest.TestCase):
         self.assertTrue(healthy["passed"])
         self.assertEqual(healthy["checks"]["synthetic_pczt_suite"]["matched"], 4)
         self.assertEqual(healthy["checks"]["synthetic_rpc_contract"]["checked_methods"], 7)
+        self.assertEqual(healthy["checks"]["synthetic_refund_privacy"]["matched"], 6)
+        self.assertEqual(healthy["checks"]["synthetic_refund_privacy"]["total"], 6)
         with tempfile.TemporaryDirectory() as temp:
             missing = developer_preflight(client, Path(temp))
         self.assertFalse(missing["passed"])
         self.assertFalse(missing["checks"]["synthetic_pczt_suite"]["passed"])
         self.assertNotIn(temp, json.dumps(missing))
+
+    def test_failed_refund_smoke_suite_does_not_fake_preflight_success(self):
+        from unittest.mock import patch
+        cli = ROOT / "target/debug/zerynex"
+        if not cli.is_file():
+            self.skipTest("Trusted Rust binary required")
+        with patch("zerynex_py.refund_workflows.synthetic_refund_smoke_suite",
+                   return_value={"passed": False, "matched": 5, "total": 6}):
+            report = developer_preflight(ZerynexClient(cli=cli), ROOT / "apps/web/public/examples")
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["checks"]["synthetic_refund_privacy"]["matched"], 5)
 
     def test_installed_style_preflight_cli_exit_contract(self):
         cli = ROOT / "target/debug/zerynex"

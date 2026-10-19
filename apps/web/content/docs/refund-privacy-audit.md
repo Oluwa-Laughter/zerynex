@@ -124,6 +124,18 @@ sarif = sarif_report(report)
 
 Those functions do not perform network calls or read files. The CLI is preferred for strict duplicate-key, symlink and file-size checks of **untrusted JSON file inputs**.
 
+## Optional synthetic MCP / agent workflow
+
+The separately installed [local MCP server](agents.md) exposes the fixed
+`audit_synthetic_refund_privacy` and
+`compare_synthetic_refund_privacy` tools. They support only the bundled
+`isolated`, `risky`, and `regression-expanded` scenarios; the server
+never accepts wallet data, manifest paths, arbitrary JSON, viewing keys
+or receiver addresses from an agent. The developer preflight checks
+six expected refund scenarios without any network connection. Real,
+application-declared metadata belongs in a **trusted local CLI process**,
+not an agent prompt.
+
 ## What application engineers should implement independently
 
 Review whether public refund addresses are reused and whether the underlying incoming viewing key is isolated **per exposed flow**, rather than relying only on visually different receiver strings. Consider how wallet restore and refund lookup may disclose address grouping; a `private_claimed` flag alone is not evidence that private information retrieval works. Keep spending authority within the actual end-user wallet unless the user explicitly authorizes a separate custody design.
