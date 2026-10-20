@@ -1,0 +1,14 @@
+{
+  "name": "zcash-app-zerynex-node-example",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Offline, non-secret Zcash integration metadata regression checks",
+  "scripts": {
+    "check:isolated": "node check.mjs ../fixtures/risky.json ../fixtures/isolated.json",
+    "check:regression": "node check.mjs ../fixtures/isolated.json ../fixtures/risky.json"
+  },
+  "dependencies": {
+    "@zerynex/sdk": "0.2.0"
+  }
+}

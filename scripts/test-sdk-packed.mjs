@@ -62,6 +62,28 @@ try {
   if(rejected.status!==1||/NEVER_LOG|invalid-duplicate.json/.test(rejected.stderr+rejected.stdout))
     throw new Error('Packed Node CLI leaked or accepted duplicate metadata keys')
   console.log('PACKED REFUND CLI PASS: installed Node entry point, raw JSON safety, SARIF and exit statuses')
+  // The public third-party Node example must work against the installed
+  // archive, not against SDK source/monorepo aliases.
+  const externalStarter=join(repo,'examples/consumer-integration')
+  const standaloneScript=join(app,'zerynex-starter.mjs')
+  await copyFile(join(externalStarter,'node/check.mjs'),standaloneScript)
+  const starterRun=(oldName,newName,format='json')=>spawnSync(process.execPath,
+    [standaloneScript,join(app,'refund-'+oldName+'.json'),join(app,'refund-'+newName+'.json'),format],
+    {cwd:app,encoding:'utf8',timeout:15_000})
+  const introduced=starterRun('isolated','risky')
+  if(introduced.status!==2||JSON.parse(introduced.stdout).newRiskEvents!==8)
+    throw new Error('Independent Node starter missed newly declared privacy risks')
+  const resolved=starterRun('risky','isolated')
+  if(resolved.status!==0||JSON.parse(resolved.stdout).resolvedRiskEvents!==8)
+    throw new Error('Independent Node starter misclassified resolved risks')
+  const starterSarif=starterRun('risky','regression-expanded','sarif')
+  if(starterSarif.status!==2||JSON.parse(starterSarif.stdout).runs[0].results.length!==1)
+    throw new Error('Independent Node starter SARIF output did not match the SDK')
+  for(const result of [introduced,resolved,starterSarif])
+    if(/11111111111111111111111111111111|22222222222222222222222222222222|refund_address_ref/.test(result.stdout+result.stderr))
+      throw new Error('Independent Node starter revealed example flow references')
+  console.log('PACKED NODE STARTER PASS: independent application install, regressions and sanitized SARIF')
+
 
   console.log('Package installed exclusively from local tarball:', packages[0])
   console.log('Package size in bytes:', (await readFile(archive)).byteLength)

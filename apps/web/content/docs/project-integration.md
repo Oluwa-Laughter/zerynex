@@ -219,3 +219,15 @@ review gates. They are **not** transaction equivalence, privacy,
 cryptographic proof, signing, settlement or Zcash consensus verification.
 Never place real intermediate PCZTs in public CI, shared agent prompts or
 repository history. The generated GitHub Action remains synthetic-only.
+
+## Ready-to-copy independent consumer starter
+
+For a concrete external application rather than a monorepo test harness, use
+[the Node.js, Python and GitHub Action starter](https://github.com/Oluwa-Laughter/zerynex/tree/main/examples/consumer-integration).
+It includes safe synthetic refund metadata, language-native checks and a GitHub
+Action **pinned to a reviewed full commit SHA**, not a floating branch.
+CI executes the sample Node and Python scripts against the *actual packed*
+SDK tarball and isolated wheel, including expected negative exit codes and
+sanitized SARIF. No wallet, private PCZT, real refund address or network node
+is necessary for these checks. Registry-specific installation commands are
+applicable **only after** the corresponding versions are publicly published.

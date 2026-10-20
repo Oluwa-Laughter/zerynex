@@ -29,6 +29,7 @@ jobs:
           python3 -m unittest discover -s tests -p test_registry_release.py
           python3 -m unittest discover -s tests -p test_registry_asset_digests.py
           python3 -m unittest discover -s tests -p test_registry_publish_workflow.py
+          python3 -m unittest discover -s tests -p test_consumer_starter.py -v
       - name: Verify public rule registry and both SDK snapshots
         run: |
           python3 scripts/sync-rule-catalog.py --check

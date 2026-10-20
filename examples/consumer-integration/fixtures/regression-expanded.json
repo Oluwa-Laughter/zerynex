@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "flows": [
+    {
+      "flow_ref": "11111111111111111111111111111111",
+      "refund_address_ref": "22222222222222222222222222222222",
+      "viewing_scope_ref": "33333333333333333333333333333333",
+      "published_publicly": true,
+      "lookup_mode": "private_claimed",
+      "spending_key_custody": "wallet_claimed"
+    },
+    {
+      "flow_ref": "44444444444444444444444444444444",
+      "refund_address_ref": "22222222222222222222222222222222",
+      "viewing_scope_ref": "33333333333333333333333333333333",
+      "published_publicly": true,
+      "lookup_mode": "direct",
+      "spending_key_custody": "external"
+    },
+    {
+      "flow_ref": "77777777777777777777777777777777",
+      "refund_address_ref": "88888888888888888888888888888888",
+      "viewing_scope_ref": "99999999999999999999999999999999",
+      "published_publicly": false,
+      "lookup_mode": "direct",
+      "spending_key_custody": "wallet_claimed"
+    }
+  ]
+}

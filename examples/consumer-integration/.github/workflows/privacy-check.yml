@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Replace main with a reviewed immutable commit SHA before production use.
+      # Reviewed immutable commit. Upgrade only after auditing the new revision.
       - name: Check synthetic PCZT
         id: privacy
-        uses: Oluwa-Laughter/zerynex@main
+        uses: Oluwa-Laughter/zerynex@0fd7fc6eb8227fa3a91c188b422dc87ddaa77dff
         with:
           pczt-path: tests/fixtures/clean-v6.bin
           policy-path: policies/zerynex.json

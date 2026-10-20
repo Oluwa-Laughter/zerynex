@@ -189,6 +189,33 @@ def check_wheel(folder: Path, cli: Path) -> None:
         subprocess.run([str(python), "-c", probe], check=True, capture_output=True, text=True, timeout=15)
         print("PACKED SYNTHETIC REFUND AGENTS PASS: isolated bundle, scenarios and six preflight checks")
         print("PACKED AGENT PREFLIGHT PASS: installed wheel validates CLI, PCZT, RPC and refund privacy")
+        # The public Python starter is executed by an unrelated installed
+        # virtual environment; no monorepo PYTHONPATH or editable package.
+        starter = ROOT / "examples/consumer-integration/python/check.py"
+        examples = ROOT / "examples/consumer-integration/fixtures"
+        env = dict(__import__("os").environ)
+        env.pop("PYTHONPATH", None)
+        def starter_run(before: str, after: str, *flags: str):
+            return subprocess.run([str(python), str(starter),
+                str(examples / (before + ".json")),
+                str(examples / (after + ".json")), *flags],
+                cwd=directory, env=env, capture_output=True, text=True, timeout=15)
+        introduced = starter_run("isolated", "risky")
+        if introduced.returncode != 2 or json.loads(introduced.stdout)["newRiskEvents"] != 8:
+            raise AssertionError("Independent Python starter missed declared regressions")
+        resolved = starter_run("risky", "isolated")
+        if resolved.returncode != 0 or json.loads(resolved.stdout)["resolvedRiskEvents"] != 8:
+            raise AssertionError("Independent Python starter did not classify resolved risks")
+        sarif = starter_run("risky", "regression-expanded", "--sarif")
+        if sarif.returncode != 2 or len(json.loads(sarif.stdout)["runs"][0]["results"]) != 1:
+            raise AssertionError("Independent Python starter did not export sanitized SARIF")
+        for result in (introduced, resolved, sarif):
+            if any(token in result.stdout + result.stderr for token in (
+                    "11111111111111111111111111111111",
+                    "22222222222222222222222222222222", "refund_address_ref")):
+                raise AssertionError("Independent Python starter exposed flow references")
+        print("PACKED PYTHON STARTER PASS: independent wheel, regressions and SARIF")
+
 
 
 

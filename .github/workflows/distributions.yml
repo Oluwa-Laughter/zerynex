@@ -11,6 +11,7 @@ on:
       - 'src/**'
       - 'packages/sdk/**'
       - 'packages/python/**'
+      - 'examples/consumer-integration/**'
       - 'scripts/package-cli.py'
       - 'scripts/test-cli-package.py'
       - 'scripts/test-sdk-packed.mjs'

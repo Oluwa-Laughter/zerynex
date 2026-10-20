@@ -1,0 +1,3 @@
+# Use this after publishing v0.2.0 to PyPI.
+# Until then, install the verified GitHub Release wheel, not the registry.
+zerynex-python==0.2.0
