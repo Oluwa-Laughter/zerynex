@@ -79,6 +79,16 @@ try {
   const starterSarif=starterRun('risky','regression-expanded','sarif')
   if(starterSarif.status!==2||JSON.parse(starterSarif.stdout).runs[0].results.length!==1)
     throw new Error('Independent Node starter SARIF output did not match the SDK')
+  // Consumer errors must be sanitized as carefully as the packaged CLI.
+  const invalidStarterPath=join(app,'invalid-private-ref.json')
+  await writeFile(invalidStarterPath,'{\"schema_version\":1,\"schema_version\":1,\"private\":\"NEVER_LOG_CONSUMER_SECRET\"}')
+  const missingStarterPath=join(app,'missing-private-ref.json')
+  for(const badPath of [invalidStarterPath,missingStarterPath]) {
+    const failed=spawnSync(process.execPath,[standaloneScript,
+      join(app,'refund-isolated.json'),badPath],{cwd:app,encoding:'utf8',timeout:15_000})
+    if(failed.status!==1||/NEVER_LOG_CONSUMER_SECRET|invalid-private-ref|missing-private-ref|schema_version/.test(failed.stdout+failed.stderr))
+      throw new Error('Independent Node starter did not fail closed with sanitized diagnostics')
+  }
   for(const result of [introduced,resolved,starterSarif])
     if(/11111111111111111111111111111111|22222222222222222222222222222222|refund_address_ref/.test(result.stdout+result.stderr))
       throw new Error('Independent Node starter revealed example flow references')
