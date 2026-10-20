@@ -108,6 +108,8 @@ jobs:
       - name: Install frontend dependencies
         working-directory: apps/web
         run: pnpm install --frozen-lockfile
+      - name: Verify public deployment smoke contract offline
+        run: node --test scripts/test-public-web-smoke.mjs
       - name: Enforce Vercel source-level SDK import boundary
         run: node scripts/check-web-sdk-source.mjs
       - name: Build Next.js

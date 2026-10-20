@@ -77,6 +77,32 @@ Never use private PCZT contents, wallet addresses, spending keys, credentials
 or other confidential transaction intermediates in public test fixtures.
 Browser workbench inputs are handled locally by the downloaded WASM engine.
 
+## Reproducible post-deployment smoke
+
+After Vercel reaches READY, verify that public routes deliver HTML and the
+actual WASM binary with the correct MIME type. This uses **GET requests only**
+and never sends or loads private PCZT data:
+
+```bash
+node scripts/smoke-public-web.mjs https://zerynex.vercel.app
+```
+
+The checker covers the homepage, documentation, quickstart, verification
+guide, PCZT and refund workbenches, and checks that the WASM file starts with
+the binary WebAssembly header and is served as `application/wasm`. For a Vercel
+preview, provide its HTTPS `.vercel.app` origin; loopback URLs are also accepted
+for local testing. The source-gate and smoke-check tests run offline in CI:
+
+```bash
+node scripts/check-web-sdk-source.mjs
+node --test scripts/test-public-web-smoke.mjs
+```
+
+A successful HTTP smoke is **not** evidence that the browser actually runs
+WASM, analyzes transactions, or interoperates with a live wallet. Use
+Playwright for in-browser analysis and version-pinned upstream tests for
+network interoperability.
+
 ## Limitations
 
 Public hosting is **not** proof of live Zallet RPC, Zebra consensus, Zaino
