@@ -50,7 +50,7 @@ Select a file from your application's own input. Ensure the bundler can serve th
 | `evaluateZcashTransaction(txResult, chainResult, policy)` | Check trusted RPC confirmations against network, identity and chain tip, returning a sanitized result |
 | `createZcashTransactionObserver(policy)` | Compare consecutive local snapshots for possible reorganization warnings |
 | `evaluateZcashNodeStatus(result, options?)` | Pure, read-only normalization of Zcash `getblockchaininfo` chain readiness |
-| `parsePolicyJson(json)` | Import a strict JSON policy, at most 4 KiB |
+| `parsePolicyJson(json)` | Import a strict JSON policy, at most 4 KiB; rejects repeated keys, including Unicode-escaped aliases |
 | `exportPolicyJson(policy?)` | Serialize a normalized policy |
 
 The SDK rejects oversized/empty input, invalid engine output and malformed reports. The maximum PCZT size is **8 MiB**; an application may set a smaller `maxInputBytes`.

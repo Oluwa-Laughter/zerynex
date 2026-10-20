@@ -1,4 +1,5 @@
 export {parseRefundPrivacyJson,auditRefundPrivacyJson,compareRefundPrivacyJson} from './refund-json.js'
+import { parseStrictJson } from './strict-json.js'
 export { auditRefundPrivacy, compareRefundPrivacy, refundSarifReport, REFUND_RULE_IDS } from './refund-privacy.js'
 export type { RefundManifest, RefundFlow, RefundAuditReport, RefundRegressionReport, RefundRuleId, RefundLookupMode, RefundCustody } from './refund-privacy.js'
 export { evaluateZcashTransaction, createZcashTransactionObserver } from './transaction.js'
@@ -135,9 +136,9 @@ export function parsePolicyJson(contents: string): Policy {
   }
   let parsed: unknown
   try {
-    parsed = JSON.parse(contents)
+    parsed = parseStrictJson(contents, 4096)
   } catch {
-    throw new ZerynexSdkError('POLICY_INVALID', 'Policy file is not valid JSON.')
+    throw new ZerynexSdkError('POLICY_INVALID', 'Policy file is not valid JSON or contains duplicate keys.')
   }
   if (!isRecord(parsed)) {
     throw new ZerynexSdkError('POLICY_INVALID', 'Policy file must contain a JSON object.')

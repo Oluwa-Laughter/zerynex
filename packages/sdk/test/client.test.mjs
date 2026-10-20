@@ -114,6 +114,21 @@ test('SDK validates loader contract and input limits', () => {
     err => err.code === 'INPUT_INVALID')
 })
 
+test('imported policies reject duplicate keys, including Unicode aliases that disable restrictions', () => {
+  const hostile = [
+    '{"deny_transparent":true,"deny_transparent":false}',
+    '{"deny_transparent":true,"\\u0064eny_transparent":false}',
+    '{"profile":"restricted_handoff","profile":"external_signer"}',
+    '{"deny_sapling":true,"deny_sapling":false}',
+    '{"deny_transparent":true,"extra":{"x":1,"x":2}}',
+  ]
+  for (const json of hostile) {
+    assert.throws(() => parsePolicyJson(json), err => err.code === 'POLICY_INVALID' &&
+      !err.message.includes(json))
+  }
+  assert.equal(parsePolicyJson('{"deny_transparent":true}').deny_transparent, true)
+})
+
 test('imports strict JSON policy files without silently ignoring unknown fields', () => {
   const policy = parsePolicyJson('{"profile":"restricted_handoff","deny_transparent":true}')
   assert.deepEqual(policy, {

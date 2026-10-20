@@ -34,6 +34,14 @@
       "summary": "Understand disclosure rules, private PCZT handling and limitations."
     },
     {
+      "slug": "developer-verification",
+      "title": "Verify an external integration",
+      "group": "Start here",
+      "status": "partial",
+      "audience": "Zcash SDK adopters, CI engineers and maintainers",
+      "summary": "Which Zerynex interfaces work in isolated consumers, how to retest them, and which live integrations remain unverified."
+    },
+    {
       "slug": "releases",
       "title": "Download and release artifacts",
       "group": "Start here",

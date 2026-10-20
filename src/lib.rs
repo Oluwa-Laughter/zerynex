@@ -476,6 +476,15 @@ mod tests {
         );
         assert!(parse_policy_json(&"x".repeat(4097)).is_err());
         assert_eq!(parse_policy_json("{}").unwrap(), PolicyConfig::default());
+        // Serde's struct visitor must also reject ambiguous repeated fields,
+        // rather than accepting the final value and weakening policy.
+        assert!(
+            parse_policy_json(r#"{"deny_transparent":true,"deny_transparent":false}"#).is_err()
+        );
+        assert!(
+            parse_policy_json(r#"{"deny_transparent":true,"\u0064eny_transparent":false}"#)
+                .is_err()
+        );
     }
     #[test]
     fn shielded_only_policy_blocks_real_serialized_transparent_output() {

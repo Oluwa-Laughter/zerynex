@@ -47,6 +47,22 @@ When switching managers, first remove their old node_modules directories,
 then rebuild the SDK before installing the web application, because apps/web
 references the locally built SDK using a relative file dependency.
 
+### Refresh a changed local SDK
+
+The web app uses a `file:` dependency on `packages/sdk`. pnpm may retain a
+previous snapshot of the SDK distribution after adding a new source module
+or export. If Next.js reports a missing SDK module **after an SDK rebuild**,
+refresh the local dependency instead of patching `node_modules` manually:
+
+```bash
+cd packages/sdk && pnpm build
+cd ../../apps/web && pnpm run refresh:sdk
+```
+
+This uses a frozen lockfile and reinstalls the local distribution. It does
+not publish packages or modify registry credentials. In CI, build the SDK
+before installing the web app.
+
 ## Rust and WebAssembly
 
 The frontend runs the generated Rust/WebAssembly analysis engine. Rebuild with:

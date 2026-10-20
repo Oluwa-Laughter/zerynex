@@ -103,6 +103,22 @@ test('rejects malformed policy imports without weakening the current policy', as
   await expect(page.getByLabel('Deny transparent components')).toBeChecked()
 })
 
+test('policy import cannot silently turn off transparent protection with repeated JSON keys', async ({ page }) => {
+  await page.goto('/tools')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByLabel('Deny transparent components').check()
+  await page.getByLabel('Select JSON policy file').setInputFiles({
+    name: 'ambiguous-policy.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"deny_transparent":true,"deny_transparent":false}'),
+  })
+  await expect(page.getByRole('status')).toContainText('Invalid policy file')
+  await expect(page.getByLabel('Deny transparent components')).toBeChecked()
+  await page.getByRole('button', { name: /Transparent v6/ }).click()
+  await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ }).click()
+  await expect(page.getByText('PCZT-TRANSPARENT-OUTPUTS')).toBeVisible()
+})
+
 test('SDK navigation shows language-only labels and a working Python quickstart', async ({ page, isMobile }) => {
   await page.goto('/')
   if (isMobile) await page.getByRole('button',{name:'Open menu'}).click()

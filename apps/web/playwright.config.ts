@@ -6,6 +6,9 @@ const port = process.env.ZERYNEX_E2E_PORT || '3100'
 export default defineConfig({
   testDir: './tests',
   timeout: 45_000,
+  // A developer laptop may run real browsers and Rust builds simultaneously.
+  // Keep local UI suites sequential; CI can still use two workers.
+  workers: process.env.CI ? 2 : 1,
   expect: { timeout: 15_000 },
   use: {
     ...(process.env.CI || !existsSync('/usr/bin/google-chrome') ? {} : {launchOptions: {executablePath: '/usr/bin/google-chrome'}}),

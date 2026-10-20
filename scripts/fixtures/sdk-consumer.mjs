@@ -2,9 +2,17 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createBrowserZerynexClient, inspectZip321Uri, createBrowserWalletHandoff, createZip321UriProvider } from '@zerynex/sdk/browser'
-import { normalizePolicy, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateZcashTransaction, createZcashTransactionObserver, auditRefundPrivacy, compareRefundPrivacy, refundSarifReport } from '@zerynex/sdk'
+import { normalizePolicy, parsePolicyJson, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateZcashTransaction, createZcashTransactionObserver, auditRefundPrivacy, compareRefundPrivacy, refundSarifReport } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
+// A consumer's published policy importer must never allow last-key-wins.
+for (const ambiguous of [
+  '{"deny_transparent":true,"deny_transparent":false}',
+  '{"deny_transparent":true,"\\u0064eny_transparent":false}',
+]) {
+  assert.throws(() => parsePolicyJson(ambiguous), error => error.code === 'POLICY_INVALID')
+}
+assert.equal(parsePolicyJson('{"deny_transparent":true}').deny_transparent, true)
 assert.equal(RULE_CATALOG.schema_version, 1)
 assert.equal(RULE_CATALOG.rule_set_version, '1.0.0')
 assert.equal(RULE_CATALOG.rules.length, 8)
