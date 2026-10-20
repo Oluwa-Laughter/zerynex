@@ -7,7 +7,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 const root=resolve(dirname(fileURLToPath(import.meta.url)), '..')
-for(const moduleName of ['network','wallet-handoff','transaction','refund-privacy','refund-json']){
+for(const moduleName of ['network','wallet-handoff','transaction','refund-privacy','refund-json','strict-json']){
   const source=await readFile(resolve(root,`src/${moduleName}.ts`),'utf8')
   const js=`// GENERATED from ${moduleName}.ts by scripts/sync-network-source.mjs; do not edit.\n`+
     ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.ESNext}}).outputText
@@ -17,4 +17,4 @@ for(const moduleName of ['network','wallet-handoff','transaction','refund-privac
     if(existing!==js)throw Error(`Zcash SDK source mirror ${moduleName}.js is out of sync with TypeScript`)
   }else await writeFile(target,js)
 }
-console.log('Zcash SDK source-level JavaScript mirrors synchronized (5 modules)')
+console.log('Zcash SDK source-level JavaScript mirrors synchronized (6 modules)')

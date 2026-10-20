@@ -38,6 +38,27 @@ that is absent from clean Git checkout and remote package installations.
 The official published SDK package contract remains based on its own
 dist export.
 
+**SDK source mirrors are a deployment dependency.** Vercel follows the
+TypeScript source alias, so imports such as `./strict-json.js` must have
+checked-in generated JavaScript mirrors under `packages/sdk/src`. A local
+`packages/sdk/dist` build can conceal missing mirrors because that directory
+is ignored by Git. `apps/web` now runs `scripts/check-web-sdk-source.mjs`
+before both development and production builds, while GitHub CI verifies that
+all generated mirrors are synchronized with TypeScript:
+
+```bash
+node packages/sdk/scripts/sync-network-source.mjs --check
+node scripts/check-web-sdk-source.mjs
+cd apps/web && pnpm install --frozen-lockfile && pnpm build
+```
+
+After adding or editing an SDK source module, run
+`node packages/sdk/scripts/sync-network-source.mjs`, review the generated
+JavaScript diff, and commit the mirrors with the TypeScript implementation.
+Never rely on local untracked `dist/` output to prove a Vercel deployment will
+build. Vercel uses the pinned pnpm 10.34.6 package manager from the web
+package manifest.
+
 The WASM module is compiled from the canonical Rust crate and committed
 as a checked build asset to apps/web/public/wasm; the frontend does not
 run Rust/Cargo compilation on Vercel for every deployment. CI separately

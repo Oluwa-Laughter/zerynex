@@ -10,8 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "predev": "node ../../scripts/sync-docs.mjs",
-    "prebuild": "node ../../scripts/sync-docs.mjs",
+    "predev": "node ../../scripts/check-web-sdk-source.mjs && node ../../scripts/sync-docs.mjs",
+    "prebuild": "node ../../scripts/check-web-sdk-source.mjs && node ../../scripts/sync-docs.mjs",
     "audit:responsive": "node scripts/audit-responsive.mjs",
     "refresh:sdk": "pnpm install --force --frozen-lockfile"
   },
@@ -43,5 +43,6 @@
   },
   "engines": {
     "node": ">=22.13.0 <27"
-  }
+  },
+  "packageManager": "pnpm@10.34.6"
 }
