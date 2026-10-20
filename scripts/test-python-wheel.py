@@ -210,9 +210,9 @@ def check_wheel(folder: Path, cli: Path) -> None:
         if sarif.returncode != 2 or len(json.loads(sarif.stdout)["runs"][0]["results"]) != 1:
             raise AssertionError("Independent Python starter did not export sanitized SARIF")
         # Verify a malformed or missing manifest cannot disclose its path or contents.
-        bad_manifest = directory / "invalid-private-ref.json"
+        bad_manifest = Path(directory) / "invalid-private-ref.json"
         bad_manifest.write_text('{"schema_version":1,"schema_version":1,"private":"NEVER_LOG_CONSUMER_SECRET"}')
-        for bad_path in (bad_manifest, directory / "missing-private-ref.json"):
+        for bad_path in (bad_manifest, Path(directory) / "missing-private-ref.json"):
             failed = subprocess.run([str(python), str(starter),
                 str(examples / "isolated.json"), str(bad_path)], cwd=directory,
                 env=env, capture_output=True, text=True, timeout=15)
