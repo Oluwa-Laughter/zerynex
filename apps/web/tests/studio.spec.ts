@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
-import docsCatalog from '../content/docs/index.json'
+import { readFileSync } from 'node:fs'
+const docsCatalog = JSON.parse(readFileSync(new URL('../content/docs/index.json', import.meta.url), 'utf8')) as { entries: { group: string }[] }
 
 test('homepage navigates to Zerynex developer tooling', async ({ page, isMobile }) => {
   await page.goto('/')
