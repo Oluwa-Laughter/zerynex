@@ -83,3 +83,42 @@ No block hashes, transaction data, wallet balances, user addresses, viewing keys
 **Trust boundary:** This checks the RPC-reported state of one node, not the truth of the network. A compromised node can lie. Wallet readiness, Zallet JSON-RPC support, custody authorization, shielded-payment completion, finality, proof validity and privacy guarantees require separate verification.
 
 Read [Zcash application recipes](zcash-app-recipes.md) to combine node readiness with PCZT policy and transaction-stage regression checks.
+
+## lightwalletd: offline gRPC metadata readiness (TypeScript, preview)
+
+Zerynex also exports `evaluateLightwalletdInfo` for developers with an
+existing trusted `CompactTxStreamer/GetLightdInfo` response. It accepts
+the standard protobuf JSON names (`chainName`, `blockHeight`,
+`estimatedHeight`, `saplingActivationHeight`, `consensusBranchId`).
+The gRPC `uint64` fields may be decimal strings, as emitted by `grpcurl`.
+
+```typescript
+import { evaluateLightwalletdInfo } from '@zerynex/sdk'
+
+// Your backend owns the trusted gRPC connection, TLS, and authentication.
+// Never put private wallet material or server credentials in a browser.
+const status = evaluateLightwalletdInfo(yourBackend.getLightdInfoResult, {
+  expectedNetwork: 'test',
+  maxHeightLag: 2,
+})
+if (!status.ready) console.warn(status.checks)
+```
+
+This is a **pure, offline** normalizer: no gRPC calls, endpoints, credentials,
+transaction data or network access. It produces five checks for network,
+height, Sapling activation, estimated-height lag and presence of a
+well-formed consensus branch identifier. Missing fields are **unknown** and
+cannot yield a ready state. Reported height numbers and check codes may be
+returned; server version, vendor, donation address, source metadata and
+other raw input fields are never echoed.
+
+The value `ready: true` only indicates that one **untrusted, self-reported**
+metadata snapshot matches the supplied policy. A compromised backend could
+lie; a working `GetLightdInfo` does not prove consensus correctness,
+complete shielded syncing, transaction settlement or wallet privacy.
+This feature is **preview** until actual version-pinned lightwalletd/Zebra
+gRPC integration tests exist.
+
+Protocol references:
+[lightwallet-protocol service.proto](https://github.com/zcash/lightwallet-protocol/blob/main/walletrpc/service.proto)
+and [lightwalletd health check](https://github.com/zcash/lightwalletd#health-check).
