@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import docsCatalog from '../content/docs/index.json'
 
 test('homepage navigates to Zerynex developer tooling', async ({ page, isMobile }) => {
   await page.goto('/')
@@ -645,10 +646,10 @@ test('developer docs prioritize quickstart, API paths and curated categories', a
   await expect(page.getByRole('link', { name: /First privacy check/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Integrate an SDK/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Automate a workflow/ })).toBeVisible()
-  await expect(page.locator('.docs-guide-card')).toHaveCount(30)
+  await expect(page.locator('.docs-guide-card')).toHaveCount(docsCatalog.entries.length)
   await expect(page.getByRole('navigation', { name: 'Documentation sections' }).getByRole('heading', { name: 'Research' })).toHaveCount(0)
   await page.getByRole('button', { name: 'SDKs & APIs' }).click()
-  await expect(page.locator('.docs-guide-card')).toHaveCount(11)
+  await expect(page.locator('.docs-guide-card')).toHaveCount(docsCatalog.entries.filter(entry => entry.group === 'SDKs & APIs').length)
   await expect(page.getByRole('link', { name: /TypeScript and browser API/ }).first()).toBeVisible()
   await page.getByRole('textbox', { name: 'Search documentation' }).fill('Python')
   await expect(page.locator('.docs-guide-card')).toHaveCount(1)
@@ -953,7 +954,7 @@ test('refund browser rejects duplicate keys even if JavaScript JSON.parse would 
 
 test('publisher onboarding distinguishes tested packages from actual registry releases',async({page})=>{
  await page.goto('/docs')
- await expect(page.locator('.docs-guide-card')).toHaveCount(30)
+ await expect(page.locator('.docs-guide-card')).toHaveCount(docsCatalog.entries.length)
  await page.goto('/docs/publishing')
  await expect(page.getByRole('heading',{name:/Publishing Zerynex SDKs/})).toBeVisible()
  await expect(page.getByText('v0.2.0',{exact:false}).first()).toBeVisible()
