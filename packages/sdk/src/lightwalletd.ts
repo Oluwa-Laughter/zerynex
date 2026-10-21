@@ -55,7 +55,7 @@ export function evaluateLightwalletdInfo(
     const block_height = height(data.blockHeight)
     const estimated_height = height(data.estimatedHeight)
     const sapling_activation = height(data.saplingActivationHeight)
-    const sync_lag = block_height === null || estimated_height === null
+    const sync_lag = block_height === null || estimated_height === null || estimated_height === 0
       ? null : Math.max(0, estimated_height - block_height)
     // The branch identifier is deliberately never echoed, only presence/shape.
     const branch_present = typeof data.consensusBranchId === 'string' &&

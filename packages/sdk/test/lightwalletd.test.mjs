@@ -15,6 +15,7 @@ const cases = [
   {name:'network mismatch', data:{...base,chainName:'main'}, ready:false, statuses:['fail','pass','pass','pass','pass']},
   {name:'lag greater than policy', data:{...base,estimatedHeight:'3100003'}, ready:false, statuses:['pass','pass','pass','fail','pass']},
   {name:'missing estimate', data:{...base,estimatedHeight:undefined}, ready:false, statuses:['pass','pass','pass','unknown','pass']},
+  {name:'proto3 zero estimate is unknown', data:{...base,estimatedHeight:'0'}, ready:false, statuses:['pass','pass','pass','unknown','pass']},
   {name:'below Sapling activation', data:{...base,blockHeight:'200000'}, ready:false, statuses:['pass','pass','fail','fail','pass']},
   {name:'missing branch ID', data:{...base,consensusBranchId:null}, ready:false, statuses:['pass','pass','pass','pass','unknown']},
   {name:'estimate lower than best chain', data:{...base,estimatedHeight:'3099999'}, ready:true, statuses:['pass','pass','pass','pass','pass']},

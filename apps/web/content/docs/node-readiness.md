@@ -107,7 +107,7 @@ if (!status.ready) console.warn(status.checks)
 This is a **pure, offline** normalizer: no gRPC calls, endpoints, credentials,
 transaction data or network access. It produces five checks for network,
 height, Sapling activation, estimated-height lag and presence of a
-well-formed consensus branch identifier. Missing fields are **unknown** and
+well-formed consensus branch identifier. Missing fields (including a protobuf-default zero estimate) are **unknown** and
 cannot yield a ready state. Reported height numbers and check codes may be
 returned; server version, vendor, donation address, source metadata and
 other raw input fields are never echoed.
