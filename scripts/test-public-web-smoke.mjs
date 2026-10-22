@@ -15,13 +15,14 @@ function mockFetch(url, options) {
   const urlObj=new URL(url)
   const binary=urlObj.pathname.endsWith('.wasm')
   const data=binary?wasm:new TextEncoder().encode(urlObj.pathname.includes('developer-verification')
-    ? 'Verify an external integration':'Zerynex')
+    ? 'Verify an external integration':urlObj.pathname.includes('lightwalletd') ? 'lightwalletd' : 'Zerynex')
   return Promise.resolve(new Response(data,{status:200,headers:{'content-type':binary?'application/wasm':'text/html; charset=utf-8'}}))
 }
-test('public smoke validates seven routes, HTML and genuine WASM header', async()=>{
+test('public smoke validates eight routes, HTML and genuine WASM header', async()=>{
   const checked=await smokeWeb('https://zerynex.vercel.app',mockFetch)
-  assert.equal(checked.length,7)
+  assert.equal(checked.length,8)
   assert.ok(checked.includes('/wasm/zerynex_bg.wasm'))
+  assert.ok(checked.includes('/tools/lightwalletd'))
 })
 test('public smoke fails closed on wrong MIME, missing route, bad engine bytes',async()=>{
   await assert.rejects(smokeWeb('https://zerynex.vercel.app',async(url,options)=>{

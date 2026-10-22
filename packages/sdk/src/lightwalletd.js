@@ -1,4 +1,10 @@
 // GENERATED from lightwalletd.ts by scripts/sync-network-source.mjs; do not edit.
+/**
+ * Read-only normalization for lightwalletd GetLightdInfo (CompactTxStreamer).
+ * The caller supplies an already-trusted response: this code does no gRPC,
+ * network, wallet, authentication, address or transaction operations.
+ */
+import { parseStrictJson } from './strict-json.js';
 const NETWORKS = ['main', 'test', 'regtest'];
 const LIMITATION = 'Offline, self-reported lightwalletd gRPC metadata only. Not consensus, shielded-sync, wallet readiness, server trust, proof validity, or private transaction verification.';
 /** grpcurl typically renders protobuf uint64 as decimal strings. */
@@ -50,5 +56,14 @@ export function evaluateLightwalletdInfo(input, options = {}) {
     }
     catch {
         return fail();
+    }
+}
+/** Safely inspect untrusted gRPC JSON text without returning any raw metadata. */
+export function evaluateLightwalletdJson(raw, options = {}) {
+    try {
+        return evaluateLightwalletdInfo(parseStrictJson(raw, 64 * 1024), options);
+    }
+    catch {
+        throw new TypeError('Invalid or ambiguous public lightwalletd JSON metadata');
     }
 }

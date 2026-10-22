@@ -715,6 +715,45 @@ test('mobile Zcash node workbench supports local synthetic readiness checks', as
   await expect(page.getByText('CHECK FAILED').first()).toBeVisible()
 })
 
+test('lightwalletd workbench evaluates public gRPC metadata without revealing server secrets', async ({ page }) => {
+  await page.goto('/tools/lightwalletd')
+  await expect(page.getByRole('heading',{name:/Inspect lightwalletd readiness/})).toBeVisible()
+  await page.getByRole('button',{name:'Ready lightwalletd'}).click()
+  await page.getByRole('button',{name:/Evaluate metadata/}).click()
+  await expect(page.getByText('METADATA CHECKS PASSED',{exact:true})).toBeVisible()
+  await expect(page.getByText('LIGHTD NETWORK')).toBeVisible()
+  await page.getByRole('button',{name:'Syncing lightwalletd'}).click()
+  await page.getByRole('button',{name:/Evaluate metadata/}).click()
+  await expect(page.getByText('READINESS NOT CONFIRMED')).toBeVisible()
+  await expect(page.getByText('CHECK FAILED').first()).toBeVisible()
+  await page.getByLabel('GetLightdInfo JSON').fill(JSON.stringify({
+    chainName:'test',blockHeight:'3100000',estimatedHeight:'3100002',
+    saplingActivationHeight:'280000',consensusBranchId:'c2d6d0b4',
+    donationAddress:'DO_NOT_DISCLOSE_PRIVATE_KEY',vendor:'DO_NOT_DISCLOSE_PRIVATE_KEY',
+  }))
+  await page.getByRole('button',{name:/Evaluate metadata/}).click()
+  await expect(page.getByText('METADATA CHECKS PASSED',{exact:true})).toBeVisible()
+  await expect(page.locator('[aria-labelledby="lightd-report-heading"]')).not.toContainText('DO_NOT_DISCLOSE_PRIVATE_KEY')
+  await page.getByLabel('GetLightdInfo JSON').fill('{"chainName":"test","chainName":"main"}')
+  await page.getByRole('button',{name:/Evaluate metadata/}).click()
+  await expect(page.locator('main [role=\"alert\"]')).toContainText('Response rejected')
+  await expect(page.getByText('METADATA CHECKS PASSED',{exact:true})).toHaveCount(0)
+})
+
+test('mobile lightwalletd readiness rejects unknown fields and remains responsive', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844})
+  await page.goto('/tools/lightwalletd')
+  await page.getByRole('button',{name:'Unknown state'}).click()
+  await page.getByRole('button',{name:/Evaluate metadata/}).click()
+  await expect(page.getByText('READINESS NOT CONFIRMED')).toBeVisible()
+  await expect(page.getByText('NOT CONFIRMED').first()).toBeVisible()
+  await page.getByRole('button',{name:'Wrong network'}).click()
+  await page.getByRole('button',{name:/Evaluate metadata/}).click()
+  await expect(page.getByText('CHECK FAILED').first()).toBeVisible()
+  const bounds=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,view:document.documentElement.clientWidth}))
+  expect(bounds.scroll).toBeLessThanOrEqual(bounds.view+1)
+})
+
 test('ZIP-321 payment workbench validates requests using local Rust/WASM', async ({ page }) => {
   await page.goto('/tools/payment')
   await expect(page.getByRole('heading',{name:/Inspect payment requests/i})).toBeVisible()

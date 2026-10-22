@@ -51,6 +51,7 @@ export default function NodeWorkbench() {
     <header className={styles.top}>
       <Link href="/tools"><LuArrowLeft size={16}/> Developer Tools</Link>
       <span>LOCAL-ONLY EVALUATION / NO REMOTE RPC</span>
+      <Link href="/tools/lightwalletd">lightwalletd checks <LuArrowUpRight size={16}/></Link>
       <Link href="/docs/node-readiness">Integration guide <LuArrowUpRight size={16}/></Link>
     </header>
     <section className={styles.hero}>

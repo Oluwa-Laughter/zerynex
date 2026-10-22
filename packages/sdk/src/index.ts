@@ -7,7 +7,7 @@ export type { TransactionPolicy, TransactionState, TransactionObservation, Trans
 export { createWalletHandoffCoordinator, createZip321UriProvider, WalletHandoffError } from './wallet-handoff.js'
 export type { WalletNetwork, WalletProviderCapabilities, WalletPaymentProvider, WalletHandoffPolicy, PreparedWalletHandoff, WalletHandoffCoordinator, WalletHandoffResult, WalletHandoffErrorCode } from './wallet-handoff.js'
 export { evaluateZcashNodeStatus } from './network.js'
-export { evaluateLightwalletdInfo } from './lightwalletd.js'
+export { evaluateLightwalletdInfo, evaluateLightwalletdJson } from './lightwalletd.js'
 export type { LightwalletdNetwork, LightwalletdOptions, LightwalletdReadiness, LightwalletdCheckCode, LightwalletdCheckStatus } from './lightwalletd.js'
 export type { NodeReadiness, ZcashNetwork, NodeCheckCode, NodeCheckStatus } from './network.js'
 export { RULE_CATALOG, getRule } from './rule-catalog.js'

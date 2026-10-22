@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { evaluateLightwalletdInfo } from '../dist/index.js'
+import { evaluateLightwalletdInfo, evaluateLightwalletdJson } from '../dist/index.js'
 import { evaluateLightwalletdInfo as sourceEvaluator } from '../src/lightwalletd.js'
 
 const base = Object.freeze({
@@ -41,4 +41,21 @@ test('lightwalletd evaluator fails closed on malformed options and malicious get
   assert.throws(()=>evaluateLightwalletdInfo(malicious),
     error=>error instanceof TypeError&&!error.message.includes('PRIVATE_KEY'))
   assert.equal(evaluateLightwalletdInfo({...base,blockHeight:3100000,estimatedHeight:3100002}).ready,true)
+})
+
+test('raw GetLightdInfo JSON is bounded, duplicate-aware and never reflects secrets', () => {
+  const clean = JSON.stringify({...base,donationAddress:'DO_NOT_DISCLOSE'})
+  const result = evaluateLightwalletdJson(clean)
+  assert.equal(result.ready, true)
+  assert.doesNotMatch(JSON.stringify(result), /DO_NOT_DISCLOSE|PRIVATE/)
+  for (const hostile of [
+    '{"chainName":"test","chainName":"main"}',
+    '{"chainName":"test","\\u0063hainName":"main"}',
+    '{"chainName":"test","extra":{"secret":"a","secret":"b"}}',
+    JSON.stringify({...base,consensusBranchId:'DO_NOT_DISCLOSE'}).repeat(5000),
+    'not JSON',
+  ]) {
+    assert.throws(() => evaluateLightwalletdJson(hostile), error =>
+      error instanceof TypeError && !error.message.includes(hostile))
+  }
 })

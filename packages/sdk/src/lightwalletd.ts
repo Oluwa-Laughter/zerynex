@@ -3,6 +3,8 @@
  * The caller supplies an already-trusted response: this code does no gRPC,
  * network, wallet, authentication, address or transaction operations.
  */
+import {parseStrictJson} from './strict-json.js'
+
 export type LightwalletdNetwork = 'main' | 'test' | 'regtest'
 export type LightwalletdCheckCode =
   'LIGHTD_NETWORK' | 'LIGHTD_HEIGHT' | 'LIGHTD_SAPLING' | 'LIGHTD_SYNC_LAG' | 'LIGHTD_BRANCH'
@@ -76,5 +78,17 @@ export function evaluateLightwalletdInfo(
     }
   } catch {
     return fail()
+  }
+}
+
+/** Safely inspect untrusted gRPC JSON text without returning any raw metadata. */
+export function evaluateLightwalletdJson(
+  raw: string,
+  options: LightwalletdOptions = {},
+): LightwalletdReadiness {
+  try {
+    return evaluateLightwalletdInfo(parseStrictJson(raw, 64 * 1024), options)
+  } catch {
+    throw new TypeError('Invalid or ambiguous public lightwalletd JSON metadata')
   }
 }

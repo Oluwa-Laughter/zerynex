@@ -86,6 +86,8 @@ Read [Zcash application recipes](zcash-app-recipes.md) to combine node readiness
 
 ## lightwalletd: offline gRPC metadata readiness (TypeScript, preview)
 
+Try the [local lightwalletd metadata workbench](/tools/lightwalletd) with synthetic ready, syncing, wrong-network and unknown-state fixtures. It makes no RPC calls.
+
 Zerynex also exports `evaluateLightwalletdInfo` for developers with an
 existing trusted `CompactTxStreamer/GetLightdInfo` response. It accepts
 the standard protobuf JSON names (`chainName`, `blockHeight`,
@@ -111,6 +113,11 @@ well-formed consensus branch identifier. Missing fields (including a protobuf-de
 cannot yield a ready state. Reported height numbers and check codes may be
 returned; server version, vendor, donation address, source metadata and
 other raw input fields are never echoed.
+
+For untrusted JSON text, use `evaluateLightwalletdJson(raw, options)` instead.
+It applies a 64 KiB size bound and rejects duplicate decoded JSON keys,
+including equivalent Unicode escapes, before running the same sanitized
+readiness checks. Never log the original input or place it in a URL.
 
 The value `ready: true` only indicates that one **untrusted, self-reported**
 metadata snapshot matches the supplied policy. A compromised backend could

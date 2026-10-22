@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createBrowserZerynexClient, inspectZip321Uri, createBrowserWalletHandoff, createZip321UriProvider } from '@zerynex/sdk/browser'
-import { normalizePolicy, parsePolicyJson, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateLightwalletdInfo, evaluateZcashTransaction, createZcashTransactionObserver, auditRefundPrivacy, compareRefundPrivacy, refundSarifReport } from '@zerynex/sdk'
+import { normalizePolicy, parsePolicyJson, RULE_CATALOG, getRule, evaluateZcashNodeStatus, evaluateLightwalletdInfo, evaluateLightwalletdJson, evaluateZcashTransaction, createZcashTransactionObserver, auditRefundPrivacy, compareRefundPrivacy, refundSarifReport } from '@zerynex/sdk'
 
 assert.equal(normalizePolicy({ deny_transparent: true }).deny_transparent, true)
 // A consumer's published policy importer must never allow last-key-wins.
@@ -19,6 +19,11 @@ const lightd=evaluateLightwalletdInfo({
   vendor:'PRIVATE_NEVER_LOG',donationAddress:'PRIVATE_NEVER_LOG',
 },{expectedNetwork:'test'})
 assert.equal(lightd.ready,true)
+assert.equal(evaluateLightwalletdJson(JSON.stringify({
+  chainName:'test',blockHeight:'3100000',estimatedHeight:'3100001',
+  saplingActivationHeight:'280000',consensusBranchId:'c2d6d0b4',
+})).ready,true)
+assert.throws(()=>evaluateLightwalletdJson('{"chainName":"test","chainName":"main"}'),TypeError)
 assert.doesNotMatch(JSON.stringify(lightd),/PRIVATE_NEVER_LOG|c2d6d0b4/)
 assert.equal(evaluateLightwalletdInfo({
   chainName:'main',blockHeight:'3100000',estimatedHeight:'3100001',

@@ -9,6 +9,7 @@ const checks = [
   {path:'/docs/developer-verification', marker:'Verify an external integration'},
   {path:'/tools', marker:'Zerynex'},
   {path:'/tools/refund', marker:'Zerynex'},
+  {path:'/tools/lightwalletd', marker:'lightwalletd'},
   {path:'/wasm/zerynex_bg.wasm', wasm:true},
 ]
 

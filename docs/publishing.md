@@ -73,6 +73,28 @@ platform-native archives. `scripts/check-registry-release.py --tag v0.2.0
 --registry npm --artifact-dir release-assets` (or `pypi`) verifies the
 actual versioned downloadable archive **before** a manual publisher run.
 
+## Completion criteria before declaring v0.2.0 production-ready
+
+- **Implemented and exercised in this repository:** reusable Rust/PCZT engine,
+  bundled WASM SDK, Python and Go wrappers, local browser workbenches including
+  offline lightwalletd metadata checks, read-only agent tooling, strict JSON
+  boundaries, release artifact verification scripts, and synthetic CI fixtures.
+- **Must pass on the exact reviewed commit:** all CI and distribution-artifact
+  jobs, source-level Vercel module checks, independently installed npm and
+  Python package consumers, mobile/desktop Playwright suite, and deployed
+  public-route/WASM smoke verification. Re-run these after each merge.
+- **Not proven by these tests:** real Zallet PCZT creation/proving/signing,
+  Zebra/lightwalletd/Zaino network interoperability, full consensus or shielded
+  privacy guarantees, or registry installation from a public, published version.
+  Each requires separate version-pinned, explicitly authorized tests.
+- **Owner-controlled external actions:** claim/check npm and PyPI namespaces,
+  configure trusted publishers and approvals, review the final artifacts and
+  checksums, authorize a GitHub release tag and registry publication. Never
+  infer these steps from a green CI run.
+
+The [upstream integration roadmap](https://github.com/Oluwa-Laughter/zerynex/blob/main/docs/ecosystem-integration-roadmap.md) identifies
+follow-on network compatibility work after the offline toolkit release.
+
 ## Security, compatibility, and honest scope
 
 Zerynex does not sign payments, attest anonymous transactions, verify Zcash

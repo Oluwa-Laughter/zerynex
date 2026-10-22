@@ -192,6 +192,11 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
         <small>Review network and sync status from a public RPC result, entirely in-browser.</small>
         <ArrowUpRight size={21}/>
       </Link>
+      <Link href="/tools/lightwalletd">
+        <span>EXPERIMENT 07 / OFFLINE GRPC METADATA</span><strong>lightwalletd Readiness</strong>
+        <small>Inspect synthetic GetLightdInfo network, heights and sync lag without server access.</small>
+        <ArrowUpRight size={21}/>
+      </Link>
     </section>
     <div className="studio-grid">
       <div className="studio-left">
