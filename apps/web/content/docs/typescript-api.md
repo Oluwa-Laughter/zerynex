@@ -40,6 +40,8 @@ Select a file from your application's own input. Ensure the bundler can serve th
 | `client.ready()` | Await engine initialization |
 | `client.analyzeBytes(input, policy?)` | Analyze local PCZT bytes |
 | `client.analyzeBlob(input, policy?)` | Analyze a local `Blob` or `File` |
+| `client.analyzeBase64(base64, policy?)` | Inspect canonical padded Zallet-style base64 PCZT locally, no RPC |
+| `client.compareBase64Stages(before, after, policy?)` | Compare two local base64 PCZT stage snapshots with the Rust/WASM engine |
 | `client.compareStages(before, after, policy?)` | Compare policy findings and component counts |
 | `client.compareStageBlobs(before, after, policy?)` | Compare browser file stages |
 | `normalizePolicy(policy?)` | Reject unsupported or mistyped settings |
@@ -55,7 +57,7 @@ Select a file from your application's own input. Ensure the bundler can serve th
 | `parsePolicyJson(json)` | Import a strict JSON policy, at most 4 KiB; rejects repeated keys, including Unicode-escaped aliases |
 | `exportPolicyJson(policy?)` | Serialize a normalized policy |
 
-The SDK rejects oversized/empty input, invalid engine output and malformed reports. The maximum PCZT size is **8 MiB**; an application may set a smaller `maxInputBytes`.
+The SDK rejects oversized/empty input, invalid engine output and malformed reports. Base64 transport methods also reject noncanonical encodings and never include PCZT strings in errors. The maximum PCZT size is **8 MiB**; an application may set a smaller `maxInputBytes`.
 
 ## Typed error handling
 

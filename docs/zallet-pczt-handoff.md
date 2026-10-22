@@ -64,6 +64,45 @@ trusted application memory buffer:
 The string is passed to the Rust CLI over stdin. The Python wrapper never
 creates a temporary file or makes an RPC request.
 
+## TypeScript/Node.js: consume base64 without RPC or temporary files
+
+The npm tarball now exposes `client.analyzeBase64()` and
+`client.compareBase64Stages()` on the same canonical Rust/WASM-backed client.
+These accept **strict, canonical, padded RFC 4648 base64 strings** obtained
+from your own trusted Zallet integration. There is no implicit RPC request,
+wallet connection or transaction upload:
+
+```typescript
+import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
+
+// In a trusted application process, obtain the opaque PCZT from your own
+// Zallet RPC client. Do not publish it in browser HTML or logs.
+const client = createBrowserZerynexClient({ wasm: trustedWasmBytes })
+const policy = { profile: 'external_signer', deny_transparent: true }
+const report = await client.analyzeBase64(pcztBase64FromTrustedApp, policy)
+if (report.findings.length > 0) {
+  console.log(report.findings.map(({ rule, field }) => ({rule, field})))
+}
+
+// Only after your own prover/signer work: compare two local PCZT snapshots.
+const regression = await client.compareBase64Stages(
+  priorPcztBase64, nextPcztBase64, policy,
+)
+if (!regression.no_new_findings) {
+  console.warn(regression.added_findings)
+}
+```
+
+Both methods honor the same **8 MiB decoded size limit** (and smaller
+per-application `maxInputBytes`). Base64 whitespace, URL-safe variants,
+missing/incorrect padding, nonzero unused bits and invalid symbols are
+rejected before the engine loads. They use sanitized error codes and do
+not include source bytes in reports. The SDK runs only local analysis and
+has no spend authority. The package is tested as a real installed npm
+tarball against synthetic upstream-PCZT-crate fixtures, **not** a live
+Zallet producer. Do not pass private PCZTs through browser URLs, analytics,
+public logs or AI prompts.
+
 ## Why an extra pre-signing check?
 
 Zallet's pczt_inspect reports a human-readable summary based on information
