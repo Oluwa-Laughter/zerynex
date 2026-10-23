@@ -215,3 +215,97 @@ test('SDK stage comparison never propagates exceptions with transaction bytes', 
     err => err.code === 'INPUT_INVALID',
   )
 })
+
+
+test('strict Zallet base64 PCZT transport passes canonical bytes and preserves local policies', async () => {
+  const seen = []
+  let loads = 0
+  const client = createZerynexClient({
+    loadEngine: async () => {
+      loads++
+      return {
+        analyze_pczt_policy(bytes, json) {
+          seen.push([...bytes])
+          return fakeReport(JSON.parse(json))
+        },
+        compare_pczt_stages(before, after, json) {
+          seen.push([...before], [...after])
+          return cleanStage()
+        },
+      }
+    },
+  })
+  const first=Uint8Array.of(1,2,3)
+  const second=Uint8Array.of(1,2,3,4)
+  const result=await client.analyzeBase64(Buffer.from(first).toString('base64'),{deny_transparent:true})
+  assert.equal(result.deny_transparent,true)
+  assert.equal((await client.compareBase64Stages(Buffer.from(first).toString('base64'),
+    Buffer.from(second).toString('base64'))).passed,true)
+  assert.deepEqual(seen,[[1,2,3],[1,2,3],[1,2,3,4]])
+  assert.equal(loads,1)
+})
+
+test('Zallet base64 transport fails closed before WASM load on malformed or oversized inputs', async () => {
+  let loads=0
+  const client=createZerynexClient({maxInputBytes:4,loadEngine:async()=>{
+    loads++
+    return {analyze_pczt_policy:()=> '{}'}
+  }})
+  const invalid = [null,12,'','not base64','YQ','YR==','YWF=', 'YQ=\n=','YQ-_',
+    'YQ===','====', 'A'.repeat(20), 'A'.repeat(40),'AQIDBAU=',
+    'private-spending-key-not-base64']
+  for(const value of invalid) {
+    await assert.rejects(client.analyzeBase64(value),e=>
+      e.code==='INPUT_INVALID' && (value === '' || !e.message.includes(String(value))))
+  }
+  await assert.rejects(client.compareBase64Stages('AQID','YR=='),e=>e.code==='INPUT_INVALID')
+  await assert.rejects(client.compareBase64Stages('YR==','AQID'),e=>e.code==='INPUT_INVALID')
+  assert.equal(loads,0)
+})
+
+test('Zallet base64 adapter strips engine errors and enforces per-client input limits', async () => {
+  const client=createZerynexClient({maxInputBytes:1,loadEngine:async()=>({
+    analyze_pczt_policy:()=> {throw Error('spending-key-private')},
+  })})
+  await assert.rejects(client.analyzeBase64('AQID'),e=>e.code==='INPUT_INVALID')
+  await assert.rejects(client.analyzeBase64('YQ=='),e=>
+    e.code==='ANALYSIS_FAILED'&&!e.message.includes('spending-key-private'))
+})
+
+
+test('base64 transport clears decoded temporary buffers after success and failure', async () => {
+  const retained = []
+  const client = createZerynexClient({loadEngine: async () => ({
+    analyze_pczt_policy(bytes) {
+      retained.push(bytes)
+      return fakeReport(normalizePolicy())
+    },
+    compare_pczt_stages(before, after) {
+      retained.push(before, after)
+      return cleanStage()
+    },
+  })})
+  await client.analyzeBase64('AQID')
+  assert.deepEqual([...retained[0]], [0, 0, 0])
+  await client.compareBase64Stages('AQID', 'BAUG')
+  assert.deepEqual([...retained[1]], [0, 0, 0])
+  assert.deepEqual([...retained[2]], [0, 0, 0])
+
+  const failingBuffers = []
+  const failing = createZerynexClient({loadEngine: async () => ({
+    analyze_pczt_policy(bytes) {
+      failingBuffers.push(bytes)
+      throw new Error('do-not-disclose')
+    },
+    compare_pczt_stages(before, after) {
+      failingBuffers.push(before, after)
+      throw new Error('do-not-disclose')
+    },
+  })})
+  await assert.rejects(failing.analyzeBase64('AQID'), e => e.code === 'ANALYSIS_FAILED')
+  assert.deepEqual([...failingBuffers[0]], [0, 0, 0])
+  await assert.rejects(failing.compareBase64Stages('AQID', 'BAUG'),
+    e => e.code === 'ANALYSIS_FAILED')
+  assert.deepEqual([...failingBuffers[1]], [0, 0, 0])
+  assert.deepEqual([...failingBuffers[2]], [0, 0, 0])
+})
