@@ -271,3 +271,41 @@ test('Zallet base64 adapter strips engine errors and enforces per-client input l
   await assert.rejects(client.analyzeBase64('YQ=='),e=>
     e.code==='ANALYSIS_FAILED'&&!e.message.includes('spending-key-private'))
 })
+
+
+test('base64 transport clears decoded temporary buffers after success and failure', async () => {
+  const retained = []
+  const client = createZerynexClient({loadEngine: async () => ({
+    analyze_pczt_policy(bytes) {
+      retained.push(bytes)
+      return fakeReport({})
+    },
+    compare_pczt_stages(before, after) {
+      retained.push(before, after)
+      return cleanStage()
+    },
+  })})
+  await client.analyzeBase64('AQID')
+  assert.deepEqual([...retained[0]], [0, 0, 0])
+  await client.compareBase64Stages('AQID', 'BAUG')
+  assert.deepEqual([...retained[1]], [0, 0, 0])
+  assert.deepEqual([...retained[2]], [0, 0, 0])
+
+  const failingBuffers = []
+  const failing = createZerynexClient({loadEngine: async () => ({
+    analyze_pczt_policy(bytes) {
+      failingBuffers.push(bytes)
+      throw new Error('do-not-disclose')
+    },
+    compare_pczt_stages(before, after) {
+      failingBuffers.push(before, after)
+      throw new Error('do-not-disclose')
+    },
+  })})
+  await assert.rejects(failing.analyzeBase64('AQID'), e => e.code === 'ANALYSIS_FAILED')
+  assert.deepEqual([...failingBuffers[0]], [0, 0, 0])
+  await assert.rejects(failing.compareBase64Stages('AQID', 'BAUG'),
+    e => e.code === 'ANALYSIS_FAILED')
+  assert.deepEqual([...failingBuffers[1]], [0, 0, 0])
+  assert.deepEqual([...failingBuffers[2]], [0, 0, 0])
+})
