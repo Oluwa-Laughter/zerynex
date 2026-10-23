@@ -278,7 +278,7 @@ test('base64 transport clears decoded temporary buffers after success and failur
   const client = createZerynexClient({loadEngine: async () => ({
     analyze_pczt_policy(bytes) {
       retained.push(bytes)
-      return fakeReport({})
+      return fakeReport(normalizePolicy())
     },
     compare_pczt_stages(before, after) {
       retained.push(before, after)
