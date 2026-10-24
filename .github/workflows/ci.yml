@@ -46,6 +46,10 @@ jobs:
         run: cargo clippy --locked --all-targets -- -D warnings
       - name: Test all targets
         run: cargo test --locked --all-targets
+      - name: Test offline Zallet producer-fixture harness with synthetic PCZTs
+        run: |
+          cargo build --locked --bin zerynex
+          python3 -m unittest discover -s tests -p test_zallet_pczt_fixture.py -v
       - name: Verify deterministic privacy-rule fixtures (no keys or wallets)
         run: cargo run --locked --example generate_rule_fixtures -- --check
       - name: Verify deterministic PCZT role fixtures

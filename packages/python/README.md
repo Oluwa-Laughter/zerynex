@@ -54,6 +54,23 @@ Exit codes: `0` pass, `1` invalid input, `2` contract drift.
 For production integrations, pin an actual Zallet release and inspect its
 protected local `rpc.discover` response instead. See `docs/rpc-contracts.md`.
 
+## Installable local PCZT producer-fixture checker
+
+The wheel also installs `zerynex-zallet-fixture-check`. Supply a protected
+local manifest and canonical base64 `.b64` PCZT fixtures, plus the trusted
+Rust CLI path:
+
+```bash
+zerynex-zallet-fixture-check \
+  --manifest /protected/local/manifest.json --cli /absolute/path/to/zerynex
+```
+
+The command checks file digests and exact policy findings without an RPC or
+network connection. Its producer release label is supplied by the manifest
+author, not authenticated by Zerynex. The clean-wheel consumer test uses
+synthetic PCZTs, so it does not establish live Zallet compatibility. See
+`docs/zallet-pczt-handoff.md` for the manifest and exit codes.
+
 ## Agent/MCP extra
 
     pip install './packages/python[mcp]'

@@ -47,7 +47,13 @@ The fixture path above exists in a Zerynex source checkout. For an external SDK 
 
 ## Developer automation
 
-The wheel also installs `zerynex-rpc-check` for offline schema drift, `zerynex-agent-preflight` for local synthetic integration verification and an optional `zerynex-mcp` server when installed with `[mcp]`. The MCP tools are **read-only and synthetic-fixture-only**.
+The wheel also installs `zerynex-rpc-check` for offline schema drift,
+`zerynex-zallet-fixture-check` for explicitly supplied local base64 PCZT
+fixtures, `zerynex-agent-preflight` for synthetic integration verification,
+and an optional `zerynex-mcp` server when installed with `[mcp]`. The fixture
+checker needs a trusted Rust CLI executable; its producer label is author
+asserted and does not prove live Zallet interoperability. The MCP tools are
+**read-only and synthetic-fixture-only**.
 
 See [MCP and agents](agents.md), [RPC compatibility](rpc-contracts.md), and [Report reference](report-reference.md).
 

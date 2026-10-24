@@ -7,6 +7,8 @@ Rust CLI. Optional MCP dependencies are only needed by MCP users.
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -23,7 +25,7 @@ def check_wheel(folder: Path, cli: Path) -> None:
         raise AssertionError("Expected exactly one built Python wheel.")
     with tempfile.TemporaryDirectory(prefix="zerynex-python-consumer-") as directory:
         venv_dir = Path(directory) / "venv"
-        venv.EnvBuilder(with_pip=True).create(venv_dir)
+        venv.EnvBuilder(with_pip=True, symlinks=sys.platform != "win32").create(venv_dir)
         python = venv_dir / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
         subprocess.run([str(python), "-m", "pip", "install", "--no-index", "--no-deps",
                         str(wheels[0].resolve())], check=True, capture_output=True, timeout=60)
@@ -64,6 +66,69 @@ def check_wheel(folder: Path, cli: Path) -> None:
         if report.get("passed") is not True or report.get("checked_methods") != 7 or report.get("deny_new_required") is not True:
             raise AssertionError("Installed RPC CLI returned an unexpected capability contract")
         print("PACKED RPC CONSUMER PASS: installed wheel CLI validates seven synthetic methods")
+        fixture_checker = venv_dir / ("Scripts/zerynex-zallet-fixture-check.exe" if sys.platform == "win32" else "bin/zerynex-zallet-fixture-check")
+        if not fixture_checker.is_file():
+            raise AssertionError("Zallet fixture checker missing from installed wheel")
+        fixture_root = Path(directory) / "third-party-zallet-fixtures"
+        fixture_root.mkdir()
+        fixture_cases = []
+        for filename, source, expected in (
+            ("clean.b64", "clean-v6.bin", []),
+            ("transparent.b64", "transparent-v6.bin",
+             [{"rule": "PCZT-TRANSPARENT-OUTPUTS", "field": "transparent.outputs"}]),
+        ):
+            encoded = base64.b64encode((ROOT / "apps/web/public/examples" / source).read_bytes())
+            (fixture_root / filename).write_bytes(encoded)
+            fixture_cases.append({"file": filename, "sha256": hashlib.sha256(encoded).hexdigest(),
+                                  "deny_transparent": True, "expect": expected})
+        fixture_manifest = fixture_root / "manifest.json"
+        fixture_manifest.write_text(json.dumps({
+            "version": 1,
+            "producer": {"release": "v0.1.0-beta.3",
+                         "commit": "987382f67e622915228686e9f956c6a9c9a7514c",
+                         "origin": "locally-supplied-zallet-output"},
+            "cases": fixture_cases,
+        }))
+        fixture_args = [str(fixture_checker), "--manifest", str(fixture_manifest),
+                        "--cli", str(cli.resolve())]
+        fixture_env = dict(__import__("os").environ)
+        fixture_env.pop("PYTHONPATH", None)
+        fixture_check = subprocess.run(fixture_args, cwd=directory, env=fixture_env,
+                                       capture_output=True, text=True, timeout=40)
+        fixture_report = json.loads(fixture_check.stdout)
+        if (fixture_check.returncode != 0 or fixture_report["passed"] is not True
+                or [case["finding_count"] for case in fixture_report["cases"]] != [0, 1]
+                or "not authenticated" not in fixture_report["evidence"]
+                or "transparent.b64" in fixture_check.stdout + fixture_check.stderr):
+            raise AssertionError("Installed fixture checker failed independent Rust-backed cases")
+        fixture_cases[1]["expect"] = []
+        fixture_manifest.write_text(json.dumps({
+            "version": 1,
+            "producer": {"release": "v0.1.0-beta.3",
+                         "commit": "987382f67e622915228686e9f956c6a9c9a7514c",
+                         "origin": "locally-supplied-zallet-output"},
+            "cases": fixture_cases,
+        }))
+        mismatch = subprocess.run(fixture_args, cwd=directory, env=fixture_env,
+                                  capture_output=True, text=True, timeout=40)
+        if mismatch.returncode != 2 or json.loads(mismatch.stdout)["passed"] is not False:
+            raise AssertionError("Installed fixture checker missed an expected policy mismatch")
+        corrupted = fixture_root / "clean.b64"
+        corrupted.write_bytes(corrupted.read_bytes() + b"PRIVATE_MARKER")
+        fixture_cases[0]["sha256"] = hashlib.sha256(corrupted.read_bytes()).hexdigest()
+        fixture_manifest.write_text(json.dumps({
+            "version": 1,
+            "producer": {"release": "v0.1.0-beta.3",
+                         "commit": "987382f67e622915228686e9f956c6a9c9a7514c",
+                         "origin": "locally-supplied-zallet-output"},
+            "cases": fixture_cases,
+        }))
+        invalid = subprocess.run(fixture_args, cwd=directory, env=fixture_env,
+                                 capture_output=True, text=True, timeout=40)
+        if (invalid.returncode != 1 or "PRIVATE_MARKER" in invalid.stdout + invalid.stderr
+                or str(fixture_root) in invalid.stdout + invalid.stderr):
+            raise AssertionError("Installed fixture checker leaked or accepted malformed input")
+        print("PACKED ZALLET FIXTURE PASS: independent wheel CLI, real Rust engine, synthetic-only bytes")
         # Real package consumer must expose the standalone local-only Zcash
         # infrastructure adapter, not just monorepo module imports.
         node_checker = venv_dir / ("Scripts/zerynex-node-check.exe" if sys.platform == "win32" else "bin/zerynex-node-check")
