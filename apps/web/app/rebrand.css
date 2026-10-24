@@ -734,3 +734,42 @@ a:focus-visible,button:focus-visible,input:focus-visible,[role=button]:focus-vis
  .zn-entryway-card { transition: none; }
  .zn-entryway-card:hover { transform: none; }
 }
+
+
+/* Route-aware identity: succinct context next to the existing matching favicon
+   artwork. Keep the app's original brand and working navigation layout. */
+.zn-site-header .zn-brand-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  min-width:0;
+  gap:4px;
+  line-height:1.05;
+}
+.zn-site-header .zn-brand-copy strong{
+  font-size:17px;
+  font-weight:700;
+  letter-spacing:-.065em;
+  line-height:1;
+}
+.zn-site-header .zn-brand-context{
+  display:block;
+  color:var(--zn-muted);
+  font:500 10px/1.2 var(--sans,"DM Sans",sans-serif);
+  letter-spacing:0;
+  max-width:170px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@media (max-width:1100px) and (min-width:981px){
+  .zn-site-header .zn-brand-context{display:none}
+}
+@media (max-width:600px){
+  .zn-site-header .zn-brand-copy strong{font-size:14px}
+  .zn-site-header .zn-brand-context{font-size:9px;max-width:min(34vw,145px)}
+}
+@media (max-width:360px){
+  .zn-site-header .zn-brand-context{max-width:110px}
+}

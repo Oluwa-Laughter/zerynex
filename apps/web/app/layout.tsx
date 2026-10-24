@@ -22,15 +22,15 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ??
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Zerynex — Privacy testing for the Zcash ecosystem.',
-    template: '%s · Zerynex',
+    default: 'Zerynex — Local Zcash Privacy Checks',
+    template: '%s | Zerynex',
   },
-  description: 'Privacy-policy analysis and regression testing for Zcash transaction infrastructure. Inspect PCZT disclosures, test handoffs, and integrate local Rust/WASM, CI and MCP workflows.',
+  description: 'Local-first PCZT privacy checks and stage regression testing for Zcash developers, powered by Rust and WebAssembly.',
   applicationName: 'Zerynex',
   keywords: ['Zcash', 'PCZT', 'privacy', 'Rust', 'developer tooling', 'Ironwood'],
   openGraph: {
     type: 'website',
-    title: 'Zerynex — Privacy testing for the Zcash ecosystem.',
+    title: 'Zerynex — Local Zcash Privacy Checks',
     description: 'Zcash developer infrastructure for local PCZT privacy-policy checks, disclosure regression tests and safe integration workflows.',
     images: ['/og-card.svg'],
   },

@@ -4,6 +4,28 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LuArrowUpRight, LuMenu, LuX } from 'react-icons/lu'
+import { getGuide } from '../docs/catalog'
+
+/** A concise section label alongside the brand, never a claim about wallet status. */
+function sectionLabel(path: string | null): string {
+  if (!path || path === '/') return 'Local Zcash privacy checks'
+  const routes: Record<string, string> = {
+    '/tools': 'PCZT Inspector',
+    '/tools/stages': 'Stage Regression',
+    '/tools/handoff': 'PCZT Handoff Tests',
+    '/tools/payment': 'ZIP-321 Preflight',
+    '/tools/refund': 'Refund Privacy Audit',
+    '/tools/transaction': 'Transaction Observation',
+    '/tools/node': 'Node Readiness',
+    '/tools/lightwalletd': 'lightwalletd Readiness',
+    '/ecosystem': 'Developer SDKs',
+    '/integrate': 'Integration Guide',
+    '/agents': 'Local Agent Tooling',
+    '/docs': 'Developer Docs',
+  }
+  if (path.startsWith('/docs/')) return getGuide(path.slice(6))?.title ?? 'Developer Docs'
+  return routes[path] ?? 'Zcash Developer Tools'
+}
 
 export default function SiteHeader() {
   const pathname = usePathname()
@@ -79,7 +101,10 @@ export default function SiteHeader() {
           <circle cx="62" cy="19" r="5" fill="currentColor"/>
         </svg>
       </span>
-      <span>ZERYNEX</span>
+      <span className="zn-brand-copy">
+        <strong>ZERYNEX</strong>
+        <span className="zn-brand-context" aria-hidden="true" title={sectionLabel(pathname)}>{sectionLabel(pathname)}</span>
+      </span>
     </Link>
     <nav ref={navigation} className={'desktop-nav' + (open ? ' nav-open' : '')}
       id="zn-primary-navigation" aria-label="Primary">
