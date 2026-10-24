@@ -30,6 +30,13 @@ const report = await client.analyzeBlob(file, { deny_transparent: true })
 console.log(report.findings)
 ~~~
 
+If your Zallet integration already holds a PCZT as an in-memory standard
+base64 string, use `await client.analyzeBase64(encoded, policy)` or
+`await client.compareBase64Stages(beforeEncoded, afterEncoded, policy)`.
+The input is strictly bounded, decoded locally, and analyzed with the same
+Rust engine as binary PCZTs. No wallet RPC is initiated. This is transport
+compatibility only, not live Zallet signing/proving interoperability.
+
 The asset export is `@zerynex/sdk/wasm/zerynex_bg.wasm`.
 With compatible wasm-bindgen asset hosting, the factory can auto-load
 the adjacent WASM binary. Verify this in your chosen browser bundler.

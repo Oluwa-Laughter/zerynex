@@ -46,6 +46,17 @@ const flagged = new Uint8Array(await readFile('flagged-v6.bin'))
 const policy = { deny_transparent: true }
 const passed = await client.analyzeBytes(clean, policy)
 assert.equal(passed.findings.length, 0)
+// Verify Zallet-style base64 transport via the REAL packaged Rust/WASM engine.
+const encodedClean=Buffer.from(clean).toString('base64')
+const encodedTransparent=Buffer.from(transparent).toString('base64')
+assert.deepEqual(await client.analyzeBase64(encodedClean,policy),passed)
+assert.deepEqual(await client.analyzeBase64(encodedTransparent,policy),
+  await client.analyzeBytes(transparent,policy))
+assert.deepEqual(await client.compareBase64Stages(encodedClean,Buffer.from(flagged).toString('base64'),policy),
+  await client.compareStages(clean,flagged,policy))
+await assert.rejects(client.analyzeBase64(encodedClean+'PRIVATE_WALLET_SECRET'),error=>
+  error.code==='INPUT_INVALID'&&!error.message.includes('PRIVATE_WALLET_SECRET'))
+console.log('PACKED ZALLET BASE64 PASS: canonical strict transport and stage parity with real Rust/WASM')
 const report = await client.analyzeBytes(transparent, policy)
 assert.ok(report.findings.some(item =>
   item.rule === 'PCZT-TRANSPARENT-OUTPUTS' && item.field === 'transparent.outputs'

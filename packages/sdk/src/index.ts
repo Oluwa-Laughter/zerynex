@@ -108,6 +108,38 @@ export const DEFAULT_POLICY: Readonly<Policy> = Object.freeze({
 
 export const MAX_PCZT_BYTES = 8 * 1024 * 1024
 
+/**
+ * Strict RFC 4648 base64 transport for Zallet PCZTs. Rejects whitespace,
+ * URL-safe alphabets, noncanonical trailing bits and oversized decoded data.
+ * Use locally held transport strings only; never attach PCZTs to URLs/logs.
+ */
+function decodePcztTransport(encoded: unknown, maxBytes: number): Uint8Array {
+  const fail = (): never => {
+    throw new ZerynexSdkError('INPUT_INVALID', 'Expected a bounded canonical base64 PCZT.')
+  }
+  if (typeof encoded !== 'string' || !encoded || encoded.length % 4 !== 0 ||
+      encoded.length > Math.ceil(maxBytes / 3) * 4 + 4) return fail()
+  const length = encoded.length
+  const pad = (encoded[length - 1] === '=' ? 1 : 0) + (encoded[length - 2] === '=' ? 1 : 0)
+  const size = length / 4 * 3 - pad
+  if (!Number.isSafeInteger(size) || size < 1 || size > maxBytes) return fail()
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  for (let i = 0; i < length - pad; i++) {
+    const code = encoded.charCodeAt(i)
+    if (!(code >= 65 && code <= 90) && !(code >= 97 && code <= 122) &&
+        !(code >= 48 && code <= 57) && code !== 43 && code !== 47) return fail()
+  }
+  // A padded encoding must not contain nonzero unused low bits.
+  if (pad === 2 && (alphabet.indexOf(encoded.charAt(length - 3)) & 15) !== 0) return fail()
+  if (pad === 1 && (alphabet.indexOf(encoded.charAt(length - 2)) & 3) !== 0) return fail()
+  let raw: string
+  try { raw = atob(encoded) } catch { return fail() }
+  if (raw.length !== size) return fail()
+  const bytes = new Uint8Array(size)
+  for (let i = 0; i < size; i++) bytes[i] = raw.charCodeAt(i)
+  return bytes
+}
+
 /** Reject unknown policy settings so typos cannot silently weaken policies. */
 export function normalizePolicy(input: PartialPolicy = {}): Policy {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
@@ -228,11 +260,15 @@ export interface ZerynexClient {
   ready(): Promise<void>
   /** Analyze bytes strictly on this device. */
   analyzeBytes(input: Uint8Array | ArrayBuffer, policy?: PartialPolicy): Promise<Report>
+  /** Analyze an in-memory Zallet-style, padded base64 PCZT; never performs RPC. */
+  analyzeBase64(input: string, policy?: PartialPolicy): Promise<Report>
   /** Analyze local browser File and Blob objects. */
   analyzeBlob(input: Blob, policy?: PartialPolicy): Promise<Report>
   /** Compare two locally held binary PCZT snapshots with the SAME Rust engine. */
   compareStages(before: Uint8Array | ArrayBuffer, after: Uint8Array | ArrayBuffer,
     policy?: PartialPolicy): Promise<StageComparison>
+  /** Compare two in-memory base64 PCZT snapshots using the canonical local engine. */
+  compareBase64Stages(before: string, after: string, policy?: PartialPolicy): Promise<StageComparison>
   /** Compare local browser files, without uploading either snapshot. */
   compareStageBlobs(before: Blob, after: Blob, policy?: PartialPolicy): Promise<StageComparison>
 }
@@ -289,6 +325,12 @@ export function createZerynexClient(options: ClientOptions): ZerynexClient {
     return parseReport(result)
   }
 
+  async function analyzeBase64(input: string, policy: PartialPolicy = {}): Promise<Report> {
+    const bytes = decodePcztTransport(input, maxInputBytes)
+    try { return await analyzeBytes(bytes, policy) }
+    finally { bytes.fill(0) }
+  }
+
   async function analyzeBlob(input: Blob, policy: PartialPolicy = {}): Promise<Report> {
     if (!input || typeof input.arrayBuffer !== 'function' || typeof input.size !== 'number') {
       throw new ZerynexSdkError('INPUT_INVALID', 'Expected a local file or Blob.')
@@ -322,6 +364,16 @@ export function createZerynexClient(options: ClientOptions): ZerynexClient {
     return parseStageComparison(report, configured)
   }
 
+  async function compareBase64Stages(before: string, after: string,
+    policy: PartialPolicy = {}): Promise<StageComparison> {
+    const first = decodePcztTransport(before, maxInputBytes)
+    try {
+      const second = decodePcztTransport(after, maxInputBytes)
+      try { return await compareStages(first, second, policy) }
+      finally { second.fill(0) }
+    } finally { first.fill(0) }
+  }
+
   async function compareStageBlobs(before: Blob, after: Blob, policy: PartialPolicy = {}): Promise<StageComparison> {
     if (!before || !after || typeof before.arrayBuffer !== 'function' ||
       typeof after.arrayBuffer !== 'function' || !Number.isSafeInteger(before.size) ||
@@ -337,8 +389,10 @@ export function createZerynexClient(options: ClientOptions): ZerynexClient {
   return {
     ready: async () => { await load() },
     analyzeBytes,
+    analyzeBase64,
     analyzeBlob,
     compareStages,
+    compareBase64Stages,
     compareStageBlobs,
   }
 }
