@@ -123,7 +123,7 @@ export default function HomeExperience() {
       <div className="zn-hero-content">
         <MotionTitle className="zn-overline"><span className="zn-overline-dot"/> ZERYNEX / ZCASH DEVELOPER INFRASTRUCTURE</MotionTitle>
         <MotionTitle><h1>Build for Zcash. <em>Privacy comes first.</em></h1></MotionTitle>
-        <MotionTitle><p className="zn-hero-text">Zerynex is a local-first developer toolkit for Zcash applications. Combine PCZT privacy-policy checks, node-readiness diagnostics, RPC compatibility testing, SDKs, CI and controlled agent workflows inside your own wallets, payments systems and protocol infrastructure.</p></MotionTitle>
+        <MotionTitle><p className="zn-hero-text">Inspect a local PCZT for selected privacy-policy disclosures, then compare before-and-after snapshots to catch newly introduced findings. The real Rust engine runs in your browser through WebAssembly, or locally through CLI and SDK integrations. Supporting read-only infrastructure tools extend that workflow.</p></MotionTitle>
         <MotionTitle className="zn-hero-actions"><Link href="/tools" className="zn-primary">Explore developer tools <LuArrowUpRight size={19}/></Link><Link href="/docs/zcash-app-recipes" className="zn-secondary">Integration recipes <LuArrowRight size={19}/></Link></MotionTitle>
         <MotionTitle className="zn-hero-foot"><span><LuShieldCheck size={15}/> OPEN SOURCE ENGINE</span><span><LuLockKeyhole size={15}/> BROWSER-LOCAL ANALYSIS</span><span><LuNetwork size={15}/> BUILT FOR ZCASH</span></MotionTitle>
       </div>

@@ -2,9 +2,11 @@
 
 **Local-first Zcash developer tooling for privacy policies, PCZT testing, node readiness, RPC compatibility, SDK integration, and CI.**
 
-Zerynex is a local-first, composable toolkit for developers building on Zcash: inspect Partially Created Zcash Transaction (PCZT) disclosures, compare privacy policies across transaction stages, validate synthetic wallet role handoffs, and integrate reproducible checks into application CI. Rust, TypeScript, Python, Go and MCP are interfaces into that foundation—not the limits of the product. Built as reusable Zcash ecosystem infrastructure for wallets, applications, node operators, integrators, cryptographers and tooling maintainers.
+Zerynex helps Zcash developers apply explicit disclosure policies to local Partially Created Zcash Transactions (PCZTs) and compare snapshots across stages for newly introduced privacy findings. The **same Rust analysis engine** powers the native CLI and browser WebAssembly; TypeScript, Python, Go and CI integrations extend its reach. Supporting offline/read-only tools are secondary to that tested core workflow.
 
-**Try it without installing anything:** https://zerynex.vercel.app/tools
+**Try the core workflow:** [Analyze a local PCZT](https://zerynex.vercel.app/tools) · [Compare before and after](https://zerynex.vercel.app/tools/stages) · [Run the non-spendable synthetic demo](https://zerynex.vercel.app/#synthetic-demo).
+
+**Two-minute judge walkthrough:** Load the **Clean v6** synthetic fixture in /tools and run the Rust/WASM inspector (no selected findings); load **Flagged v6** and run it again (the PCZT-GLOBAL-METADATA rule identifies the global.proprietary field path, never its value); then visit /tools/stages, choose **New metadata**, and compare to see the newly introduced finding. Both workbenches also accept explicitly selected real local PCZT files, which stay in browser memory rather than being uploaded. A pass covers only the implemented rules—not proof validity, signing safety, full anonymity, or consensus validity. See [submission walkthrough](submission/README.md).
 
 
 **Problem:** ZIP-374 intermediary PCZT files may carry sensitive metadata that never appears in a final shielded transaction. Zerynex helps developers establish explicit policies at those handoff boundaries.
