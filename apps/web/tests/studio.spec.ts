@@ -337,6 +337,75 @@ test('invalid local PCZT snapshots cannot yield a fake passing report', async ({
   await expect(page.getByText('No remaining findings')).toHaveCount(0)
 })
 
+test('switching synthetic examples disables Run until the newly selected file is ready', async ({ page }) => {
+  await page.route('**/examples/flagged-v6.bin', async route => {
+    await new Promise(resolve => setTimeout(resolve, 750))
+    await route.continue()
+  })
+  await page.goto('/tools')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByRole('button', { name: /Clean v6/ }).click()
+  await expect(page.getByText('clean-synthetic-v6.pczt')).toBeVisible()
+  await page.getByRole('button', { name: /Flagged v6/ }).click()
+  await expect(page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ })).toBeDisabled()
+  await expect(page.getByText('Loading synthetic PCZT…')).toBeVisible()
+  await expect(page.getByText('flagged-synthetic-v6.pczt')).toBeVisible()
+  await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ }).click()
+  await expect(page.getByText('PCZT-GLOBAL-METADATA')).toBeVisible()
+})
+
+test('changing PCZT input while analysis is in flight never shows stale findings', async ({ page }) => {
+  await page.goto('/tools')
+  await expect(page.getByText('RUST ENGINE READY')).toBeVisible()
+  await page.getByRole('button', { name: /Flagged v6/ }).click()
+  await expect(page.getByText('flagged-synthetic-v6.pczt')).toBeVisible()
+  await page.evaluate(() => {
+    const original = Blob.prototype.arrayBuffer
+    Blob.prototype.arrayBuffer = function () {
+      if (!(this instanceof File)) return original.call(this)
+      ;(window as Window & { zerynexFileReads?: number }).zerynexFileReads =
+        ((window as Window & { zerynexFileReads?: number }).zerynexFileReads ?? 0) + 1
+      return new Promise<ArrayBuffer>((resolve, reject) => {
+        setTimeout(() => { original.call(this).then(resolve, reject) }, 800)
+      })
+    }
+  })
+  await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ }).click()
+  await expect.poll(() => page.evaluate(() =>
+    (window as Window & { zerynexFileReads?: number }).zerynexFileReads ?? 0)).toBeGreaterThan(0)
+  await page.getByRole('button', { name: /Clean v6/ }).click()
+  await expect(page.getByText('clean-synthetic-v6.pczt')).toBeVisible()
+  await page.waitForTimeout(950)
+  await expect(page.getByText('PCZT-GLOBAL-METADATA')).toHaveCount(0)
+  await page.getByRole('button', { name: /RUN PRIVACY ANALYSIS/ }).click()
+  await expect(page.getByText('Policy checks passed')).toBeVisible()
+})
+
+test('changing stage policy during comparison discards old results', async ({ page }) => {
+  await page.goto('/tools/stages')
+  await page.getByRole('button', { name: /New metadata/ }).click()
+  await expect(page.getByText('flagged-synthetic-v6.pczt')).toBeVisible()
+  await page.evaluate(() => {
+    const original = Blob.prototype.arrayBuffer
+    Blob.prototype.arrayBuffer = function () {
+      if (!(this instanceof File)) return original.call(this)
+      ;(window as Window & { zerynexFileReads?: number }).zerynexFileReads =
+        ((window as Window & { zerynexFileReads?: number }).zerynexFileReads ?? 0) + 1
+      return new Promise<ArrayBuffer>((resolve, reject) => {
+        setTimeout(() => { original.call(this).then(resolve, reject) }, 800)
+      })
+    }
+  })
+  await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
+  await expect.poll(() => page.evaluate(() =>
+    (window as Window & { zerynexFileReads?: number }).zerynexFileReads ?? 0)).toBeGreaterThan(0)
+  await page.getByRole('checkbox', { name: 'Deny Sapling' }).check()
+  await page.waitForTimeout(950)
+  await expect(page.getByText('Review stage observations')).toHaveCount(0)
+  await page.getByRole('button', { name: /COMPARE PCZT STAGES/ }).click()
+  await expect(page.getByText('PCZT-GLOBAL-METADATA')).toBeVisible()
+})
+
 test('role-handoff workbench executes all four synthetic PCZT scenarios', async ({ page }) => {
   await page.goto('/tools/handoff')
   await expect(page.getByRole('heading', { name: /Test the handoff/ })).toBeVisible()

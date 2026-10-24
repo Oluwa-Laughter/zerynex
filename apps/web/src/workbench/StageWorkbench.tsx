@@ -28,6 +28,8 @@ function localFile(file: File | null) {
 export default function StageWorkbench() {
   const stage = useRef<HTMLElement>(null)
   const presetRequest = useRef(0)
+  // A file or policy change invalidates any comparison already in flight.
+  const comparisonRequest = useRef(0)
   const [ready,setReady] = useState(false)
   const [busy,setBusy] = useState(false)
   const [baseline,setBaseline] = useState<File | null>(null)
@@ -52,11 +54,20 @@ export default function StageWorkbench() {
     }
     return () => {alive=false}
   }, [])
+  function invalidateComparison() {
+    ++comparisonRequest.current
+    setBusy(false)
+    setResult(null)
+    setError(null)
+    setCopied(false)
+  }
   async function selectPreset(value: Preset) {
     const entry = presetOptions.find(item=>item.id===value)
     if (!entry) return
     const request = ++presetRequest.current
-    setBusy(true);setError(null);setResult(null);setPreset(value)
+    invalidateComparison()
+    setBaseline(null);setCandidate(null) // Prevent comparing old files during a new preset fetch.
+    setBusy(true);setPreset(value)
     try {
       const files = await Promise.all([entry.baseline, entry.candidate].map(async (name) => {
         const response = await fetch('/examples/'+name+'-v6.bin')
@@ -80,8 +91,7 @@ export default function StageWorkbench() {
     if (!file) return
     // Manual files take precedence over pending synthetic sample downloads.
     ++presetRequest.current
-    setBusy(false)
-    setResult(null);setError(null);setCopied(false);setPreset(null)
+    invalidateComparison();setPreset(null)
     if (which==='baseline') setBaseline(file)
     else setCandidate(file)
     if (file.size === 0 || file.size > MAX_FILE)
@@ -89,13 +99,16 @@ export default function StageWorkbench() {
   }
   async function compare() {
     if (!baseline || !candidate || busy || !ready) return
+    const request = ++comparisonRequest.current
     setBusy(true);setError(null);setResult(null);setCopied(false)
     try {
       const response = await comparePcztFiles(baseline,candidate,profile,{denyTransparent,denySapling})
-      setResult(response)
+      if (request === comparisonRequest.current) setResult(response)
     } catch {
-      setError('Comparison failed. Check that both files contain supported binary PCZTs and try again.')
-    } finally {setBusy(false)}
+      if (request === comparisonRequest.current) setError('Comparison failed. Check that both files contain supported binary PCZTs and try again.')
+    } finally {
+      if (request === comparisonRequest.current) setBusy(false)
+    }
   }
   function exportReport() {
     if (!result) return
@@ -127,7 +140,7 @@ export default function StageWorkbench() {
     <div className="wb-body">
       <section className="wb-panel wb-reveal" aria-label="Compare PCZT files">
         <div className="wb-section-head"><span>01 / SELECT INPUTS</span><span>{ready?'ENGINE READY':'LOADING ENGINE'}</span></div>
-        <p className="wb-help">Run a reproducible example, or bring two PCZT files from your own trusted local workflow.</p>
+        <p className="wb-help">Run a non-spendable synthetic example, or compare two PCZT files from your own trusted local workflow.</p>
         <div className="wb-preset-list">
           {presetOptions.map(option=><button key={option.id} type="button" aria-pressed={preset===option.id}
             onClick={()=>void selectPreset(option.id)}><strong>{option.name}</strong><span>{option.hint}</span><LuArrowUpRight size={17}/></button>)}
@@ -142,12 +155,12 @@ export default function StageWorkbench() {
         <div className="wb-section-head wb-policy-title"><span>02 / POLICY SETTINGS</span><span>SAME POLICY FOR BOTH STAGES</span></div>
         <div className="wb-options">
           <label>Disclosure profile
-            <select aria-label="Stage comparison profile" value={profile} onChange={event=>{setProfile(event.target.value as Profile);setResult(null)}}>
+            <select aria-label="Stage comparison profile" value={profile} onChange={event=>{setProfile(event.target.value as Profile);invalidateComparison()}}>
               <option value="external-signer">External signer</option><option value="restricted-handoff">Restricted handoff</option>
             </select>
           </label>
-          <label><input type="checkbox" checked={denyTransparent} onChange={event=>{setDenyTransparent(event.target.checked);setResult(null)}}/> Deny transparent</label>
-          <label><input type="checkbox" checked={denySapling} onChange={event=>{setDenySapling(event.target.checked);setResult(null)}}/> Deny Sapling</label>
+          <label><input type="checkbox" checked={denyTransparent} onChange={event=>{setDenyTransparent(event.target.checked);invalidateComparison()}}/> Deny transparent</label>
+          <label><input type="checkbox" checked={denySapling} onChange={event=>{setDenySapling(event.target.checked);invalidateComparison()}}/> Deny Sapling</label>
         </div>
         <button className="wb-run" onClick={()=>void compare()}
           disabled={!ready||busy||!baseline||!candidate||!baseline.size||!candidate.size||baseline.size>MAX_FILE||candidate.size>MAX_FILE}>

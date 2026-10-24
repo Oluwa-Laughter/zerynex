@@ -38,8 +38,12 @@ function PolicyIllustration({ restricted }: { restricted: boolean }) {
 function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
   const input = useRef<HTMLInputElement>(null)
   const policyInput = useRef<HTMLInputElement>(null)
+  const analysisRequest = useRef(0)
+  const fixtureRequest = useRef(0)
+  const policyRequest = useRef(0)
   const [policyNotice, setPolicyNotice] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [fixtureLoading, setFixtureLoading] = useState(false)
   const [profile, setProfile] = useState<Profile>('external-signer')
   const [denyTransparent, setDenyTransparent] = useState(false)
   const [denySapling, setDenySapling] = useState(false)
@@ -49,6 +53,7 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
   const [report, setReport] = useState<Report | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   const [tab, setTab] = useState<'result'|'example'>('result')
   const root = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -77,22 +82,45 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
     }, root)
     return () => ctx.revert()
   }, [report])
-  const choose = (candidate?: File | null) => {
-    if(!candidate) return
-    setFile(candidate)
+  const invalidateAnalysis = () => {
+    // Never display a finished report for an input/policy no longer selected.
+    ++analysisRequest.current
+    setBusy(false)
     setReport(null)
     setError(null)
+    setCopied(false)
+    setCopyError(false)
+  }
+  const choose = (candidate?: File | null) => {
+    if (!candidate) return
+    ++fixtureRequest.current // Manual selections supersede any pending fixture fetch.
+    invalidateAnalysis()
+    setFixtureLoading(false)
+    setFile(candidate)
     setTab('result')
-    if(candidate.size > 8 * 1024 * 1024) setError('File exceeds the 8 MiB maximum.')
+    if (!candidate.size || candidate.size > 8 * 1024 * 1024)
+      setError('Choose a nonempty binary PCZT no larger than 8 MiB.')
   }
   const loadSynthetic = async (which: 'clean' | 'flagged' | 'transparent') => {
+    const request = ++fixtureRequest.current
+    invalidateAnalysis()
+    // Clear the previous selection before fetching; otherwise Run could analyze
+    // the old fixture while a newly clicked sample is still downloading.
+    setFile(null)
+    setFixtureLoading(true)
     try {
       const response = await fetch('/examples/' + which + '-v6.bin')
-      if (!response.ok) throw new Error('Synthetic test fixture is missing from this build.')
+      if (!response.ok) throw new Error('Missing synthetic fixture')
       const bytes = await response.arrayBuffer()
-      choose(new File([bytes], which + '-synthetic-v6.pczt', { type: 'application/octet-stream' }))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load test fixture.')
+      if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024)
+        throw new Error('Invalid synthetic fixture size')
+      if (request === fixtureRequest.current)
+        choose(new File([bytes], which + '-synthetic-v6.pczt', { type: 'application/octet-stream' }))
+    } catch {
+      if (request === fixtureRequest.current) {
+        setFixtureLoading(false)
+        setError('Could not load the non-spendable synthetic fixture.')
+      }
     }
   }
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -102,22 +130,26 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
   }
   const run = async () => {
     if (!file || busy) return
+    const request = ++analysisRequest.current
     setBusy(true)
     setError(null)
     setReport(null)
     try {
       const result = await inspectPczt(file, profile, { denyTransparent, denySapling })
-      setReport(result)
-      setTab('result')
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unable to analyze this file.'
-      setError(msg.includes('fetch') || msg.includes('import') ? 'The browser Rust engine is not available in this build. Use the Rust CLI locally instead.' : msg)
+      if (request === analysisRequest.current) {
+        setReport(result)
+        setTab('result')
+      }
+    } catch {
+      if (request === analysisRequest.current)
+        setError('Unable to inspect the selected PCZT. Verify it is a supported binary file and try again.')
     } finally {
-      setBusy(false)
+      if (request === analysisRequest.current) setBusy(false)
     }
   }
   const importPolicy = async (selected?: File | null) => {
     if (!selected) return
+    const request = ++policyRequest.current
     setPolicyNotice(null)
     if (selected.size > 4096) {
       setPolicyNotice('Invalid policy: maximum file size is 4 KiB.')
@@ -125,14 +157,15 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
     }
     try {
       const imported = parsePolicyJson(await selected.text())
+      if (request !== policyRequest.current) return
+      invalidateAnalysis()
       setProfile(imported.profile === 'restricted_handoff' ? 'restricted-handoff' : 'external-signer')
       setDenyTransparent(imported.deny_transparent)
       setDenySapling(imported.deny_sapling)
-      setReport(null)
-      setError(null)
       setPolicyNotice('Policy loaded locally. Review the settings before analyzing.')
     } catch {
-      setPolicyNotice('Invalid policy file. Use the documented JSON schema.')
+      if (request === policyRequest.current)
+        setPolicyNotice('Invalid policy file. Use the documented JSON schema.')
     }
   }
   const downloadPolicy = () => {
@@ -159,9 +192,15 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
     URL.revokeObjectURL(url)
   }
   const copy = async () => {
-    if(!report) return
-    await navigator.clipboard.writeText(JSON.stringify(report,null,2))
-    setCopied(true)
+    if (!report) return
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(report,null,2))
+      setCopied(true)
+      setCopyError(false)
+    } catch {
+      setCopied(false)
+      setCopyError(true)
+    }
   }
   return <main ref={root} className="studio-page">
     <div className="studio-top studio-reveal"><button className="back-button" onClick={() => navigate('home')}><ArrowLeft size={17}/> BACK TO OVERVIEW</button><span className="studio-code">ZERYNEX / DEVELOPER TOOLS <span>001</span></span></div>
@@ -205,27 +244,27 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
           <div className={'dropzone'+(dragging?' drag-active':'')+(file?' drop-selected':'')} role="button" tabIndex={0} onClick={() => input.current?.click()} onKeyDown={e => { if(e.key==='Enter' || e.key===' ') {e.preventDefault();input.current?.click()} }} onDragOver={e=>{e.preventDefault();setDragging(true)}} onDragLeave={()=>setDragging(false)} onDrop={onDrop}>
             <input ref={input} type="file" hidden onChange={(e:ChangeEvent<HTMLInputElement>)=>choose(e.target.files?.[0])}/>
             <div className="drop-icon">{file ? <FileCode2 size={29} strokeWidth={1.3}/> : <ScanLine size={32} strokeWidth={1.3}/>}</div>
-            <strong>{file ? file.name : 'Drop a PCZT into the field'}</strong>
-            <span>{file ? (file.size/1024).toFixed(1)+' KiB · stored only in local browser memory' : 'Or click to select a binary Zcash transaction file'}</span>
+            <strong>{file ? file.name : fixtureLoading ? 'Loading synthetic PCZT…' : 'Drop a PCZT into the field'}</strong>
+            <span>{file ? (file.size/1024).toFixed(1)+' KiB · stored only in local browser memory' : fixtureLoading ? 'Fetching a checked-in, non-spendable example' : 'Or click to select a binary Zcash transaction file'}</span>
             <span className="file-tag">PCZT / MAX 8 MiB</span>
           </div>
-          <div className="fixture-row"><span>TRY A SYNTHETIC PCZT</span><div><button onClick={() => loadSynthetic('clean')}>Clean v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('flagged')}>Flagged v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('transparent')}>Transparent v6 <ArrowUpRight size={14}/></button></div></div>
+          <div className="fixture-row"><span>TRY A NON-SPENDABLE SYNTHETIC PCZT</span><div><button onClick={() => loadSynthetic('clean')}>Clean v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('flagged')}>Flagged v6 <ArrowUpRight size={14}/></button><button onClick={() => loadSynthetic('transparent')}>Transparent v6 <ArrowUpRight size={14}/></button></div></div>
           <div className="privacy-line"><LockKeyhole size={16}/><span>Files are parsed in this browser using WebAssembly. No upload. No account. No telemetry.</span></div>
         </section>
         <section className="studio-box studio-reveal">
           <div className="studio-box-head"><div><span>02 /</span> DISCLOSURE POLICY</div><span>SELECT A PROFILE</span></div>
           <div className="profile-options">
-            <button className={'profile-option'+(profile==='external-signer'?' chosen':'')} onClick={()=>{setProfile('external-signer');setReport(null)}}>
+            <button className={'profile-option'+(profile==='external-signer'?' chosen':'')} onClick={()=>{++policyRequest.current;setProfile('external-signer');invalidateAnalysis()}}>
               <span className="radio-ring"><i/></span><span><strong>External signer</strong><small>Flag dummy keys and unreviewed proprietary fields.</small></span><ArrowUpRight size={17}/>
             </button>
-            <button className={'profile-option'+(profile==='restricted-handoff'?' chosen':'')} onClick={()=>{setProfile('restricted-handoff');setReport(null)}}>
+            <button className={'profile-option'+(profile==='restricted-handoff'?' chosen':'')} onClick={()=>{++policyRequest.current;setProfile('restricted-handoff');invalidateAnalysis()}}>
               <span className="radio-ring"><i/></span><span><strong>Restricted handoff</strong><small>Also flag selected recipient, value and randomness fields.</small></span><ArrowUpRight size={17}/>
             </button>
           </div>
           <div className="policy-controls">
             <span className="policy-controls-title">ADDITIONAL PRIVACY INVARIANTS</span>
-            <label className="policy-check"><input type="checkbox" checked={denyTransparent} onChange={e=>{setDenyTransparent(e.target.checked);setReport(null)}}/><span><strong>Deny transparent components</strong><small>Flag transparent inputs and outputs in a PCZT.</small></span></label>
-            <label className="policy-check"><input type="checkbox" checked={denySapling} onChange={e=>{setDenySapling(e.target.checked);setReport(null)}}/><span><strong>Deny Sapling components</strong><small>Require no Sapling spends or outputs in the workflow.</small></span></label>
+            <label className="policy-check"><input type="checkbox" checked={denyTransparent} onChange={e=>{++policyRequest.current;setDenyTransparent(e.target.checked);invalidateAnalysis()}}/><span><strong>Deny transparent components</strong><small>Flag transparent inputs and outputs in a PCZT.</small></span></label>
+            <label className="policy-check"><input type="checkbox" checked={denySapling} onChange={e=>{++policyRequest.current;setDenySapling(e.target.checked);invalidateAnalysis()}}/><span><strong>Deny Sapling components</strong><small>Require no Sapling spends or outputs in the workflow.</small></span></label>
             <div className="policy-file-actions">
               <input ref={policyInput} type="file" accept=".json,application/json" aria-label="Select JSON policy file" hidden onChange={e=>{void importPolicy(e.target.files?.[0]);e.target.value=''}}/>
               <button type="button" className="download-policy" onClick={() => policyInput.current?.click()}><Upload size={14}/> IMPORT JSON POLICY</button>
@@ -246,7 +285,7 @@ function DeveloperTools({ navigate }: { navigate: (v: View) => void }) {
             <div className="report-details"><span>PROFILE</span><strong>{report.profile.replaceAll('_',' ')}</strong><span>CHECKED POOLS</span><strong>{report.checked_pools.join(' / ')}</strong><span>TRANSPARENT COMPONENTS</span><strong>{report.deny_transparent ? 'DENIED' : 'ALLOWED BY POLICY'}</strong><span>SAPLING COMPONENTS</span><strong>{report.deny_sapling ? 'DENIED' : 'ALLOWED BY POLICY'}</strong></div>
             {report.findings.length>0 && <div className="findings-list">{report.findings.map((f,i)=><div className="finding" key={i}><span>{f.rule}</span><strong>{f.field}</strong><p>{f.explanation}</p></div>)}</div>}
             <p className="disclaimer">{report.disclaimer}</p>
-            <div className="report-actions"><button onClick={download}><Download size={16}/> Export JSON</button><button onClick={copy}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Copied':'Copy report'}</button></div>
+            <div className="report-actions"><button onClick={download}><Download size={16}/> Export JSON</button><button onClick={()=>void copy()}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Copied':'Copy report'}</button></div>{copyError&&<p role="status" className="policy-notice">Clipboard unavailable. Export the sanitized JSON report instead.</p>}
           </div>
           : <div className="empty-report">{error?<div className="analysis-error"><CircleAlert size={30}/><strong>Unable to analyze</strong><p>{error}</p></div>:<><div className="scan-emblem"><Fingerprint size={66} strokeWidth={.75}/></div><span className="console-counter">AWAITING SOURCE / 000</span><h3>Your privacy report<br/><em>starts here.</em></h3><p>Load a real binary PCZT, choose a disclosure profile, and run the Rust engine. Results appear here.</p><div className="console-coordinate">IN / BROWSER ONLY · 127.0.0.1 PRINCIPLE</div></>}</div>
         )}
