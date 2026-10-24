@@ -17,6 +17,62 @@ introducing public transaction data collection.
 - **Go**: [source module](go-sdk.md) uses `github.com/Oluwa-Laughter/zerynex/packages/go`. Go modules do not use npm or PyPI. Because the module lives in a subdirectory, a versioned Go release requires a separate tag such as **`packages/go/v0.2.0`** after a reviewed commit. The root Git tag `v0.2.0` does *not* release this nested Go module. Do not push that tag until the Go consumer tests pass.
 - **GitHub Action**: use an immutable reviewed Git SHA for integration. Agents and public CI should use only reviewed synthetic PCZT fixtures.
 
+## Registry-account readiness checklist
+
+An npm login alone does not establish ownership of the **@zerynex** namespace.
+Verify that your npm account owns that scope, or create the npm organization.
+The reviewed package name is **@zerynex/sdk**. If npm cannot configure a
+trusted publisher for an unpublished package, its first real reviewed release
+may need an interactive account/2FA publish. Configure trusted publishing for
+a **later** version; never re-publish an already published version, publish a
+placeholder archive or commit registry credentials.
+
+PyPI can create the new **zerynex-python** project using **Pending Publishers**
+under the account Publishing settings. If the project already exists under your
+ownership, configure its project-level Publishing settings instead. Pending
+publisher registration does not reserve the project name.
+
+Use these exact GitHub Actions identity fields on npm and PyPI:
+
+| Field | npm | PyPI |
+| --- | --- | --- |
+| Package/project | @zerynex/sdk | zerynex-python |
+| GitHub owner | Oluwa-Laughter | Oluwa-Laughter |
+| Repository | zerynex | zerynex |
+| Workflow filename | registry-publish.yml | registry-publish.yml |
+| Environment | npm-publish | pypi-publish |
+
+On GitHub repository Settings → Environments, create **npm-publish** and
+**pypi-publish**, configure maintainers' required reviewer approvals and
+approved branches if supported by your GitHub plan, and **test that the
+protections actually work**. No tokens or passwords belong in this repository.
+
+Only after an explicitly reviewed and approved version tag points to the
+exact current main commit, a matching published GitHub Release exists, and
+the artifacts/checksums are verified, start the existing **Publish verified
+SDKs to registries (manual)** GitHub Actions workflow on main. For v0.2.0,
+publish npm and PyPI in two separate runs, with confirmations
+**PUBLISH-v0.2.0-npm** and **PUBLISH-v0.2.0-pypi**, respectively. The workflow
+intentionally refuses a tag for an older main commit. Account registration
+alone is not authorization to tag, upload or publish.
+
+### Go and Rust distribution are independent
+
+The Go SDK module lives at github.com/Oluwa-Laughter/zerynex/packages/go.
+It runs policy checks through an installed trusted local Rust CLI; it has
+no separate Go cryptographic engine or hosted PCZT analysis endpoint. After
+reviewed tests and explicit approval, publishing the nested Go module
+requires the Git tag **packages/go/v0.2.0** on its release commit. The
+repository-root **v0.2.0** tag does not publish that module. External Go
+consumers then use go get with that module path and version.
+
+Rust supplies the canonical library and CLI. GitHub Release distributes
+the native CLI; crates.io is an *optional separate registry* which requires
+its own identity, reviewed crate-name ownership and approval.
+Running cargo publish --dry-run --locked checks the source package locally
+but **does not upload**. The npm/PyPI workflow does not release crates.io
+or create Go tags.
+
 ## What the maintainer needs to do
 
 1. **npm:** Sign in to [npm](https://www.npmjs.com/) and verify that you control the `@zerynex` scope (or create an npm organization). A registry `404` alone does **not** reserve or guarantee ownership of a namespace. If it is unavailable, decide on another scope and update all package references *before publishing*. **For an entirely new npm package, you may first need to publish the reviewed tarball interactively with your account and required 2FA**, because npm's trusted publisher settings are generally attached to an existing package. Do **not** upload credentials or a write token to the repo or Actions. After initial publication, configure an npm trusted publisher for `@zerynex/sdk` using **owner `Oluwa-Laughter`, repository `zerynex`, workflow `registry-publish.yml`, environment `npm-publish`**, with direct `npm publish` permission. A version already published manually cannot be published again; use the following reviewed version for OIDC publishing. The repository URL in `packages/sdk/package.json` must remain exact.

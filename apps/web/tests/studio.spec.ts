@@ -1071,3 +1071,43 @@ test('publisher onboarding distinguishes tested packages from actual registry re
  await expect(page.getByText('registry-publish.yml',{exact:false}).first()).toBeVisible()
  await expect(page.locator('.docs-markdown figure.docs-code-block').first().getByRole('button',{name:/Copy.*code to clipboard/})).toBeVisible()
 })
+
+
+test('short page titles and brand context update across tools, SDKs and docs', async ({ page }) => {
+  const routes: {path: string; title: RegExp; label: string}[] = [
+    {path:'/',title:/^Zerynex — Local Zcash Privacy Checks$/,label:'Local Zcash privacy checks'},
+    {path:'/tools',title:/^PCZT Inspector \| Zerynex$/,label:'PCZT Inspector'},
+    {path:'/tools/stages',title:/^Stage Regression \| Zerynex$/,label:'Stage Regression'},
+    {path:'/ecosystem',title:/^Developer SDKs \| Zerynex$/,label:'Developer SDKs'},
+    {path:'/integrate',title:/^Integration Guide \| Zerynex$/,label:'Integration Guide'},
+    {path:'/tools/node',title:/^Node Readiness \| Zerynex$/,label:'Node Readiness'},
+    {path:'/docs',title:/^Developer Docs \| Zerynex$/,label:'Developer Docs'},
+  ]
+  for (const route of routes) {
+    await page.goto(route.path)
+    await expect(page).toHaveTitle(route.title)
+    await expect(page.locator('.zn-site-header .zn-brand-context')).toHaveText(route.label)
+    await expect(page.getByRole('link',{name:'Zerynex home'})).toHaveAttribute('href','/')
+    const dimensions = await page.evaluate(() => ({
+      viewport:document.documentElement.clientWidth,
+      document:document.documentElement.scrollWidth,
+    }))
+    expect(dimensions.document,route.path+' scroll width').toBeLessThanOrEqual(dimensions.viewport+2)
+  }
+  await page.goto('/docs/pczt-stage-regression')
+  await expect(page.locator('.zn-site-header .zn-brand-context')).toHaveText(
+    'Stage regression testing'
+  )
+  await expect(page).toHaveTitle(/Stage regression testing \| Zerynex/)
+})
+
+test('route-aware brand stays compact on a 320px mobile viewport', async ({ page }) => {
+  await page.setViewportSize({width:320,height:720})
+  await page.goto('/tools/stages')
+  await expect(page.locator('.zn-site-header .zn-brand-context')).toHaveText('Stage Regression')
+  await expect(page.getByRole('button',{name:'Open menu'})).toBeVisible()
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+  expect(overflow).toBeLessThanOrEqual(2)
+  await page.getByRole('button',{name:'Open menu'}).click()
+  await expect(page.getByRole('navigation',{name:'Primary'})).toBeVisible()
+})
