@@ -29,7 +29,6 @@ Add a workflow like the following to your own Zcash project:
 
 The @main reference tracks development, so in a production repository
 replace it with the exact reviewed Zerynex commit hash.
-Versioned tags/releases are not published yet.
 
 Supported action inputs:
 - pczt-path (required): fixture relative to the checked-out repository.

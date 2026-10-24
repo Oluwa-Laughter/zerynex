@@ -44,7 +44,7 @@ Exit `0`: implemented rules found no issues. Exit `2`: policy findings. Exit `1`
 
 ## TypeScript / WASM: integrate into your frontend
 
-The TypeScript SDK is independently tested as a bundled npm tarball. **It has not been published to the public npm registry.** Obtain a trusted artifact through [releases](releases.md) or build `packages/sdk` from the source checkout.
+The TypeScript SDK is independently tested as a bundled npm tarball. Install a verified compatible artifact from [downloads](releases.md) or build `packages/sdk` from the source checkout.
 
 ```typescript
 import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
@@ -70,7 +70,7 @@ Your app must bundle and serve the trusted WASM asset. There is **no hosted PCZT
 
 ## Python SDK: automate on your developer machine
 
-The source package is not currently published to PyPI. From a local checkout:
+To install from a local checkout:
 
 ```bash
 git clone https://github.com/Oluwa-Laughter/zerynex.git
@@ -151,7 +151,7 @@ Continue with the [privacy policy schema](policy-format.md), [CLI reference](cli
 
 ## Bootstrap and verify your Zcash project
 
-The independently tested Python wheel includes `zerynex-project`, an **offline, non-destructive** setup command. Obtain and verify the wheel and a trusted separately installed Rust CLI from [release artifacts](releases.md). Public PyPI publication is not complete.
+The independently tested Python wheel includes `zerynex-project`, an **offline, non-destructive** setup command. Obtain and verify the wheel and a trusted separately installed Rust CLI from [release artifacts](releases.md).
 
 ```bash
 # Run from the environment where you installed the verified Python wheel:
@@ -229,5 +229,4 @@ Action **pinned to a reviewed full commit SHA**, not a floating branch.
 CI executes the sample Node and Python scripts against the *actual packed*
 SDK tarball and isolated wheel, including expected negative exit codes and
 sanitized SARIF. No wallet, private PCZT, real refund address or network node
-is necessary for these checks. Registry-specific installation commands are
-applicable **only after** the corresponding versions are publicly published.
+is necessary for these checks. Choose installation commands appropriate to the artifacts and versions you have verified.

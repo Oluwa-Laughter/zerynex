@@ -50,14 +50,6 @@
       "summary": "Standalone CLI distributions, bundled Rust/WASM SDK and Python wheel."
     },
     {
-      "slug": "publishing",
-      "title": "Package publishing and registry setup",
-      "group": "Start here",
-      "status": "partial",
-      "audience": "SDK maintainers and Zcash infrastructure integrators",
-      "summary": "Release readiness, npm/PyPI trusted publishing, package versions, native artifacts, Go tagging and installation trust."
-    },
-    {
       "slug": "policy-format",
       "title": "Privacy policy format",
       "group": "Core concepts",

@@ -12,7 +12,7 @@ python -m venv .venv
 .venv/bin/python -m pip install ./packages/python
 ```
 
-The Python wheel is independently tested; PyPI registry publication is not yet complete. See [Downloads and releases](releases.md).
+The Python wheel is independently tested and delegates PCZT analysis to the local Rust CLI. See [Downloads](releases.md).
 
 ## Analyze a local PCZT
 

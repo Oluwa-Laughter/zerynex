@@ -83,7 +83,7 @@ Full threat-model summary: [docs/privacy-model.md](docs/privacy-model.md).
 
 ## Integrate into your own Zcash app
 
-Read the [external developer verification and extension boundaries](docs/developer-verification.md) for what real package-consumer tests prove and what remains unverified. Start with the [copyable consumer CI workflow](examples/consumer-integration/README.md) and [ecosystem integration roadmap](docs/ecosystem-integration-roadmap.md). Zerynex currently checks selected PCZT disclosure policies; upstream wallet, node and indexer compatibility requires version-pinned integration tests. Package registries are not yet published; see the [maintainer publishing checklist](docs/publishing.md) for the reviewed GitHub Release, npm scope ownership, PyPI pending publisher, protected GitHub environments, and manual OIDC registry workflow before preparing a versioned release.
+Read the [external developer verification and extension boundaries](docs/developer-verification.md) for what real package-consumer tests prove and what remains unverified. Start with the [copyable consumer CI workflow](examples/consumer-integration/README.md) and [ecosystem integration roadmap](docs/ecosystem-integration-roadmap.md). Zerynex currently checks selected PCZT disclosure policies; upstream wallet, node and indexer compatibility requires version-pinned integration tests.
 
 ## Next milestones
 
@@ -138,9 +138,7 @@ strict policy normalization, lazy local WASM loading, Blob and Uint8Array
 analysis, and sanitized error messages. The Next.js PCZT Inspector now consumes
 this SDK rather than calling WebAssembly directly.
 
-The SDK is not yet published to the npm registry. The web app links it
-locally through a standard file dependency. We test npm and Yarn installation
-separately from our pnpm-based reference CI build.
+The web app uses the local SDK distribution. Independent npm and Yarn consumer tests complement pnpm CI.
 
 See docs/package-managers.md for installation and development instructions.
 
@@ -196,7 +194,6 @@ See [report JSON Schema](docs/report.schema.json) for interoperable results.
 - **Python**: install the source adapter locally; it supports in-memory
   base64-to-Rust analysis as well as private local files.
 - **TypeScript**: use the repo-local SDK with trusted bundled Rust/WASM.
-  Public npm publishing is not complete yet.
 - **GitHub Actions**: use this repository as a **composite action** in other
   repos, with only synthetic fixtures; no application SDK installation.
 
@@ -279,7 +276,7 @@ animations, Motion interactive transitions, and persistent Light, Dark
 and System themes. See docs/product-experience.md.
 
 For no-install browser use and lightweight adapter distribution, see
-docs/sdk-distribution.md. Unpublished SDKs are identified explicitly.
+docs/sdk-distribution.md. Check SDK versions and compatibility before installing.
 
 ## Distribution and installation
 
@@ -288,6 +285,5 @@ a Python wheel with local MCP tools, and a TypeScript npm tarball that
 contains its **matching Rust/WASM runtime**. See
 [release artifacts](docs/releases.md). The distribution workflow
 supports manual artifact builds and releases from explicit version tags.
-These artifacts are not yet published on the npm/PyPI/crates.io registries.
 
 Responsive layout and mobile navigation guidelines: docs/responsive-design.md. Run the frontend audit with pnpm audit:responsive.

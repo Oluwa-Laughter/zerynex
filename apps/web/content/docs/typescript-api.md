@@ -4,7 +4,7 @@ The `@zerynex/sdk` TypeScript package wraps the same Rust privacy engine compile
 
 ## Installation status
 
-The project builds and externally tests an npm tarball with compiled Rust/WASM; **npm registry publication is not yet complete**. Get a verified artifact from [Releases](releases.md) or develop against `packages/sdk` in the source repository. Do not assume `npm install @zerynex/sdk` is available from the public registry yet.
+The SDK includes the compiled Rust/WASM engine; use a verified version-matched artifact or the repository source.
 
 ## Browser integration
 

@@ -1,9 +1,8 @@
 # Install and integrate Zerynex
 
 **Choose a path:** [Try the bundled demo](/#synthetic-demo), [analyze your own local PCZT](/tools), or [integrate Zerynex into your project](/integrate).
-For registry publishing status and maintainer setup, see [Publishing Zerynex SDKs](publishing.md).
 
-For a guided CLI, SDK, policy, CI and MCP workflow, see [Project integration](project-integration.md). For release archives and the SDK tarball/wheel, see [Downloads](releases.md). For application integration, see [language API guides](typescript-api.md) and confirm publication status before copying registry commands.
+For a guided CLI, SDK, policy, CI and MCP workflow, see [Project integration](project-integration.md). For release archives and the SDK tarball/wheel, see [Downloads](releases.md). For application integration, see [language API guides](typescript-api.md) and verify compatibility with your chosen version.
 
 Zerynex is a **local-first Rust privacy policy engine** for Zcash PCZT workflows.
 A node, wallet, hosted account or API token is not needed for synthetic PCZT
@@ -15,7 +14,7 @@ linting or role-handoff regression tests.
 | --- | --- | --- |
 | Rust CLI and library | Wallets, CI, Rust programs | Supported from source |
 | PCZT role scenario runner | Offline wallet developer acceptance tests | Supported from source |
-| TypeScript/WASM SDK | React/Next.js and browser wallet UIs | Packaged WASM tarball tested; npm registry not published |
+| TypeScript/WASM SDK | React/Next.js and browser wallet UIs | Packaged Rust/WASM tested in independent applications |
 | Python SDK | Automation and Python test suites | Calls trusted Rust CLI |
 | GitHub Action | Repository pull-request checks | Supported with synthetic fixtures |
 | MCP and Agent Skill | Read-only agent workflows | Optional and local |
@@ -65,12 +64,12 @@ Python example:
                                  Policy(deny_transparent=True))
     print(report.agent_summary())
 
-The package is not yet published to PyPI.
+This Python adapter requires a separately installed local Rust CLI.
 
 ## TypeScript/WASM SDK
 
 The SDK is in packages/sdk and shares the Rust core compiled to WASM.
-The package has a source-tested release candidate but public npm publishing is not yet confirmed. Development supports npm, Yarn and
+The Rust/WASM SDK can be integrated from the checked-in source. Development supports npm, Yarn and
 pnpm. See [TypeScript browser API](typescript-api.md).
 
 ## Offline PCZT role-handoff harness

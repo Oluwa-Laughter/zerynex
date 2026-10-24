@@ -76,5 +76,4 @@ The Rust CLI works without Node tooling:
     cargo test --locked
     cargo run --locked -- apps/web/public/examples/flagged-v6.bin --json
 
-The SDK is NOT published to the npm registry yet. External installations by
-package name will only be possible after a reviewed release is published.
+Use a version-matched SDK distribution or integrate directly from a trusted source checkout.

@@ -13,10 +13,13 @@ const privateSlugs = [
   'ecosystem-integration-roadmap', 'integration-contracts',
   'sdk-distribution', 'package-managers',
 ]
-const mandatory = ['quickstart', 'installation', 'project-integration', 'publishing', 'cli-reference', 'rust-api', 'typescript-api',
+const mandatory = ['quickstart', 'installation', 'project-integration', 'cli-reference', 'rust-api', 'typescript-api',
   'python-api', 'report-reference', 'rule-registry', 'sarif', 'node-readiness', 'transaction-observations', 'payment-requests', 'wallet-handoffs', 'refund-privacy-audit', 'zcash-app-recipes', 'github-action', 'agents', 'privacy-model']
 if (catalog.version !== 1 || !Array.isArray(catalog.entries)) throw Error('Invalid docs catalog')
 const publicSlugs = new Set()
+// Registry administration is not a developer-facing documentation route.
+if (catalog.entries.some(entry => entry.slug === 'publishing'))
+  throw Error('Publishing administration must not appear in developer docs')
 let lastGroup = -1
 for (const guide of catalog.entries) {
   const groupIndex = groups.indexOf(guide.group)

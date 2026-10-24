@@ -1061,15 +1061,12 @@ test('refund browser rejects duplicate keys even if JavaScript JSON.parse would 
   await expect(page.getByText('NO DECLARED RISKS')).toHaveCount(0)
 })
 
-test('publisher onboarding distinguishes tested packages from actual registry releases',async({page})=>{
+test('developer docs exclude maintainer registry publishing instructions',async({page})=>{
  await page.goto('/docs')
  await expect(page.locator('.docs-guide-card')).toHaveCount(docsCatalog.entries.length)
- await page.goto('/docs/publishing')
- await expect(page.getByRole('heading',{name:/Publishing Zerynex SDKs/})).toBeVisible()
- await expect(page.getByText('v0.2.0',{exact:false}).first()).toBeVisible()
- await expect(page.getByText('not yet a tagged/public release',{exact:false})).toBeVisible()
- await expect(page.getByText('registry-publish.yml',{exact:false}).first()).toBeVisible()
- await expect(page.locator('.docs-markdown figure.docs-code-block').first().getByRole('button',{name:/Copy.*code to clipboard/})).toBeVisible()
+ await expect(page.getByText('Package publishing and registry setup')).toHaveCount(0)
+ const response=await page.goto('/docs/publishing')
+ expect(response?.status()).toBe(404)
 })
 
 

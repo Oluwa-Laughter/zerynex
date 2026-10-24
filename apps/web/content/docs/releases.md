@@ -13,24 +13,10 @@ hosted PCZT workbenches** at [/tools](/tools).
 | Python SDK (.whl and .tar.gz) | Python API, offline `zerynex-project` scaffolder, MCP server/doctor, Z3 loopback diagnostic | Python 3.11+ plus the separately installed trusted Rust CLI |
 | Go SDK | Go adapter using a trusted local Rust CLI | Go 1.23+ and an installed CLI; public tagged module pending |
 
-These are independently consumer-tested **build formats**, not claims that
-npm, PyPI or crates.io publication is finished.
-
-**Release status:** The last public GitHub Release is `v0.1.0`. The source
-now prepares **v0.2.0**, which is not yet tagged or published. Commands
-using `0.2.0` below apply **only after building these artifacts from source
-or creating a reviewed `v0.2.0` release**. Do not download `v0.1.0` and
-assume it includes newer refund-privacy, Node CLI or integration fixes.
-
-For package maintainers, see the [registry publishing checklist](publishing.md).
-Versioned GitHub Releases created after the new publisher hardening include
-`SHA256SUMS-registry.txt`, covering the bundled npm tarball, Python wheel
-and Python source archive. The separately gated, **manual-only** registry
-workflow checks those digests before publishing either SDK. npm and PyPI
-registry accounts, permissions and protected-environment approvals remain
-maintainer responsibilities; no registry uploads happen automatically.
-Registry publication requires explicitly approved release artifacts, npm/PyPI
-account ownership and verified GitHub Actions environments.
+These formats are independently consumer-tested using synthetic PCZT
+fixtures. The latest verified public GitHub Release is v0.1.0 and repository
+source is newer; always choose the exact version and features you need.
+Use checked checksums where provided.
 
 ## GitHub distribution workflow
 
@@ -40,10 +26,8 @@ manually by maintainers, to produce download artifacts retained by GitHub
 Actions for a limited time. It builds Linux, macOS and Windows
 CLI executables as well as TypeScript and Python packages.
 
-A reviewed version tag deliberately pushed by a maintainer triggers the
-same tested build and creates a GitHub Release with the artifacts. That
-does **not** automatically publish anything to npm, PyPI or crates.io.
-Do not mistake a checksum for a cryptographic signature.
+Verify the version and checksum of a downloaded archive.
+A SHA-256 checksum does not provide a cryptographic signature.
 
 ## Download the compiled Rust CLI
 
@@ -122,5 +106,3 @@ a separate cryptographic engine or require Next.js.
 - Pin immutable reviewed commit SHAs for CI integration.
 - Local policy lint results do not establish a formal audit, transaction
   correctness, Zcash consensus validity or anonymity.
-- Registry publication, signed releases and organizational GitHub
-  ownership remain explicit future release-hardening milestones.

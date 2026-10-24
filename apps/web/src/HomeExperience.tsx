@@ -215,7 +215,7 @@ export default function HomeExperience() {
       <div className="zn-code-surface zn-scroll-reveal">
         <div><span>TypeScript / packaged Rust WASM SDK</span><LuTerminal size={17}/></div>
         <pre><code>{code}</code></pre>
-        <div><span>Local Rust/WASM · npm tarball tested, registry pending</span><LuCheckCheck size={17}/></div>
+        <div><span>Local Rust/WASM · independently tested SDK</span><LuCheckCheck size={17}/></div>
       </div>
     </section>
     <section className="zn-agent-feature zn-scroll-reveal">
