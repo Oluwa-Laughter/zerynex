@@ -104,8 +104,10 @@ proofs, authorize spends or validate cryptographic proofs.
 
 ## Check locally supplied Zallet producer fixtures
 
-`scripts/check_zallet_pczt_fixture.py` is an offline, opt-in bridge toward
-producer compatibility evidence. In a disposable, locally controlled Zallet
+The installable `zerynex-zallet-fixture-check` command is an offline,
+opt-in bridge toward producer compatibility evidence. The repository script
+`scripts/check_zallet_pczt_fixture.py` invokes the same packaged code.
+In a disposable, locally controlled Zallet
 `v0.1.0-beta.3` environment, save only nonspendable PCZT output from your own
 `pczt_create` test as a **canonical base64** `.b64` file. Do not use a real
 wallet or copy a private PCZT into this repository. Record the SHA-256 of the
@@ -136,7 +138,8 @@ Use `sha256sum created.b64` to obtain the digest, then run:
 
 ```bash
 cargo build --locked --bin zerynex
-python3 scripts/check_zallet_pczt_fixture.py \
+python3 -m pip install ./packages/python
+zerynex-zallet-fixture-check \
   --manifest /protected/local/manifest.json --cli ./target/debug/zerynex
 ```
 
@@ -145,8 +148,9 @@ The runner checks the digest, canonical base64, bounded size, and exact
 did not, and 1 means invalid input or analyzer failure. Output contains case
 numbers, counts, and rule IDs only; it omits fixture paths and PCZT bytes.
 The manifest's producer origin is **author asserted**, not authenticated by
-this tool. Repository CI tests this runner against synthetic, nonspendable
-PCZTs only. A passing local fixture check is evidence about those supplied
+this tool. CI tests both the repository script and an independently installed
+Python wheel against synthetic, nonspendable PCZTs only. A passing local
+fixture check is evidence about those supplied
 bytes, not proof of a running Zallet RPC handoff or signer/prover behavior.
 
 ## Check the upstream RPC shape without invoking the wallet

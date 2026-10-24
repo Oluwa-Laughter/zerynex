@@ -57,7 +57,8 @@ def metadata(root: Path = ROOT) -> str:
         raise RegistryReleaseError('Missing source SDK CLI executable')
     if not {'bin', 'dist', 'README.md', 'LICENSE'} <= set(npm.get('files', [])):
         raise RegistryReleaseError('npm package file whitelist is incomplete')
-    if not {'zerynex-project', 'zerynex-refund-audit', 'zerynex-mcp', 'zerynex-agent-preflight'} <= set(py.get('scripts', {})):
+    if not {'zerynex-project', 'zerynex-refund-audit', 'zerynex-mcp', 'zerynex-agent-preflight',
+            'zerynex-zallet-fixture-check'} <= set(py.get('scripts', {})):
         raise RegistryReleaseError('Python public command entry points missing')
     go_mod = (root / 'packages/go/go.mod').read_text()
     if not re.search(r'^module github\.com/Oluwa-Laughter/zerynex/packages/go$', go_mod, re.M):
@@ -102,7 +103,9 @@ def python_wheel(archive: Path, version: str) -> None:
             entry_points = wheel.read(prefix+'entry_points.txt').decode('utf8')
             if (f'Name: zerynex-python' not in metadata_text or
                     f'Version: {version}' not in metadata_text or
-                    'zerynex-refund-audit' not in entry_points or 'zerynex-project' not in entry_points):
+                    'zerynex-refund-audit' not in entry_points or 'zerynex-project' not in entry_points or
+                    'zerynex-zallet-fixture-check = zerynex_py.zallet_fixture:main' not in entry_points or
+                    'zerynex_py/zallet_fixture.py' not in names):
                 raise RegistryReleaseError('Python wheel name/version/scripts disagree with release')
     except (OSError, zipfile.BadZipFile, KeyError, UnicodeError) as exc:
         if isinstance(exc, RegistryReleaseError):

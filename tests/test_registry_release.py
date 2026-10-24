@@ -89,7 +89,8 @@ class RegistryReleaseTests(unittest.TestCase):
             archive.writestr('zerynex_python-0.2.0.dist-info/METADATA',
                              'Metadata-Version: 2.3\nName: zerynex-python\nVersion: 0.2.0\n')
             archive.writestr('zerynex_python-0.2.0.dist-info/entry_points.txt',
-                             '[console_scripts]\nzerynex-refund-audit = zerynex_py.refund_privacy:main\nzerynex-project = zerynex_py.project:main\n')
+                             '[console_scripts]\nzerynex-refund-audit = zerynex_py.refund_privacy:main\nzerynex-project = zerynex_py.project:main\nzerynex-zallet-fixture-check = zerynex_py.zallet_fixture:main\n')
+            archive.writestr('zerynex_py/zallet_fixture.py', 'def main(): pass\n')
         self.assertIsNone(module.python_wheel(path, '0.2.0'))
         with self.assertRaises(module.RegistryReleaseError):module.python_wheel(path,'0.1.0')
 
