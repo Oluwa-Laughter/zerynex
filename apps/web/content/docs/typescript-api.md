@@ -4,7 +4,7 @@ The `@zerynex/sdk` TypeScript package wraps the same Rust privacy engine compile
 
 ## Installation status
 
-The SDK includes the compiled Rust/WASM engine; use a verified version-matched artifact or the repository source.
+Install the published `@zerynex/sdk@0.2.0` with npm, Yarn or pnpm. It contains the matching Rust/WASM engine; ensure your bundler serves the trusted WASM asset. For offline use, verify the matching GitHub Release archive.
 
 ## Browser integration
 

@@ -536,20 +536,58 @@ test('download documentation describes independently tested packages',async ({pa
   await page.goto('/docs/releases')
   await expect(page.getByRole('heading',{name:/Download Zerynex without cloning/})).toBeVisible()
   await expect(page.getByText('npm install ./zerynex-sdk-0.2.0.tgz',{exact:false})).toBeVisible()
-  await expect(page.getByText('independently consumer-tested',{exact:false})).toBeVisible()
+  await expect(page.getByText('Current verified release',{exact:false})).toBeVisible()
 })
 
-test('TypeScript onboarding uses bundled WebAssembly SDK and flags unpublished registry',async ({page})=>{
+test('SDK onboarding shows published packages and keeps local WASM integration',async ({page})=>{
   await page.goto('/ecosystem')
   await page.getByRole('button',{name:/^TypeScript/}).click()
   await expect(page.getByText('createBrowserZerynexClient',{exact:false}).first()).toBeVisible()
-  await expect(page.getByText('Public npm registry publication',{exact:false})).toBeVisible()
+  await expect(page.getByText('npm install @zerynex/sdk@0.2.0',{exact:false}).first()).toBeVisible()
   const guide = page.getByRole('link',{name:'Read integration guide'})
   await expect(guide).toHaveAttribute('href', '/docs/typescript-api')
   await guide.click()
   await expect(page).toHaveURL(/\/docs\/typescript-api/)
 })
 
+
+test('SDK setup examples match public releases and local Rust CLI boundary',async({page})=>{
+  await page.goto('/ecosystem')
+  await expect(page.getByText('npm install @zerynex/sdk@0.2.0',{exact:false})).toBeVisible()
+  await expect(page.getByRole('button',{name:'Copy setup command'})).toBeVisible()
+  await page.getByRole('button',{name:/^Python/}).click()
+  await expect(page.getByText('python3 -m pip install zerynex-python==0.2.0',{exact:false})).toBeVisible()
+  await expect(page.getByText('separately installed trusted Rust CLI',{exact:false})).toBeVisible()
+  await page.getByRole('button',{name:/^Go/}).click()
+  await expect(page.getByText('go get github.com/Oluwa-Laughter/zerynex/packages/go@v0.2.0',{exact:false})).toBeVisible()
+  await expect(page.getByText('Versioned Go module v0.2.0 is public',{exact:false})).toBeVisible()
+})
+
+test('published SDK setup commands copy exactly and switch across languages',async({page})=>{
+  // Make the browser clipboard deterministic in headless/mobile test runners.
+  // Verify the exact bytes passed to the native writeText API by the UI.
+  await page.addInitScript(() => {
+    let copiedText = ''
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: async (value: string) => { copiedText = value },
+        readText: async () => copiedText,
+      },
+    })
+  })
+  await page.goto('/ecosystem')
+  await page.waitForLoadState('networkidle') // Wait until client event handlers are hydrated before clicking.
+  await page.getByRole('button',{name:'Copy setup command'}).click()
+  await expect(page.locator('.zn-language-detail [role="status"]')).toContainText('Setup command copied')
+  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('npm install @zerynex/sdk@0.2.0')
+  await page.getByRole('button',{name:/^Python/}).click()
+  await page.getByRole('button',{name:'Copy setup command'}).click()
+  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('python3 -m pip install zerynex-python==0.2.0')
+  await page.getByRole('button',{name:/^Go/}).click()
+  await page.getByRole('button',{name:'Copy setup command'}).click()
+  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('go get github.com/Oluwa-Laughter/zerynex/packages/go@v0.2.0')
+})
 
 test('SDK download flow points to the matching source-free artifact guide',async ({page})=>{
   await page.goto('/ecosystem')
@@ -915,7 +953,7 @@ test('project onboarding switches between real CLI, SDK, CI and MCP instructions
   await expect(page.getByText('cargo install --git',{exact:false})).toBeVisible()
   await expect(page.getByText('zerynex --capabilities',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/TypeScript \/ WASM/}).click()
-  await expect(page.getByText('npm registry',{exact:false})).toBeVisible()
+  await expect(page.getByText('npm install @zerynex/sdk@0.2.0',{exact:false}).first()).toBeVisible()
   await expect(page.getByText('createBrowserZerynexClient',{exact:false})).toBeVisible()
   await page.getByRole('button',{name:/GitHub Actions/}).click()
   await expect(page.getByText('Oluwa-Laughter/zerynex@main',{exact:false})).toBeVisible()
@@ -930,7 +968,7 @@ test('mobile project onboarding stays readable without horizontal overflow',asyn
   await page.setViewportSize({width:390,height:844})
   await page.goto('/integrate')
   await expect(page.getByRole('button',{name:/Rust CLI/})).toBeVisible()
-  await page.getByRole('button',{name:/Python SDK/}).click()
+  await page.getByRole('button',{name:/Python SDK/}).first().click()
   await expect(page.getByText('ZerynexClient',{exact:false})).toBeVisible()
   const widths=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}))
   expect(widths.content).toBeLessThanOrEqual(widths.viewport+1)

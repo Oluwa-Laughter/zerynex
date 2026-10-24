@@ -8,10 +8,10 @@ For applications, use the smallest compatible interface:
 
 | Language | Integration | Current availability |
 | --- | --- | --- |
-| TypeScript | SDK bundled with Rust/WASM | Tested local SDK tarball |
+| TypeScript | SDK bundled with Rust/WASM | Published `@zerynex/sdk@0.2.0` on npm |
 | Rust | Canonical library and CLI | Tested OS-native archive and Cargo Git source install |
-| Python | Adapter invoking the trusted Rust CLI | Tested local wheel |
-| Go | Source module invoking the trusted Rust CLI | Source SDK tested against the Rust CLI |
+| Python | Adapter invoking the trusted Rust CLI | Published `zerynex-python==0.2.0` on PyPI |
+| Go | Public module invoking the trusted Rust CLI | `go get github.com/Oluwa-Laughter/zerynex/packages/go@v0.2.0` |
 | Agents | Restricted stdio MCP and Agent Skill | Explicit opt-in source integration |
 | CI | Composite GitHub Action | Commit-SHA pinning and synthetic fixtures |
 

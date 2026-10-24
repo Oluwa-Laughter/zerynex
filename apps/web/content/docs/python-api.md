@@ -2,14 +2,15 @@
 
 `zerynex-python` provides a thin, local adapter to the canonical Rust CLI. It does not duplicate the PCZT parser in Python, host a wallet, call a remote Zerynex API or send transaction data to an AI service.
 
-## Install from source or verified wheel
+## Install from PyPI or source
 
 Requires Python **3.11+** and the trusted Rust `zerynex` executable:
 
 ```bash
+# Install the reviewed Rust CLI, or compile it from the source checkout:
 cargo build --locked --release --bin zerynex
-python -m venv .venv
-.venv/bin/python -m pip install ./packages/python
+python3 -m venv .venv
+.venv/bin/python -m pip install zerynex-python==0.2.0
 ```
 
 The Python wheel is independently tested and delegates PCZT analysis to the local Rust CLI. See [Downloads](releases.md).

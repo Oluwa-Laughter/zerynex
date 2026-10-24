@@ -225,6 +225,6 @@ export default function HomeExperience() {
         <small>READ-ONLY · NO SIGNING KEYS · NO WALLET RPC</small>
       </div>
     </section>
-    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>ZCASH DEVELOPER TOOLS / PRIVACY-FIRST INFRASTRUCTURE.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
+    <footer className="zn-footer"><div><strong>ZERYNEX</strong><span>ZCASH DEVELOPER TOOLS / PRIVACY-FIRST INFRASTRUCTURE.</span></div><nav><Link href="/tools">Tools</Link><Link href="/ecosystem">SDKs</Link><Link href="/agents">Agents</Link><Link href="/docs">Docs</Link><a href="https://github.com/Oluwa-Laughter/zerynex" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0" target="_blank" rel="noopener noreferrer">Releases</a></nav><small>ZCASH CORE & TOOLING / {new Date().getFullYear()}</small></footer>
   </main>
 }

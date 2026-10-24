@@ -3,7 +3,7 @@
 This project is pre-1.0 developer infrastructure for Zcash. A package release
 is not a certification of wallet privacy, consensus, signing, or cryptography.
 
-## 0.2.0 — Unreleased; awaiting approved tag and registry configuration
+## 0.2.0 — 2026-10-24
 
 - Broadened privacy tooling across Rust CLI, WASM, TypeScript, Python and local
   MCP integrations, with synthetic fixtures and repeatable local checks.
@@ -15,12 +15,10 @@ is not a certification of wallet privacy, consensus, signing, or cryptography.
   duplicate-key rejection, and more readable copyable public documentation.
 - Fixed `@zerynex/sdk` root exports; added registry metadata and verified
   local npm/Python artifact checks against expected entry points.
-- Prepared **manual-only** npm/PyPI trusted publishing with package validation
-  and protected release environments. No registry push happens on commit.
-- Prepared v0.2.0 version alignment across Rust, TypeScript, Python and web.
-
-The **public v0.1.0 GitHub Release remains the latest released version** until
-its v0.2.0 successor has been reviewed and deliberately tagged.
+- Released `@zerynex/sdk` to npm and `zerynex-python` to PyPI using
+  reviewed release artifacts and manual, approval-protected publishing.
+- Aligned v0.2.0 Rust, TypeScript, Python and web package versions.
+- Tagged and verified the independently installable Go SDK module as `packages/go/v0.2.0`.
 
 ## 0.1.0 — 2026-10-17
 

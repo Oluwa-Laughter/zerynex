@@ -44,7 +44,7 @@ Exit `0`: implemented rules found no issues. Exit `2`: policy findings. Exit `1`
 
 ## TypeScript / WASM: integrate into your frontend
 
-The TypeScript SDK is independently tested as a bundled npm tarball. Install a verified compatible artifact from [downloads](releases.md) or build `packages/sdk` from the source checkout.
+Install the tested public `@zerynex/sdk@0.2.0` package with `npm install @zerynex/sdk@0.2.0`, or use a matching verified artifact from [downloads](releases.md).
 
 ```typescript
 import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
@@ -70,7 +70,7 @@ Your app must bundle and serve the trusted WASM asset. There is **no hosted PCZT
 
 ## Python SDK: automate on your developer machine
 
-To install from a local checkout:
+For the published Python SDK, run `python3 -m pip install zerynex-python==0.2.0`. For development from a local checkout:
 
 ```bash
 git clone https://github.com/Oluwa-Laughter/zerynex.git

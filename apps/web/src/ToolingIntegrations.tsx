@@ -15,8 +15,8 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
   },
   {
     key:'typescript',label:'TypeScript SDK',title:'Integrate with a browser application',kind:'REACT + NEXT.JS',
-    description:'Use the local TypeScript SDK with an initialized and trusted WASM module. This is a repository-local package; it has not been published on npm.',
-    code:"import { createZerynexClient } from '@zerynex/sdk'\nimport init, { analyze_pczt_policy } from './wasm/zerynex.js'\n\nconst client = createZerynexClient({\n  loadEngine: async () => {\n    await init({ module_or_path: '/wasm/zerynex_bg.wasm' })\n    return { analyze_pczt_policy }\n  },\n})\nconst report = await client.analyzeBlob(file, {\n  deny_transparent: true,\n})",
+    description:'Use the local TypeScript SDK with an initialized and trusted WASM module. The v0.2.0 SDK is published on npm and includes Rust/WASM.',
+    code:"import { createBrowserZerynexClient } from '@zerynex/sdk/browser'\n\nconst client = createBrowserZerynexClient()\nawait client.ready()\n// A File selected in your app; bundler serves the adjacent WASM.\nconst report = await client.analyzeBlob(file, { deny_transparent: true })",
     documentation: '/docs/typescript-api',icon:LuCode,
   },
   {
@@ -27,7 +27,7 @@ const integrations: {key:Integration,label:string,title:string,kind:string,descr
   },
   {
     key:'go',label:'Go SDK',title:'Local policy checks for Go services',kind:'GO / RUST CLI',
-    description:'Go infrastructure developers can run canonical Rust privacy checks through the source SDK. Supports binary PCZTs, base64-over-stdin, and stage comparison without an app UI or hosted service.',
+    description:'Go infrastructure developers can install the v0.2.0 module and run canonical Rust privacy checks through its adapter. Supports binary PCZTs, base64-over-stdin, and stage comparison without an app UI or hosted service.',
     code:"cargo build --locked --release --bin zerynex\n\n# In a Go project that imports the repository-local module:\nclient := zerynex.Client{Binary: \"/path/to/zerynex\"}\nreport, err := client.AnalyzeFile(ctx, fixturePath,\n    zerynex.Policy{DenyTransparent: true})\n\n// Real Rust integration is verified in CI with Go tests.\n// Do not send real wallet PCZTs to public CI.",
     documentation: '/docs/go-sdk',icon:LuPackage,
   },

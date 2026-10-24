@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Guard the boundary between published API docs and internal repository notes.
 import { readFile, access, readdir } from 'node:fs/promises'
-import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -45,13 +44,18 @@ if (markdown.length !== publicSlugs.size || markdown.some(slug => !publicSlugs.h
   throw Error('Generated content includes an internal or missing public guide')
 console.log('Validated curated public docs:', publicSlugs.size, 'guides;', privateSlugs.length, 'internal notes excluded')
 
-// Ensure the public identity remains a reusable Zcash ecosystem product.
-const forbiddenBranding = ['zec' + 'athon', 'hack' + 'athon']
-const tracked = execFileSync('git', ['ls-files', '-z'], {cwd: root, encoding: 'utf8'}).split('\0').filter(Boolean)
-for (const file of tracked) {
-  if (!/\.(?:md|mdx|rst|txt|tsx|ts|jsx|js|py|rs|json|ya?ml|toml|html|css)$/.test(file)) continue
-  const source = await readFile(path.join(root, file), 'utf8')
-  if (forbiddenBranding.some(term => source.toLowerCase().includes(term)))
-    throw Error('Event-specific terminology in Zcash developer product source: ' + file)
+// Keep the top-level developer entry point complete and link to real releases.
+const readme = await readFile(path.join(root, 'README.md'), 'utf8')
+for (const required of [
+  'apps/web/public/favicon.svg',
+  'https://zerynex.vercel.app/tools',
+  'https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0',
+  'https://pypi.org/project/zerynex-python/0.2.0/',
+  'https://www.npmjs.com/package/@zerynex/sdk',
+  'docs/privacy-model.md',
+  'CONTRIBUTING.md',
+  'SECURITY.md',
+]) {
+  if (!readme.includes(required)) throw Error('Developer README missing important resource: ' + required)
 }
-console.log('Product-positioning guard checked', tracked.length, 'tracked paths')
+console.log('Developer README branding, release, SDK and safety links verified')

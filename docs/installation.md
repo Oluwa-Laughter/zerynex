@@ -12,13 +12,13 @@ linting or role-handoff regression tests.
 
 | Interface | For | Current state |
 | --- | --- | --- |
-| Rust CLI and library | Wallets, CI, Rust programs | Supported from source |
+| Rust CLI and library | Wallets, CI, Rust programs | v0.2.0 GitHub binaries and source |
 | PCZT role scenario runner | Offline wallet developer acceptance tests | Supported from source |
-| TypeScript/WASM SDK | React/Next.js and browser wallet UIs | Packaged Rust/WASM tested in independent applications |
-| Python SDK | Automation and Python test suites | Calls trusted Rust CLI |
+| TypeScript/WASM SDK | React/Next.js and browser wallet UIs | Public `@zerynex/sdk@0.2.0`; bundled Rust/WASM |
+| Python SDK | Automation and Python test suites | Public `zerynex-python==0.2.0`; requires local Rust CLI |
 | GitHub Action | Repository pull-request checks | Supported with synthetic fixtures |
 | MCP and Agent Skill | Read-only agent workflows | Optional and local |
-| Go SDK | Go wallet and infrastructure applications | Source SDK: see [Go guide](go-sdk.md) |
+| Go SDK | Go wallet and infrastructure applications | Public `v0.2.0` module; local Rust CLI required |
 | Zebra/Z3 | Local node-readiness checks | Partial |
 | ZK/prover structural handoffs | ZK and privacy engineers | Partial: see [ZK guide](zk-prover-handoffs.md) |
 | Live Zallet RPC, Zaino, proof adapters | Wallet/prover/indexer teams | Not yet supported |
@@ -53,8 +53,8 @@ See [project bootstrap and verification](project-integration.md) for the offline
 
 Requires Python 3.11+ and local Rust CLI.
 
-    python -m venv .venv
-    .venv/bin/python -m pip install ./packages/python
+    python3 -m venv .venv
+    .venv/bin/python -m pip install zerynex-python==0.2.0
 
 Python example:
 
@@ -68,9 +68,10 @@ This Python adapter requires a separately installed local Rust CLI.
 
 ## TypeScript/WASM SDK
 
-The SDK is in packages/sdk and shares the Rust core compiled to WASM.
-The Rust/WASM SDK can be integrated from the checked-in source. Development supports npm, Yarn and
-pnpm. See [TypeScript browser API](typescript-api.md).
+Install the public package with `npm install @zerynex/sdk@0.2.0`.
+The shipped SDK includes the matching Rust/WebAssembly engine. Ensure your bundler
+serves its WASM asset; see [TypeScript browser API](typescript-api.md).
+Developers may also build the SDK from `packages/sdk` using npm, Yarn or pnpm.
 
 ## Offline PCZT role-handoff harness
 

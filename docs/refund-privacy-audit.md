@@ -164,14 +164,13 @@ These checks cannot attest quantum-safe wallets or cryptographic isolation.
 
 ## Node.js / TypeScript CLI — strict local metadata files
 
-The independently tested `@zerynex/sdk` **npm tarball** includes the
-`zerynex-refund-check` executable (the tarball is verified in CI but is not
-yet published to the public npm registry). Developers can install the tarball
-locally and run a real CLI **without Python, wallets, networking, Rust/WASM,
-or hosted Zerynex APIs**:
+The publicly available `@zerynex/sdk@0.2.0` package includes the
+`zerynex-refund-check` executable, tested through independent npm consumers.
+Install it with `npm install @zerynex/sdk@0.2.0`. This metadata-only CLI
+runs **without Python, wallets, networking, Rust/WASM, or hosted Zerynex APIs**:
 
 ```bash
-# From your trusted repository after installing the verified SDK tarball:
+# From your trusted project after installing @zerynex/sdk:
 ./node_modules/.bin/zerynex-refund-check \
   --manifest tests/fixtures/swap-refund/isolated.json --json
 

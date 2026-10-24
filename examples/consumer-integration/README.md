@@ -22,7 +22,7 @@ The Node starter under `node/` uses the **actual installed**
 public-safe JSON files, checks the current metadata, compares per-flow risk
 occurrences and emits rule IDs and counts or redacted SARIF.
 
-After `v0.2.0` is reviewed and publicly published to npm:
+Install the published `@zerynex/sdk` version 0.2.0:
 
 ```bash
 cd node
@@ -31,28 +31,24 @@ node check.mjs ../fixtures/isolated.json ../fixtures/risky.json
 node check.mjs ../fixtures/risky.json ../fixtures/isolated.json sarif
 ```
 
-**Before registry publication**, obtain and verify the reviewed
-`zerynex-sdk-0.2.0.tgz` from the corresponding GitHub Release or CI
-artifact and install it locally from `node/` using
-`npm install ./path/to/zerynex-sdk-0.2.0.tgz` instead. Do not assume
-the older `v0.1.0` release contains the `v0.2.0` SDK APIs.
+For an offline installation, download the matching reviewed
+`zerynex-sdk-0.2.0.tgz` from the [v0.2.0 GitHub Release](https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0)
+and install that archive from your consumer project.
 
 ## 3. Python application integration
 
 The Python starter under `python/` uses the separately installed
 `zerynex-python` package with **strict local JSON parsing**.
-From the starter root, after installing a verified version-`0.2.0`
-wheel into your virtual environment:
+From the starter root, install the public wheel with
+`python3 -m pip install -r python/requirements.txt`, then run:
 
 ```bash
 python python/check.py fixtures/isolated.json fixtures/risky.json
 python python/check.py fixtures/risky.json fixtures/isolated.json --sarif
 ```
 
-After PyPI publication, `pip install -r python/requirements.txt`
-can install the public release; until then install the vetted wheel by
-its local filename. The wheel's PCZT features also require a separately
-installed trusted Rust CLI, but **these metadata-only examples do not**.
+The wheel's PCZT features require a separately installed trusted
+Rust CLI, but **these metadata-only examples do not**.
 
 ## Expected results
 
@@ -71,5 +67,4 @@ settlement, consensus or future quantum resistance.
 Further documentation: [installation](../../docs/installation.md),
 [TypeScript API](../../docs/typescript-api.md),
 [refund privacy audit](../../docs/refund-privacy-audit.md),
-[release status](../../docs/releases.md), and
-[maintainer publishing steps](../../docs/publishing.md).
+[release artifacts](../../docs/releases.md).

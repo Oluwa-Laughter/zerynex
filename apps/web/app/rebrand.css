@@ -773,3 +773,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,[role=button]:focus-vis
 @media (max-width:360px){
   .zn-site-header .zn-brand-context{max-width:110px}
 }
+
+/* Package onboarding: short install step, clearly separated from the example. */
+.zn-language-detail .zn-install-surface{margin-top:22px}
+.zn-install-surface pre{padding-block:16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.zn-code-surface button{cursor:pointer}
+.zn-code-surface button:hover{border-color:var(--zn-accent)}
+.zn-language-select button{cursor:pointer}
+.zn-language-detail .zn-code-surface pre{max-width:100%}
+
+.zn-copy-notice{font:12px/1.6 var(--mono);color:var(--zn-muted);margin:10px 0 0}

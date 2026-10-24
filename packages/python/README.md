@@ -1,11 +1,16 @@
 # zerynex-python
 
 Python 3.11+ adapter for **local Rust-backed** Zcash PCZT privacy analysis.
-This package is not yet published on PyPI. A source-free wheel has been
-built and tested in a clean Python virtualenv against the real Rust CLI.
-See [release artifact downloads](https://zerynex.vercel.app/docs/releases).
+The official [`zerynex-python` 0.2.0 release](https://pypi.org/project/zerynex-python/0.2.0/)
+is available on PyPI, with a verified wheel and source distribution.
+The Python PCZT adapter requires the separately installed trusted
+[`zerynex` Rust CLI](https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0).
 
-## Installation from this checkout
+## Install from PyPI
+
+    python3 -m pip install zerynex-python==0.2.0
+
+## Install from a source checkout
 
 First compile the Rust CLI:
 

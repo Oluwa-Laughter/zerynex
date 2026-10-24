@@ -1,289 +1,152 @@
-# Zerynex
+<p align="center">
+  <img src="apps/web/public/favicon.svg" alt="Zerynex logo" width="84" height="84">
+</p>
 
-**Local-first Zcash developer tooling for privacy policies, PCZT testing, node readiness, RPC compatibility, SDK integration, and CI.**
+<h1 align="center">Zerynex</h1>
 
-Zerynex helps Zcash developers apply explicit disclosure policies to local Partially Created Zcash Transactions (PCZTs) and compare snapshots across stages for newly introduced privacy findings. The **same Rust analysis engine** powers the native CLI and browser WebAssembly; TypeScript, Python, Go and CI integrations extend its reach. Supporting offline/read-only tools are secondary to that tested core workflow.
+<p align="center"><strong>Local-first Zcash privacy checks for PCZT workflows, developer tools, SDKs, and CI.</strong></p>
+<p align="center">
+  <a href="https://zerynex.vercel.app/">Website</a> ·
+  <a href="https://zerynex.vercel.app/tools">PCZT Inspector</a> ·
+  <a href="https://zerynex.vercel.app/docs">Documentation</a> ·
+  <a href="https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0">Downloads</a> ·
+  <a href="https://github.com/Oluwa-Laughter/zerynex/actions">Build status</a>
+</p>
 
-**Try the core workflow:** [Analyze a local PCZT](https://zerynex.vercel.app/tools) · [Compare before and after](https://zerynex.vercel.app/tools/stages) · [Run the non-spendable synthetic demo](https://zerynex.vercel.app/#synthetic-demo).
+Zerynex lets Zcash developers **inspect selected disclosures in Partially Constructed Zcash Transactions (PCZTs)** and **compare transaction stages for newly introduced policy findings**. One canonical Rust engine powers the native CLI and browser-local WebAssembly. TypeScript, Python, and Go integrations reuse that engine rather than independently reimplementing PCZT parsing.
 
-**Two-minute judge walkthrough:** Load the **Clean v6** synthetic fixture in /tools and run the Rust/WASM inspector (no selected findings); load **Flagged v6** and run it again (the PCZT-GLOBAL-METADATA rule identifies the global.proprietary field path, never its value); then visit /tools/stages, choose **New metadata**, and compare to see the newly introduced finding. Both workbenches also accept explicitly selected real local PCZT files, which stay in browser memory rather than being uploaded. A pass covers only the implemented rules—not proof validity, signing safety, full anonymity, or consensus validity. See [submission walkthrough](submission/README.md).
+**No hosted analyzer, login, wallet connection, or remote transaction upload is required.** The browser tools process explicitly selected files on-device. The tool is a *policy and regression linter*, not a proof verifier, signer, wallet, consensus validator, or anonymity guarantee.
 
+## Start here
 
-**Problem:** ZIP-374 intermediary PCZT files may carry sensitive metadata that never appears in a final shielded transaction. Zerynex helps developers establish explicit policies at those handoff boundaries.
+| Goal | Use this |
+| --- | --- |
+| Try without installing | [PCZT Inspector](https://zerynex.vercel.app/tools) · [Stage regression](https://zerynex.vercel.app/tools/stages) |
+| Learn with nonspendable fixtures | [Quickstart](docs/quickstart.md) · [Live documentation](https://zerynex.vercel.app/docs) |
+| Install the native engine | [v0.2.0 Linux/macOS/Windows builds](https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0) · [CLI reference](docs/cli-reference.md) |
+| Build a Zcash application | [Integration guide](https://zerynex.vercel.app/integrate) · [Developer SDKs](https://zerynex.vercel.app/ecosystem) |
+| Automate a safe synthetic check | [GitHub Action guide](docs/github-action.md) · [Consumer example](examples/consumer-integration/README.md) |
 
-**Executable rule conformance:** The same 18 policy fixtures/scenarios and seven stage regressions run through the Rust CLI, Python SDK and independently packed TypeScript/WASM SDK. See [rule vectors](docs/rule-registry.md#executable-rule-conformance-vectors).
+## Install and run
 
-**Read-only transaction observations:** Zcash confirmation consistency and possible chain reorganizations for trusted backend RPC results, with no txids or block hashes in returned SDK reports. See [Transaction observations](docs/transaction-observations.md). This is not payment settlement verification.
+### Rust CLI — canonical parser and policy engine
 
-**Three ways to start:** [Try the bundled synthetic demo](https://zerynex.vercel.app/#synthetic-demo), [analyze a PCZT in your browser](https://zerynex.vercel.app/tools), or [integrate into your local project](https://zerynex.vercel.app/integrate). The homepage does not connect to developers' machines. See [Project integration](docs/project-integration.md).
-
-**ZIP-321 payment tooling:** Validate Zcash payment requests offline with real address checksums/network validation, integer zatoshi amounts, redacted Rust/WASM reports and a packaged native CLI. Try [the payment workbench](https://zerynex.vercel.app/tools/payment) and read the [ZIP-321 integration guide](docs/payment-requests.md). This does not authorize or execute payments.
-
-**Refund privacy risk modeling:** The offline `zerynex-refund-audit` checks developer-declared, non-secret swap refund identifiers for reuse, shared viewing scope and revealing lookup patterns. No keys, addresses, PIR service or post-quantum cryptography are handled. The `--baseline` mode detects per-flow privacy-risk regressions between safe metadata manifests; `--sarif` exports location-free warnings for CI. See [refund privacy exposure audit](docs/refund-privacy-audit.md).
-
-**Zcash node integration:** Read-only, loopback-only `zerynex-node-check` checks chain/network readiness; a pure TypeScript normalizer works in browser/backend projects without exposing RPC credentials. See [Node readiness](docs/node-readiness.md) and [Zcash builder recipes](docs/zcash-app-recipes.md).
-
-**Rule registry:** `zerynex --rule-catalog` returns the public, versioned PCZT finding definitions used across SDKs, SARIF and MCP. See [rule metadata](docs/rule-registry.md).
-
-**SARIF security reports:** `zerynex synthetic.pczt --deny-transparent --sarif` emits redacted SARIF 2.1.0 for local review and optional CI artifacts; see [SARIF integration](docs/sarif.md).
-
-**CLI capabilities:** `zerynex --capabilities` prints a versioned, offline JSON contract for SDK and CI consumers; see [capability discovery](docs/cli-capabilities.md).
-
-## Developer workflows
-
-- **PCZT policy inspection**: local browser/Rust checks for supported disclosure rules and selected pool-component policies.
-- **Transaction-stage regression tests**: compare two local PCZT snapshots and report newly introduced findings.
-- **Wallet signer/handoff scenarios**: verify deterministic synthetic Creator, Updater, Combiner and Redactor checkpoints.
-- **CI and SDK integration**: reuse the canonical Rust engine with CLI, WebAssembly and language adapters.
-- **Infrastructure diagnostics**: read-only loopback `getblockchaininfo` node readiness and offline RPC contract checks. Real signing, consensus verification and indexer adapters remain outside the supported scope.
-- **Agent tooling**: explicitly authorized, read-only MCP operations for approved synthetic fixtures, not private wallet contents.
-
-## Architecture
-
-- **Rust library** (`src/lib.rs`): real PCZT parsing via the Zcash `pczt` crate, policy checks on global proprietary metadata and selected Orchard/Ironwood fields.
-- **CLI** (`src/main.rs`): local binary input, text/JSON report, 0 pass / 1 input error / 2 policy findings.
-- **Browser engine**: the *same* Rust core compiled to WebAssembly; no hosted file upload or analysis API.
-- **Developer Tools** (`apps/web`): Next.js 16 App Router, React 19, TypeScript, Tailwind 4, GSAP, responsive PCZT workbenches and a local-only node-readiness report workbench (`/tools/node`).
-- **Node adapters** (`packages/python/src/zerynex_py/node.py` and `packages/sdk/src/network.ts`): read-only local RPC checks and pure cross-platform chain-state normalization, validated against shared fixtures.
-- **Fixtures** (`examples/generate_fixtures.rs`): synthetic non-spendable v6 PCZT files: clean, metadata-flagged, and transparent-output.
-
-## Development
-
-Requires Rust stable, Node.js >=22 and any of npm, Yarn, or pnpm. The commands below use pnpm because CI uses frozen pnpm lockfiles.
+Use a reviewed `v0.2.0` binary from [GitHub Releases](https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0), or compile the pinned release using Cargo:
 
 ```bash
-cargo test --locked --all-targets
-cargo run -- path/to/transaction.pczt --profile external-signer --json
-cargo install wasm-bindgen-cli --version 0.2.129 --locked
-bash scripts/build-wasm.sh
-cd packages/sdk
-pnpm install --frozen-lockfile
-pnpm build
-cd ../../apps/web
-pnpm install --frozen-lockfile
-pnpm dev
+cargo install --git https://github.com/Oluwa-Laughter/zerynex --tag v0.2.0 --locked --bin zerynex
+zerynex --capabilities
+zerynex /path/to/local-synthetic.pczt --deny-transparent --json
 ```
 
-Open http://127.0.0.1:3000, open **Developer Tools**, load a genuine local binary PCZT or one of the three **synthetic examples**, select a profile, and run **real Rust WebAssembly analysis** without transferring your PCZT to any backend.
+From a source checkout, reproduce the two canonical examples:
 
-The prebuilt browser WASM is included under `apps/web/public/wasm`. The build script reproducibly regenerates it. GitHub Actions builds Rust + WASM + web.
+```bash
+cargo run --locked -- apps/web/public/examples/clean-v6.bin --deny-transparent --json
+cargo run --locked -- apps/web/public/examples/transparent-v6.bin --deny-transparent --json
+```
 
-## Current policies
+The clean example exits **0** with no findings; the transparent example exits **2** with `PCZT-TRANSPARENT-OUTPUTS`. Exit **1** means an input/engine error and **must not** be treated as a passing check. Files can also be read from stdin and compared with `--compare-with`. See [CLI reference](docs/cli-reference.md) and [policy JSON](docs/policy-format.md).
 
-- `external-signer`: flags dummy spending keys and unreviewed proprietary metadata.
-- `restricted-handoff`: additionally flags selected output recipient/value/seed/address fields. This may reject legitimate signer workflows.
+### TypeScript / browser — npm + bundled Rust/WASM
 
-Reports contain rule IDs and field paths, **not private field values**.
+```bash
+npm install @zerynex/sdk@0.2.0
+```
 
-## Security notice
+```ts
+import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
 
-**Early research software, not audited.** Passing implemented checks does **not** imply anonymity, complete private-data handling, consensus validity, safe signing, or a production security audit. Sapling and transparent checks remain partial, and network side channels are outside v0.1 scope. No wallet keys belong in committed fixtures.
+const client = createBrowserZerynexClient()
+await client.ready() // Your bundler must serve the adjacent trusted .wasm asset
 
-Full threat-model summary: [docs/privacy-model.md](docs/privacy-model.md).
+// A File selected by the user in YOUR application.
+const report = await client.analyzeBlob(file, { deny_transparent: true })
+console.log(report.findings.map(({ rule, field }) => ({ rule, field })))
+```
 
-## Integrate into your own Zcash app
+For bundlers that do not resolve adjacent WASM automatically, pass a trusted WASM source to `createBrowserZerynexClient({ wasm })`. No application keys or PCZT data should go to public CI. See [TypeScript/browser API](docs/typescript-api.md), [npm package](https://www.npmjs.com/package/@zerynex/sdk), and [SDK development guide](packages/sdk/README.md).
 
-Read the [external developer verification and extension boundaries](docs/developer-verification.md) for what real package-consumer tests prove and what remains unverified. Start with the [copyable consumer CI workflow](examples/consumer-integration/README.md) and [ecosystem integration roadmap](docs/ecosystem-integration-roadmap.md). Zerynex currently checks selected PCZT disclosure policies; upstream wallet, node and indexer compatibility requires version-pinned integration tests.
+### Python — PyPI + local Rust CLI
 
-## Next milestones
+```bash
+python3 -m pip install zerynex-python==0.2.0
+```
 
-Expanded role-specific policies, real signer/prover compatibility fixtures, comprehensive pool checks, CI regression examples, upstream integration, privacy review.
+```python
+from zerynex_py import Policy, ZerynexClient
 
-## References
+client = ZerynexClient(cli="/absolute/path/to/zerynex")
+report = client.analyze_file("/path/to/local-synthetic.pczt", Policy(deny_transparent=True))
+print(report.agent_summary())
+```
 
-[ZIP-374](https://zips.z.cash/zip-0374) · [librustzcash](https://github.com/zcash/librustzcash) · [pczt documentation](https://docs.rs/pczt/).
+Python **delegates PCZT analysis to an installed, trusted Rust `zerynex` executable**; installing the wheel alone does not install the Rust binary. The wheel also provides restricted MCP tooling, project bootstrap, offline RPC checks, and refund metadata auditing. See [Python API](docs/python-api.md), [PyPI package](https://pypi.org/project/zerynex-python/0.2.0/), and [Python package guide](packages/python/README.md).
 
-MIT licensed. Open source.
+### Go — CLI-backed source adapter
 
+The [public Go module](https://pkg.go.dev/github.com/Oluwa-Laughter/zerynex/packages/go) is versioned `v0.2.0` and delegates analysis to the separately installed Rust CLI. From your Go application's module, run:
 
-## Next.js frontend
+```bash
+go get github.com/Oluwa-Laughter/zerynex/packages/go@v0.2.0
+```
 
-The web application uses Next.js 16 App Router and React 19. The homepage is / and the local PCZT inspector lives at /tools (legacy /studio links redirect there). Typography is bundled locally, with GSAP transitions and React Icons (Lucide collection) SVG components (no emoji graphics).
+See [Go SDK guide](docs/go-sdk.md) for `AnalyzeFile`, `AnalyzeBase64` and `CompareFiles`; no live Zcash node or hosted Zerynex API is required.
 
-The browser loads a Rust/WebAssembly engine from local static assets. The wasm-bindgen JavaScript wrapper lives under apps/web/src/wasm, and its binary is served from apps/web/public/wasm. The engine runs entirely in the browser: private PCZT bytes are not sent to the Next.js server.
+### GitHub Actions — reproducible synthetic checks
 
-Use Vercel with project root apps/web. Set NEXT_PUBLIC_SITE_URL to the canonical public site URL for OpenGraph metadata, if the host does not provide VERCEL_URL.
+Use the [composite Action](action.yml) on a **nonspendable synthetic fixture** in your repository. Pin it to a reviewed full Git commit SHA, not a moving `main` reference. Copy the [consumer workflow](examples/consumer-integration/.github/workflows/privacy-check.yml) or follow the [GitHub Action guide](docs/github-action.md). Never submit a real wallet PCZT, key, or intermediate transaction to public CI.
 
-## Frontend quality checks
+## What the toolkit does
 
-After installation and WASM generation:
+| Tool | Supported operation | Boundary |
+| --- | --- | --- |
+| [PCZT inspector](https://zerynex.vercel.app/tools) | Inspect an explicit binary PCZT with selected disclosure policies | Not a signature, proof, or consensus check |
+| [Stage regression](https://zerynex.vercel.app/tools/stages) | Compare two PCZT stages for newly introduced structural findings | Does not prove transaction equivalence |
+| [PCZT role harness](docs/handoff-harness.md) | Replay synthetic Creator/Updater/Combiner/Redactor scenarios | Not a live signer/prover test |
+| [ZIP-321](docs/payment-requests.md) | Locally validate payment request format and network | No payment execution or wallet custody |
+| [Wallet handoff](docs/wallet-handoffs.md) | Explicit consent and validated provider-facing request contracts | No automatic signing or settlement |
+| [Refund privacy](docs/refund-privacy-audit.md) | Audit non-secret declared metadata for linkability regressions | Does not inspect real viewing keys |
+| [Node readiness](docs/node-readiness.md) / [lightwalletd](docs/node-readiness.md) | Read-only diagnostics and normalized trusted RPC observations | Not a live indexed wallet service |
+| [Transaction observations](docs/transaction-observations.md) | Detect inconsistent confirmation reports and possible reorg hints | Not a payment receipt guarantee |
+| [OpenRPC contracts](docs/rpc-contracts.md) | Offline compatibility checks against approved schemas | Not live Zallet RPC verification |
+| [MCP and agents](docs/agents.md) | Explicitly configured, read-only synthetic-fixture tools | No arbitrary wallet-file access |
 
-    cd apps/web
-    pnpm build
-    pnpm lint
-    pnpm typecheck
-    pnpm exec playwright install chromium
-    pnpm test:e2e
+## Documentation by developer task
 
-GitHub CI also runs the Rust formatting, Clippy, tests, and WASM compatibility checks. Playwright covers real clean/flagged PCZT analysis on desktop and mobile.
+- **Build an integration:** [Install](docs/installation.md) · [Project integration](docs/project-integration.md) · [Rust library](docs/rust-api.md) · [TypeScript](docs/typescript-api.md) · [Python](docs/python-api.md) · [Go](docs/go-sdk.md).
+- **Understand results:** [Privacy policies](docs/policy-format.md) · [Rule registry](docs/rule-registry.md) · [Reports and errors](docs/report-reference.md) · [SARIF](docs/sarif.md) · [Stage regression](docs/pczt-stage-regression.md).
+- **Zcash ecosystem:** [Zallet handoffs](docs/zallet-pczt-handoff.md) · [ZK/prover boundaries](docs/zk-prover-handoffs.md) · [Application recipes](docs/zcash-app-recipes.md) · [Capability discovery](docs/cli-capabilities.md).
+- **Download and trust:** [Release artifacts](docs/releases.md) · [External consumer verification](docs/developer-verification.md) · [Privacy model](docs/privacy-model.md) · [MIT license](LICENSE).
 
-**Security note:** This early research toolkit is not audited, and its limited policy checks are not a guarantee of privacy or consensus validity.
+## Architecture and development
 
-## Policy-as-code
+```text
+Browser / Node              Python / Go / CI
+   |                           |
+   v                           v
+@zerynex/sdk + Rust WASM     zerynex native CLI
+   |                           |
+   +------ canonical Rust PCZT/policy engine -----+
+```
 
-Local JSON policies specify signer profile and permitted shielded pools.
-See [policy reference](docs/policy-format.md) and [policy examples](policies/).
-The CLI supports --policy-file, --deny-transparent, and --deny-sapling
-alongside the built-in profiles. A findings-free report never guarantees
-privacy, signing safety, or consensus validity.
+The browser runs local Rust/WASM; Python and Go execute the same Rust CLI on your machine. Infrastructure helpers that normalize supplied RPC data do not themselves fetch private node data.
 
-Zerynex ships three non-spendable synthetic PCZT v6 examples:
-clean, global-metadata-flagged, and transparent-output. The last one demonstrates
-why a shielded-only policy is meaningful, with no spendable funds or private keys.
+```bash
+git clone https://github.com/Oluwa-Laughter/zerynex.git
+cd zerynex
+cargo fmt --all -- --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked --all-targets
+bash scripts/build-wasm.sh
+cd packages/sdk && pnpm install --frozen-lockfile && pnpm build && pnpm test
+cd ../../apps/web && pnpm install --frozen-lockfile && pnpm dev
+```
 
-## Reusable TypeScript SDK
+For the complete browser check, run `pnpm test:e2e` from `apps/web` after installing Playwright Chromium. Building WASM requires the `wasm32-unknown-unknown` Rust target and `wasm-bindgen-cli 0.2.129`. See [developer documentation workflow](docs/documentation-workflow.md), [product integration contracts](docs/integration-contracts.md), [changelog](CHANGELOG.md), and [CI](https://github.com/Oluwa-Laughter/zerynex/actions).
 
-The independent @zerynex/sdk package in packages/sdk provides a typed API,
-strict policy normalization, lazy local WASM loading, Blob and Uint8Array
-analysis, and sanitized error messages. The Next.js PCZT Inspector now consumes
-this SDK rather than calling WebAssembly directly.
+## Security and limits
 
-The web app uses the local SDK distribution. Independent npm and Yarn consumer tests complement pnpm CI.
+Zerynex is **experimental, unaudited developer tooling**. A passing report means only that the configured, implemented *disclosure-policy rules* found no issues. It is **not evidence of anonymity, cryptographic proof validity, safe signing, complete consensus validation, transaction equivalence, or wallet compatibility**. Do not put wallet secrets, real transaction intermediates, viewing keys, or addresses into public GitHub issues, hosted AI conversations, or CI test artifacts.
 
-See docs/package-managers.md for installation and development instructions.
-
-## Importable policy configuration
-
-The PCZT Inspector can import/export repository-local JSON policy files with
-strict validation performed by @zerynex/sdk. A malformed policy does not
-alter the selected disclosure safeguards. Imported data is read on-device,
-and exported policies can be used directly with the Rust --policy-file CLI.
-
-## Python and AI-agent integrations
-
-The new Python adapter in packages/python invokes the trusted local Rust CLI
-without reimplementing Zcash cryptography. It provides typed Policy, Report,
-Finding, and ZerynexClient interfaces and sanitized policy findings.
-
-Agent developers can install the portable skill at
-agent/skills/zcash-privacy-check/SKILL.md and use the read-only local
-MCP server from the optional Python integration. Details are in
-docs/agents.md. The server only scans approved synthetic fixtures; it
-does not load arbitrary files or transmit PCZT data to hosted models.
-
-## Ecosystem Atlas and Z3 onboarding
-
-The /ecosystem route provides an interactive developer onboarding atlas with
-Rust, TypeScript, Python, MCP / Agent Skills and Z3 node operator quickstarts.
-The Z3 topology diagram is based on upstream documentation and is NOT live
-node telemetry.
-
-The Python SDK includes zerynex-z3-check: a read-only loopback-only
-Zebra /healthy and /ready diagnostic. No wallet RPC credentials are used.
-See docs/z3-local.md.
-
-## Core and Tooling integration contracts
-
-Zerynex is a Rust-first developer-tooling library with a standalone CLI,
-TypeScript/WASM and Python SDKs, CI checks and an opt-in agent interface.
-The website is optional: /tools supports PCZT inspection and integration
-quickstarts; /ecosystem offers onboarding; previous /studio and /console
-deep links redirect to /tools. Applications integrate through stable core
-interfaces rather than depending on the website.
-
-See [integration contracts](docs/integration-contracts.md) for current support,
-honest gaps in Zallet, Zaino, and prover integrations, and release gates.
-See [report JSON Schema](docs/report.schema.json) for interoperable results.
-
-
-## Install and adopt Zerynex (no hosted account)
-
-- **Rust**: install CLI directly using Cargo from this GitHub repository.
-- **Zallet/PCZT workflows**: pass local binary or base64 PCZTs to the CLI,
-  including through stdin without an intermediary conversion service.
-- **Python**: install the source adapter locally; it supports in-memory
-  base64-to-Rust analysis as well as private local files.
-- **TypeScript**: use the repo-local SDK with trusted bundled Rust/WASM.
-- **GitHub Actions**: use this repository as a **composite action** in other
-  repos, with only synthetic fixtures; no application SDK installation.
-
-See [adoption guide](docs/github-action.md) and
-[Zallet PCZT handoffs](docs/zallet-pczt-handoff.md). Zerynex does not call
-Zallet RPC directly or complete wallet signing/proving. Testnet/regtest
-end-to-end compatibility is a separate pending milestone.
-
-## Ecosystem research and stage-to-stage PCZT privacy testing
-
-Our [Zcash ecosystem research](docs/ecosystem-research-2026-10.md)
-maps concrete official gaps to possible new Zerynex capabilities,
-without asserting originality that hasn't been independently verified.
-
-[PCZT Stage Regression](docs/pczt-stage-regression.md) is now supported
-by the Rust library/CLI, Python adapter and reusable GitHub Action.
-It compares locally held PCZTs to flag newly present sensitive policy
-fields and changed pool component counts. It does NOT prove two
-transactions are cryptographically equivalent.
-
-## Offline PCZT role-handoff scenario tests
-
-Zerynex now includes a separate Rust executable that runs deterministic
-synthetic role-handoff policy scenarios. It exercises official PCZT
-Creator, Updater, Combiner and Redactor operations, without a live Zcash
-node, wallet, prover or signer.
-
-    cargo run --locked --example generate_role_handoff -- --check
-    cargo run --locked --bin zerynex-handoff -- \
-      --manifest tests/fixtures/role-handoff/scenario.json --json
-
-The reusable GitHub Action also accepts scenario-manifest to run several
-synthetic disclosure regression checks in one job. Read the
-[role-handoff guide](docs/handoff-harness.md) for installation, the
-strict manifest format, and limitations.
-
-## Developer documentation on the frontend
-
-The Next.js website now includes a built-in documentation center at /docs,
-with searchable guides, status labels, language/role onboarding and
-individually prerendered Markdown articles. Canonical source files live
-only in docs/ and are mirrored into apps/web/content/docs by
-scripts/sync-docs.mjs during web development and production builds.
-
-Each documented integration in Developer Tools links to its own in-site
-guide. New adapters must include source documentation, catalog registration,
-fixture tests and CI verification. See docs/installation.md, docs/go-sdk.md,
-docs/rpc-contracts.md and docs/zk-prover-handoffs.md.
-
-The offline RPC compatibility tool checks approved OpenRPC method and
-parameter declarations only. It does NOT connect to Zallet, test method
-semantics, sign transactions or validate consensus.
-
-The Go source SDK delegates to the existing canonical Rust CLI; there
-is no independently implemented Zcash cryptography or hosted API.
-
-## In-browser developer workbenches
-
-The frontend now runs multiple practical PCZT tools with the canonical
-Rust engine compiled to WebAssembly, entirely on the developer's device:
-
-- /tools: inspect one local binary PCZT using configurable privacy rules.
-- /tools/stages: compare two local binary PCZTs, try three synthetic
-  scenarios, inspect sanitized findings and export a JSON report.
-- /tools/handoff: replay four upstream role-generated synthetic PCZT
-  snapshots against the Rust stage engine, verify expected disclosures,
-  expand each test and export a safe JSON report.
-- /docs: canonical guides with direct links to running browser tools.
-
-Full nodes, Zallet RPC signing, proof generation, and Zaino connectivity
-are not simulated as supported. Those need separate upstream tests.
-
-For public Next.js deployment and verification, see docs/deployment.md.
-
-## Phase II product and SDK onboarding
-
-The functional product UX includes language-only SDK tabs, a separate
-restricted-agent experience, a geometric logo/favicons, GSAP narrative
-animations, Motion interactive transitions, and persistent Light, Dark
-and System themes. See docs/product-experience.md.
-
-For no-install browser use and lightweight adapter distribution, see
-docs/sdk-distribution.md. Check SDK versions and compatibility before installing.
-
-## Distribution and installation
-
-Zerynex now builds independently validated OS-native Rust CLI archives,
-a Python wheel with local MCP tools, and a TypeScript npm tarball that
-contains its **matching Rust/WASM runtime**. See
-[release artifacts](docs/releases.md). The distribution workflow
-supports manual artifact builds and releases from explicit version tags.
-
-Responsive layout and mobile navigation guidelines: docs/responsive-design.md. Run the frontend audit with pnpm audit:responsive.
+Zerynex is [MIT licensed](LICENSE). Contributions should follow [CONTRIBUTING.md](CONTRIBUTING.md); confidential vulnerability reports belong through the channels described in [SECURITY.md](SECURITY.md).

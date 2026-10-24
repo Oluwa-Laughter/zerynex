@@ -17,13 +17,13 @@ const tracks: Record<Track, TrackInfo> = {
     label: 'Project bootstrap',
     tagline: 'Verify Zerynex in your own codebase',
     audience: 'Zcash developers adopting local PCZT privacy checks and CI',
-    prerequisites: 'An existing project directory, a verified Zerynex Python wheel, Python 3.11+, and a trusted Rust CLI executable',
+    prerequisites: 'An existing project directory, Python 3.11+, the published zerynex-python SDK, and a separately installed Rust CLI executable',
     docs: '/docs/project-integration',
     steps: [
       {
-        title: 'Install the Python wheel locally',
-        explanation: 'Download the actual wheel from a reviewed release artifact. PyPI publication is not complete; no hosted account or wallet connection is required.',
-        code: 'python3 -m venv .venv\n.venv/bin/python -m pip install ./zerynex_python-0.2.0-py3-none-any.whl',
+        title: 'Install the public Python SDK',
+        explanation: 'Install the official v0.2.0 PyPI distribution. It does not require a hosted Zerynex account; PCZT checks also need the separate Rust CLI.',
+        code: 'python3 -m venv .venv\n.venv/bin/python -m pip install zerynex-python==0.2.0',
       },
       {
         title: 'Create nonspendable checks in your repository',
@@ -117,15 +117,15 @@ const tracks: Record<Track, TrackInfo> = {
     expected: 'Exit 0 = no findings in implemented rules; 2 = findings; 1 = invalid input or runtime failure. A clean report is not proof of anonymity or valid signatures.',
   },
   typescript: {
-    label: 'TypeScript / WASM', tagline: 'Embed the actual Rust engine in a dApp',
+    label: 'TypeScript / WASM', tagline: 'Embed the actual Rust engine in your application',
     audience: 'React, Next.js, browser wallet and TypeScript developers',
-    prerequisites: 'A trusted, built @zerynex/sdk tarball with its WASM asset',
+    prerequisites: 'The public @zerynex/sdk@0.2.0 package and a browser bundler that serves the WASM asset',
     docs: '/docs/typescript-api',
     steps: [
       {
-        title: 'Install an actual package artifact',
-        explanation: 'The SDK is independently tested as an npm tarball, but it has not been published to the public npm registry. Get the artifact from Releases or build packages/sdk from source.',
-        code: 'npm install /absolute/path/to/downloaded/zerynex-sdk.tgz\n# Use your actual downloaded artifact filename.',
+        title: 'Install the public browser SDK',
+        explanation: 'Use the verified @zerynex/sdk 0.2.0 package on npm; the matching Rust/WASM engine is included.',
+        code: 'npm install @zerynex/sdk@0.2.0',
       },
       {
         title: 'Connect your own file input',
@@ -143,13 +143,13 @@ const tracks: Record<Track, TrackInfo> = {
   python: {
     label: 'Python SDK', tagline: 'Automate Zcash policy checks locally',
     audience: 'Python test suites, tooling backends and automation developers',
-    prerequisites: 'Python 3.11+; the Zerynex source package and trusted Rust CLI',
+    prerequisites: 'Python 3.11+; the public zerynex-python 0.2.0 package and trusted Rust CLI',
     docs: '/docs/python-api',
     steps: [
       {
-        title: 'Install from the source checkout',
-        explanation: 'PyPI publication is not complete. This checkout supplies the Python package and the canonical Rust engine.',
-        code: 'git clone https://github.com/Oluwa-Laughter/zerynex.git\ncd zerynex\ncargo build --locked --release --bin zerynex\npython3 -m venv .venv\n.venv/bin/python -m pip install ./packages/python',
+        title: 'Install the published Python SDK',
+        explanation: 'Install the public package from PyPI and separately install or compile the trusted Rust CLI from the reviewed v0.2.0 source.',
+        code: 'python3 -m venv .venv\n.venv/bin/python -m pip install zerynex-python==0.2.0\n# Install a trusted Rust CLI separately.',
       },
       {
         title: 'Use the SDK in your test or service',

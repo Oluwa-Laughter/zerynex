@@ -6,26 +6,25 @@ not transmit PCZT contents, hold keys, sign transactions or broadcast payments.
 
 ## Install
 
-When published, users will be able to install it with any standard package manager:
+Install the published, independently verified version with any standard package manager:
 
-    npm install @zerynex/sdk
-    yarn add @zerynex/sdk
-    pnpm add @zerynex/sdk
+    npm install @zerynex/sdk@0.2.0
+    yarn add @zerynex/sdk@0.2.0
+    pnpm add @zerynex/sdk@0.2.0
 
-The SDK is **not yet published on npm**, but we now build a
-self-contained tarball containing the actual Rust/WebAssembly runtime.
-A consuming application does not need to compile Rust or clone the
-monorepo. Install a downloaded archive with your package manager:
-
-    npm install ./zerynex-sdk-0.2.0.tgz
+The published package bundles the matching Rust/WebAssembly runtime, so
+consuming applications do not need a Rust compiler or the monorepo.
+For an offline or checksum-verified deployment, use the matching
+`zerynex-sdk-0.2.0.tgz` from the [v0.2.0 release](https://github.com/Oluwa-Laughter/zerynex/releases/tag/v0.2.0).
 
 The new browser entry point initializes the engine shipped inside the archive:
 
 ~~~ts
 import { createBrowserZerynexClient } from '@zerynex/sdk/browser'
 
-// Provide trusted wasm bytes if your bundler needs explicit asset handling.
-const client = createBrowserZerynexClient({ wasm: trustedWasmBytes })
+// Pass { wasm: trustedWasmBytes } if your bundler needs explicit asset handling.
+const client = createBrowserZerynexClient()
+await client.ready()
 const report = await client.analyzeBlob(file, { deny_transparent: true })
 console.log(report.findings)
 ~~~

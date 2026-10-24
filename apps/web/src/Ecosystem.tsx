@@ -6,15 +6,28 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { LuArrowUpRight, LuCheck, LuCopy, LuTerminal, LuShieldCheck, LuBookOpen, LuPackage } from 'react-icons/lu'
 
 const integrations=[
- {id:'Rust',state:'Compiled CLI + source',title:'Rust core',desc:'Use the canonical policy engine, CLI, and offline role-handoff harness.',command:'zerynex synthetic.pczt --json\n\n# CLI source installation steps are in the guide.',guide:'/docs/rust-api',caveat:'Standalone CLI archives are built and tested for supported platforms; Cargo installation remains an alternative.'},
- {id:'TypeScript',state:'Bundled SDK artifact',title:'TypeScript + WASM',desc:'Run privacy checks directly inside your app using the canonical Rust/WebAssembly parser.',command:"import { createBrowserZerynexClient } from '@zerynex/sdk/browser'\n\nconst client = createBrowserZerynexClient({ wasm: trustedWasmBytes })\nconst report = await client.analyzeBlob(file, { deny_transparent: true })",guide:'/docs/typescript-api',caveat:'The independently tested npm tarball bundles real Rust/WASM. Public npm registry publication is still pending.'},
- {id:'Python',state:'Wheel + CLI',title:'Python',desc:'Script local PCZT checks and regression test runs by calling the trusted Rust binary.',command:"from zerynex_py import ZerynexClient\n\nclient = ZerynexClient(cli='/path/to/zerynex')\nreport = client.analyze_file('synthetic.pczt')",guide:'/docs/python-api',caveat:'A source-free Python wheel is tested against the compiled local Rust CLI. PyPI publication is still pending.'},
- {id:'Go',state:'Source adapter',title:'Go',desc:'Apply the same Rust policy engine in a Go service without a second cryptographic implementation.',command:'client := zerynex.Client{Binary: "/path/to/zerynex"}\nreport, err := client.AnalyzeFile(ctx, fixturePath, zerynex.Policy{})',guide:'/docs/go-sdk',caveat:'This Go source module uses a local Rust executable. There is no published standalone release yet.'},
+ {id:'Rust',state:'CLI · v0.2.0',title:'Rust core',desc:'Inspect local PCZT files with the canonical Rust policy engine and stage-regression CLI.',
+  setup:'cargo install --git https://github.com/Oluwa-Laughter/zerynex --tag v0.2.0 --locked --bin zerynex',
+  command:'zerynex --capabilities\nzerynex /path/to/synthetic.pczt --deny-transparent --json',
+  guide:'/docs/cli-reference',caveat:'Review an OS-native release archive if you do not want to compile. Exit 0 = no findings, 2 = findings, 1 = error.'},
+ {id:'TypeScript',state:'npm · v0.2.0',title:'TypeScript + WASM',desc:'Import the publicly released browser SDK, which bundles the canonical Rust/WebAssembly policy engine.',
+  setup:'npm install @zerynex/sdk@0.2.0',
+  command:"import { createBrowserZerynexClient } from '@zerynex/sdk/browser'\n\nconst client = createBrowserZerynexClient()\nawait client.ready()\n// file is explicitly selected by your app's user.\nconst report = await client.analyzeBlob(file, { deny_transparent: true })",
+  guide:'/docs/typescript-api',caveat:'Published on npm. Your browser bundler must serve the adjacent trusted WASM asset; supply { wasm } if needed. PCZTs stay local.'},
+ {id:'Python',state:'PyPI · v0.2.0',title:'Python',desc:'Install the published Python adapter and run canonical Rust policy checks against explicitly selected local files.',
+  setup:'python3 -m pip install zerynex-python==0.2.0',
+  command:"from zerynex_py import ZerynexClient, Policy\n\nclient = ZerynexClient(cli='/absolute/path/to/zerynex')\nreport = client.analyze_file('/path/to/synthetic.pczt', Policy(deny_transparent=True))\nprint(report.agent_summary())",
+  guide:'/docs/python-api',caveat:'Published on PyPI. PCZT analysis also requires a separately installed trusted Rust CLI; no hosted API or wallet connection.'},
+ {id:'Go',state:'Go · v0.2.0',title:'Go',desc:'Use the published Go module to invoke the same local Rust CLI, without a second cryptographic implementation.',
+  setup:'go get github.com/Oluwa-Laughter/zerynex/packages/go@v0.2.0',
+  command:'client := zerynex.Client{Binary: "/absolute/path/to/zerynex"}\nreport, err := client.AnalyzeFile(ctx, fixturePath, zerynex.Policy{DenyTransparent: true})',
+  guide:'/docs/go-sdk',caveat:'Versioned Go module v0.2.0 is public and tested against the real Rust CLI. Install that CLI separately; no hosted API.'},
 ] as const
 
 export default function Ecosystem() {
  const [selected,setSelected]=useState<(typeof integrations)[number]['id']>('TypeScript')
- const [copied,setCopied]=useState(false)
+ const [copied,setCopied]=useState<'setup'|'example'|null>(null)
+ const [copyError,setCopyError]=useState(false)
  const root=useRef<HTMLElement>(null)
  const reduced=useReducedMotion()
  const lane=integrations.find(i=>i.id===selected)!
@@ -23,20 +36,23 @@ export default function Ecosystem() {
   const ctx=gsap.context(()=>gsap.from('.zn-ecos-reveal',{opacity:0,y:24,stagger:.11,duration:.8,ease:'power3.out'}),root)
   return ()=>ctx.revert()
  },[reduced])
- async function copy(){
-  try{await navigator.clipboard.writeText(lane.command);setCopied(true)}catch{setCopied(false)}
+ async function copy(value: string, target: 'setup' | 'example'){
+  try{await navigator.clipboard.writeText(value);setCopied(target);setCopyError(false)}catch{setCopied(null);setCopyError(true)}
  }
  return <main className="zn-ecos" ref={root}>
   <header className="zn-ecos-header zn-ecos-reveal"><span className="zn-section-tag">LANGUAGE INTEGRATIONS / SDKs</span><h1>Bring Zcash privacy checks <em>into your code.</em></h1><p>SDKs are integration interfaces—not the product&apos;s limit. Select your programming language to use the canonical Rust policy engine inside Zcash wallets, transaction workflows and infrastructure applications.</p></header>
   <div className="zn-language-panel zn-ecos-reveal">
    <div className="zn-language-select" role="group" aria-label="Choose programming language">
-    {integrations.map(i=><button type="button" key={i.id} aria-pressed={i.id===selected} onClick={()=>{setSelected(i.id);setCopied(false)}}><span>{i.id}</span><small>{i.state}</small></button>)}
+    {integrations.map(i=><button type="button" key={i.id} aria-pressed={i.id===selected} onClick={()=>{setSelected(i.id);setCopied(null);setCopyError(false)}}><span>{i.id}</span><small>{i.state}</small></button>)}
    </div>
    <div className="zn-language-detail">
     <AnimatePresence mode="wait"><motion.div key={lane.id} initial={false} animate={{opacity:1,y:0}} exit={reduced?{}:{opacity:0,y:-10}} transition={{duration:.28}}>
      <div className="zn-language-top"><span>ACTIVE INTERFACE / {lane.id.toUpperCase()}</span><LuPackage size={22}/></div>
      <h2>{lane.title}</h2><p>{lane.desc}</p>
-     <div className="zn-code-surface"><div><span>{lane.id} / Quickstart</span><button type="button" aria-label="Copy quickstart commands" onClick={()=>void copy()}>{copied?<LuCheck size={16}/>:<LuCopy size={16}/>} {copied?'Copied':'Copy'}</button></div><pre><code>{lane.command}</code></pre></div>
+     <div className="zn-code-surface zn-install-surface"><div><span>{lane.id} / Setup</span><button type="button" aria-label="Copy setup command" onClick={()=>void copy(lane.setup,'setup')}>{copied==='setup'?<LuCheck size={16}/>:<LuCopy size={16}/>} {copied==='setup'?'Copied':'Copy'}</button></div><pre><code>{lane.setup}</code></pre></div>
+     <div className="zn-code-surface"><div><span>{lane.id} / Example</span><button type="button" aria-label="Copy example code" onClick={()=>void copy(lane.command,'example')}>{copied==='example'?<LuCheck size={16}/>:<LuCopy size={16}/>} {copied==='example'?'Copied':'Copy'}</button></div><pre><code>{lane.command}</code></pre></div>
+     <span className="sr-only" role="status" aria-live="polite">{copied ? (copied==='setup'?'Setup command copied':'Example code copied') : ''}</span>
+     {copyError&&<p className="zn-copy-notice" role="alert">Clipboard unavailable. Select the command or code above to copy it manually.</p>}
      <div className="zn-language-caveat"><LuShieldCheck size={17}/>{lane.caveat}</div>
      <Link className="zn-inline-link" href={lane.guide}>Read integration guide <LuArrowUpRight size={17}/></Link>
     </motion.div></AnimatePresence>
@@ -66,9 +82,9 @@ export default function Ecosystem() {
     </div>
     <div className="zn-distribution-matrix">
       <div><span>01 / NATIVE TOOLS</span><strong>Rust CLI</strong><small>Linux · macOS · Windows</small></div>
-      <div><span>02 / WEB APPLICATIONS</span><strong>TypeScript + WASM</strong><small>Bundled engine · npm tarball</small></div>
-      <div><span>03 / AUTOMATION</span><strong>Python + MCP</strong><small>Wheel · local CLI dependency</small></div>
-      <p>No account or installation is needed to try the hosted workbenches. Registries are not published yet.</p>
+      <div><span>02 / WEB APPLICATIONS</span><strong>TypeScript + WASM</strong><small>Published npm SDK · Rust/WASM</small></div>
+      <div><span>03 / AUTOMATION</span><strong>Python + MCP</strong><small>Published PyPI wheel · local CLI</small></div>
+      <p>Try the browser tools without an account or installation. TypeScript and Python SDKs are publicly installable; Go is also available as a public, versioned module.</p>
     </div>
   </motion.section>
   <section className="zn-ecos-end"><span>ZERO INSTALL TO TRY THE PRODUCT</span><h2>Start in the browser.</h2><p>Use our local-only workbench before installing anything in your app.</p><Link className="zn-primary" href="/tools">Open workbench <LuArrowUpRight size={17}/></Link></section>

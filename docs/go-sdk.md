@@ -1,8 +1,8 @@
 # Go SDK for Zcash developer tools
 
-**Status: source integration.** Zerynex includes a Go adapter in
-[packages/go](https://github.com/Oluwa-Laughter/zerynex/tree/main/packages/go)
-that calls the canonical Rust CLI. It does not reimplement Zcash cryptography.
+**Status: public module v0.2.0.** Install the [versioned Go adapter](https://pkg.go.dev/github.com/Oluwa-Laughter/zerynex/packages/go)
+from the official module proxy. It calls the separately installed canonical
+Rust CLI and does not reimplement Zcash cryptography.
 
 ## Why a Go integration?
 
@@ -14,14 +14,19 @@ regressions without writing a Rust or JavaScript application.
 
     cargo install --git https://github.com/Oluwa-Laughter/zerynex --locked --bin zerynex
 
-Build from pinned source if you need a reproducible revision. The repository's
-Go module is source-first and has not been independently released as a
-versioned SDK package.
+Then add the reviewed Go module to your own application's `go.mod`:
+
+```bash
+go get github.com/Oluwa-Laughter/zerynex/packages/go@v0.2.0
+```
+
+The release is tagged `packages/go/v0.2.0` in the monorepo and is independently
+retrievable through the Go module proxy. Build from pinned source if you need
+to reproduce the adapter. Installing the Go module does **not** install the Rust CLI.
 
 ## Example
 
-In a Go module with an approved dependency on
-github.com/Oluwa-Laughter/zerynex/packages/go, use:
+In a Go module with the version-pinned dependency installed, use:
 
     import (
         "context"
