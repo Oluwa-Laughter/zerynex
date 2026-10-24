@@ -536,7 +536,7 @@ test('download documentation describes independently tested packages',async ({pa
   await page.goto('/docs/releases')
   await expect(page.getByRole('heading',{name:/Download Zerynex without cloning/})).toBeVisible()
   await expect(page.getByText('npm install ./zerynex-sdk-0.2.0.tgz',{exact:false})).toBeVisible()
-  await expect(page.getByText('not automatically publish',{exact:false})).toBeVisible()
+  await expect(page.getByText('independently consumer-tested',{exact:false})).toBeVisible()
 })
 
 test('TypeScript onboarding uses bundled WebAssembly SDK and flags unpublished registry',async ({page})=>{
