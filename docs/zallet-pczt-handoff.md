@@ -102,6 +102,53 @@ wallet fixtures and live pczt_create/prove/sign/extract compatibility tests.
 It has not been completed. Zerynex does not sign, broadcast, generate
 proofs, authorize spends or validate cryptographic proofs.
 
+## Check locally supplied Zallet producer fixtures
+
+`scripts/check_zallet_pczt_fixture.py` is an offline, opt-in bridge toward
+producer compatibility evidence. In a disposable, locally controlled Zallet
+`v0.1.0-beta.3` environment, save only nonspendable PCZT output from your own
+`pczt_create` test as a **canonical base64** `.b64` file. Do not use a real
+wallet or copy a private PCZT into this repository. Record the SHA-256 of the
+exact base64 file and the policy findings expected at the handoff.
+
+Place a `manifest.json` beside the `.b64` file:
+
+```json
+{
+  "version": 1,
+  "producer": {
+    "release": "v0.1.0-beta.3",
+    "commit": "987382f67e622915228686e9f956c6a9c9a7514c",
+    "origin": "locally-supplied-zallet-output"
+  },
+  "cases": [
+    {
+      "file": "created.b64",
+      "sha256": "REPLACE_WITH_64_LOWERCASE_HEX_DIGITS",
+      "deny_transparent": true,
+      "expect": []
+    }
+  ]
+}
+```
+
+Use `sha256sum created.b64` to obtain the digest, then run:
+
+```bash
+cargo build --locked --bin zerynex
+python3 scripts/check_zallet_pczt_fixture.py \
+  --manifest /protected/local/manifest.json --cli ./target/debug/zerynex
+```
+
+The runner checks the digest, canonical base64, bounded size, and exact
+`rule`/`field` findings. Exit 0 means expectations matched, 2 means they
+did not, and 1 means invalid input or analyzer failure. Output contains case
+numbers, counts, and rule IDs only; it omits fixture paths and PCZT bytes.
+The manifest's producer origin is **author asserted**, not authenticated by
+this tool. Repository CI tests this runner against synthetic, nonspendable
+PCZTs only. A passing local fixture check is evidence about those supplied
+bytes, not proof of a running Zallet RPC handoff or signer/prover behavior.
+
 ## Check the upstream RPC shape without invoking the wallet
 
 Developers can use the [offline RPC contract checker](rpc-contracts.md)
