@@ -38,6 +38,33 @@ wallet/protocol tests before trusting sensitive PCZTs.
 
 Run browser tests without overlapping Playwright suites on limited-memory machines. If timeouts occur under resource contention, rerun the affected tests in isolation and do not count the run as successful.
 
+## Live website acceptance on desktop and mobile
+
+CI exercises the local app; also verify the deployed public website with a
+real Chromium browser:
+
+```bash
+cd apps/web
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+pnpm verify:live
+# Save optional screenshots of synthetic fixtures only:
+pnpm verify:live --capture-dir /tmp/zerynex-demo-capture
+```
+
+The opt-in `verify:live` command requires network access to the actual site.
+It exercises the homepage, explicit synthetic PCZT selection, a rejected
+transparent component, a clean result, a metadata stage regression, the
+quickstart, TypeScript/Python/Go installation panels, and mobile layout.
+It uses the **public** Rust/WASM engine and checks for uncaught page errors;
+the optional screenshots remain only on the operator's machine.
+Supported origins are restricted to the official Zerynex HTTPS site and
+Zerynex's own HTTPS Vercel deployment URLs. No wallet credentials or
+real-world PCZTs are used.
+
+The browser acceptance check tests deployed behavior, not wallet signing,
+proving, mainnet transfers, privacy guarantees or an independent audit.
+
 ## Consumer-safe contract
 
 - **Input boundaries:** Local PCZT files are bounded to 8 MiB. Imported policy JSON is at most 4 KiB and rejects unknown options and duplicate decoded keys, including Unicode aliases. Refund manifests are at most 64 KiB and use the same strict JSON boundary.

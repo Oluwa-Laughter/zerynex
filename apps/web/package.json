@@ -13,7 +13,8 @@
     "predev": "node ../../scripts/check-web-sdk-source.mjs && node ../../scripts/sync-docs.mjs",
     "prebuild": "node ../../scripts/check-web-sdk-source.mjs && node ../../scripts/sync-docs.mjs",
     "audit:responsive": "node scripts/audit-responsive.mjs",
-    "refresh:sdk": "pnpm install --force --frozen-lockfile"
+    "refresh:sdk": "pnpm install --force --frozen-lockfile",
+    "verify:live": "node scripts/verify-live.mjs"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.3.0",

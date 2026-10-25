@@ -161,6 +161,29 @@ when an installed native binary is available. See
 [external developer verification](docs/developer-verification.md) for
 requirements, skip conditions and security boundaries.
 
+## Verify the deployed developer experience
+
+After deploying, run the **real public-site browser acceptance check** from
+the checked-out repository. It uses only the site's nonspendable synthetic
+fixtures, inspects the working Rust/WASM findings and stage regression,
+checks public install instructions, and tests mobile layout. No wallet
+connection or private PCZT upload is needed.
+
+```bash
+cd apps/web
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+pnpm verify:live
+# Optional: save ten synthetic-only desktop/mobile screenshots outside the repo
+pnpm verify:live --capture-dir /tmp/zerynex-demo-capture
+```
+
+The verification checks the public Zerynex HTTPS site and fails on uncaught
+browser exceptions, incorrect findings, unavailable guides, or horizontal
+overflow. This is a product acceptance smoke, **not** a security audit
+or proof of compatibility with every browser or wallet. See
+[developer verification](docs/developer-verification.md) for other release checks.
+
 ## Security and limits
 
 Zerynex is **experimental, unaudited developer tooling**. A passing report means only that the configured, implemented *disclosure-policy rules* found no issues. It is **not evidence of anonymity, cryptographic proof validity, safe signing, complete consensus validation, transaction equivalence, or wallet compatibility**. Do not put wallet secrets, real transaction intermediates, viewing keys, or addresses into public GitHub issues, hosted AI conversations, or CI test artifacts.
