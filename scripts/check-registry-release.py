@@ -16,6 +16,8 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = 'https://github.com/Oluwa-Laughter/zerynex'
+NPM_REPOSITORY = 'git+' + REPOSITORY + '.git'
+NPM_BIN = {'zerynex-refund-check': 'bin/refund-check.mjs'}
 VERSION = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$')
 EXPECTED_EXPORTS = {'.', './browser', './wasm/zerynex_bg.wasm'}
 
@@ -36,7 +38,7 @@ def metadata(root: Path = ROOT) -> str:
     if npm.get('name') != '@zerynex/sdk' or py.get('name') != 'zerynex-python' or rust.get('name') != 'zerynex':
         raise RegistryReleaseError('Distribution identity changed; review package names')
     repo = npm.get('repository')
-    if not isinstance(repo, dict) or repo.get('url') != REPOSITORY or repo.get('directory') != 'packages/sdk':
+    if not isinstance(repo, dict) or repo.get('url') != NPM_REPOSITORY or repo.get('directory') != 'packages/sdk':
         raise RegistryReleaseError('npm repository metadata must match the actual public repository')
     if rust.get('repository') != REPOSITORY or py.get('urls', {}).get('Repository') != REPOSITORY:
         raise RegistryReleaseError('Python and Rust package repository metadata missing')
@@ -51,7 +53,7 @@ def metadata(root: Path = ROOT) -> str:
         raise RegistryReleaseError('Invalid SDK browser export map')
     if exports['./wasm/zerynex_bg.wasm'] != './dist/wasm/zerynex_bg.wasm':
         raise RegistryReleaseError('Missing packaged WASM binary export')
-    if npm.get('bin') != {'zerynex-refund-check': './bin/refund-check.mjs'}:
+    if npm.get('bin') != NPM_BIN:
         raise RegistryReleaseError('Missing installed SDK CLI executable')
     if not (root / 'packages/sdk/bin/refund-check.mjs').is_file():
         raise RegistryReleaseError('Missing source SDK CLI executable')
@@ -80,7 +82,7 @@ def npm_tarball(archive: Path, version: str) -> None:
             manifest = json.loads(tar.extractfile(members['package/package.json']).read())
             if manifest.get('name') != '@zerynex/sdk' or manifest.get('version') != version:
                 raise RegistryReleaseError('npm tarball identity or version disagrees with release')
-            if manifest.get('bin') != {'zerynex-refund-check': './bin/refund-check.mjs'}:
+            if manifest.get('bin') != NPM_BIN:
                 raise RegistryReleaseError('npm tarball lacks installed binary mapping')
             if manifest.get('exports', {}).get('.', {}) != {'types': './dist/index.d.ts', 'default': './dist/index.js'}:
                 raise RegistryReleaseError('Published npm entry point is invalid')

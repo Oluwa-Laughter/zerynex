@@ -145,6 +145,22 @@ cd ../../apps/web && pnpm install --frozen-lockfile && pnpm dev
 
 For the complete browser check, run `pnpm test:e2e` from `apps/web` after installing Playwright Chromium. Building WASM requires the `wasm32-unknown-unknown` Rust target and `wasm-bindgen-cli 0.2.129`. See [developer documentation workflow](docs/documentation-workflow.md), [product integration contracts](docs/integration-contracts.md), [changelog](CHANGELOG.md), and [CI](https://github.com/Oluwa-Laughter/zerynex/actions).
 
+## Verify the actual public SDK distributions
+
+For a network-enabled acceptance test of the **published npm, PyPI and Go
+packages** (rather than only the monorepo build), run from this checkout:
+
+```bash
+node scripts/smoke-published.mjs 0.2.0
+```
+
+The script runs only against reviewed nonspendable synthetic fixtures in
+temporary directories. It checks the npm CLI, Rust/WASM browser SDK and
+Python installation, queries the Go module proxy, and tests Python → Rust
+when an installed native binary is available. See
+[external developer verification](docs/developer-verification.md) for
+requirements, skip conditions and security boundaries.
+
 ## Security and limits
 
 Zerynex is **experimental, unaudited developer tooling**. A passing report means only that the configured, implemented *disclosure-policy rules* found no issues. It is **not evidence of anonymity, cryptographic proof validity, safe signing, complete consensus validation, transaction equivalence, or wallet compatibility**. Do not put wallet secrets, real transaction intermediates, viewing keys, or addresses into public GitHub issues, hosted AI conversations, or CI test artifacts.

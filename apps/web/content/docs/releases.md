@@ -102,6 +102,17 @@ then follow [MCP and agent setup](agents.md) for the doctor command.
 The Python wheel delegates to the Rust CLI locally; it does not include
 a separate cryptographic engine or require Next.js.
 
+## Reproduce the public consumer verification
+
+From a checked-out source tree, run `node scripts/smoke-published.mjs 0.2.0`
+to test the **public npm, PyPI and Go distributions** in an isolated
+temporary project using nonspendable PCZTs and metadata. This network-dependent
+smoke installs published packages and executes their Rust/WASM and Python
+interfaces, and checks the npm-installed refund command.
+Set `ZERYNEX_CLI` to a trusted local Rust executable to exercise Python → Rust
+integration as well. For details and limitations see
+[external developer verification](developer-verification.md).
+
 ## Trust boundaries
 
 - Download release artifacts from the intended organization and verify

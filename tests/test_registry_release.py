@@ -43,6 +43,22 @@ class RegistryReleaseTests(unittest.TestCase):
         (self.root / 'packages/sdk/bin/refund-check.mjs').unlink()
         with self.assertRaises(module.RegistryReleaseError):module.metadata(self.root)
 
+    def test_normalized_npm_metadata_is_required(self):
+        file = self.root / 'packages/sdk/package.json'
+        original = json.loads(file.read_text())
+        for key, altered in [('repository',
+                              {'type': 'git',
+                               'url': 'https://github.com/Oluwa-Laughter/zerynex',
+                               'directory': 'packages/sdk'}),
+                             ('bin', {'zerynex-refund-check': './bin/refund-check.mjs'})]:
+            with self.subTest(key=key):
+                tampered = dict(original)
+                tampered[key] = altered
+                file.write_text(json.dumps(tampered))
+                with self.assertRaises(module.RegistryReleaseError):
+                    module.metadata(self.root)
+        file.write_text(json.dumps(original))
+
     def test_cross_language_version_drift_fails_closed(self):
         file = self.root / 'packages/python/pyproject.toml'
         file.write_text(file.read_text().replace('version = "0.2.0"','version = "0.1.0"',1))

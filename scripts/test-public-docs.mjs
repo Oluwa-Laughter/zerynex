@@ -55,6 +55,7 @@ for (const required of [
   'docs/privacy-model.md',
   'CONTRIBUTING.md',
   'SECURITY.md',
+  'scripts/smoke-published.mjs',
 ]) {
   if (!readme.includes(required)) throw Error('Developer README missing important resource: ' + required)
 }
